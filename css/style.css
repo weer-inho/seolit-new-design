@@ -27,6 +27,7 @@
   --t-blue: #EEF3FE;
   --t-green: #ECF7F1;
   --chip-ring: transparent;
+  --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
   /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
   --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
   --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -66,6 +67,7 @@
     --t-blue: #121D36;
     --t-green: #0F2219;
     --chip-ring: rgba(255, 255, 255, .22);
+    --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
     /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
     --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
     --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -96,6 +98,7 @@
   --t-blue: #121D36;
   --t-green: #0F2219;
   --chip-ring: rgba(255, 255, 255, .22);
+  --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
   /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
   --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
   --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -436,6 +439,22 @@ a { color: var(--atext); }
 @keyframes pulse { 40% { transform: scale(1.12); } }
 
 .feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; min-height: 290px; }
+/* Лента публикаций внутри телефона, телефон слегка повёрнут в 3D */
+.phone-wrap { perspective: 1200px; display: grid; place-items: center; }
+.phone {
+  --ry: -14deg; position: relative; width: 290px; max-width: 100%; height: 340px; border-radius: 40px;
+  transform: rotateX(4deg) rotateY(var(--ry)); transform-style: preserve-3d;
+}
+.phone__side { position: absolute; inset: 0; border-radius: 40px; background: var(--muted); transform: translateZ(-12px); }
+.phone__screen {
+  position: absolute; inset: 0; border-radius: 40px; border: 9px solid var(--fg); background: var(--bg);
+  overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 40px 70px -30px rgba(13, 21, 38, .45);
+}
+.phone__bar { height: 28px; flex: none; display: grid; place-items: center; }
+.phone__bar i { width: 70px; height: 7px; border-radius: 4px; background: var(--line); }
+.phone .feed { min-height: 0; flex: 1; padding: 4px 10px 10px; gap: 8px; }
+.phone .feed__item { padding: 10px 11px; gap: 10px; border-radius: 14px; box-shadow: none; background: var(--surface); }
+.phone .feed__item .chip { width: 34px; height: 34px; border-radius: 10px; }
 .feed__item {
   display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px;
   background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
@@ -544,6 +563,20 @@ a { color: var(--atext); }
 .step--go .step__k, .step--go .step__t { color: rgba(255, 255, 255, .82); }
 .step--go .h3 { font-size: 26px; }
 .step__burst { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Веер: из «Публикуемся!» разлетаются посты по соцсетям */
+.flow > .card { position: relative; z-index: 1; }
+.fan { position: relative; z-index: 0; display: grid; perspective: 1000px; cursor: pointer; }
+.fan > .step { position: relative; z-index: 2; }
+.fan__card {
+  position: absolute; inset: 0; z-index: 1; border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transform-origin: 50% 120%;
+  backface-visibility: hidden; transition: box-shadow .3s; pointer-events: none;
+}
+.fan__card.is-lit { box-shadow: 0 0 0 3px var(--c), 0 18px 36px -14px var(--c); }
+.fan__h { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; }
+.fan__h .chip { width: 28px; height: 28px; border-radius: 8px; }
+.fan__img { height: 46px; border-radius: 10px; background: color-mix(in srgb, var(--c) 22%, var(--soft)); }
+.fan__l { height: 7px; border-radius: 4px; background: var(--line); }
 .step__burst .chip { width: 30px; height: 30px; border-radius: 9px; font-size: 10px; animation: chipPop 3s var(--ease) infinite; animation-delay: var(--d); }
 @keyframes chipPop { 0%, 10% { transform: scale(0); } 25%, 85% { transform: scale(1); } 100% { transform: scale(0); } }
 
@@ -704,35 +737,40 @@ a { color: var(--atext); }
 .ai__card b { font-size: 16px; }
 .ai__card span { font-size: 14px; color: var(--ai-muted); }
 
-/* ---------- 8. Битрикс24: 3D-куб ---------- */
+/* ---------- 8. Битрикс24: слои в изометрии ---------- */
 .b24 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
 .b24__text { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
-.cube-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.cube-scene {
-  --cs: clamp(160px, 34vw, 250px);
-  width: calc(var(--cs) * 1.7); height: calc(var(--cs) * 1.7); max-width: 100%;
-  perspective: 1000px; display: grid; place-items: center; touch-action: none; cursor: grab; position: relative;
+.lay-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.lay-stage {
+  --ls: clamp(210px, 24vw, 270px);
+  width: 100%; height: calc(var(--ls) * 1.6); perspective: 1300px; display: grid; place-items: center;
+  cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none;
 }
-.cube-scene::before {
-  content: ""; position: absolute; width: 70%; height: 14%; bottom: 4%; border-radius: 50%;
-  background: radial-gradient(ellipse, var(--glow), transparent 70%); filter: blur(6px);
+.lay-stage:active { cursor: grabbing; }
+.lay {
+  --gap: 72px; position: relative; width: var(--ls); height: var(--ls); transform-style: preserve-3d;
+  transform: translateY(calc(var(--ls) * .3)) rotateX(var(--rx, 58deg)) rotateZ(var(--rz, -38deg)); /* верхние слои поднимаются — сцену опускаем */
 }
-.cube { position: relative; width: var(--cs); height: var(--cs); transform-style: preserve-3d; will-change: transform; }
-.face {
-  position: absolute; inset: 0; border-radius: 0; display: grid; place-items: center; text-align: center; /* скругление давало дырки в вершинах */
-  background: var(--c, var(--surface)); color: #fff; border: 1px solid rgba(255, 255, 255, .18);
-  font: 800 clamp(28px, 6vw, 46px)/1 var(--font-d); backface-visibility: hidden;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, .18);
+.lay__l { position: absolute; inset: 0; border-radius: 26px; transform-style: preserve-3d; }
+.lay__b24 {
+  padding: calc(var(--ls) * .1); display: flex; flex-direction: column; gap: 12px; color: #fff;
+  background: linear-gradient(160deg, var(--b24-1), var(--b24-2)); box-shadow: 0 40px 60px -20px rgba(13, 21, 38, .45);
 }
-.face svg { width: 56%; height: 56%; fill: currentColor; }
-.face--front { transform: translateZ(calc(var(--cs) / 2)); }
-.face--back { transform: rotateY(180deg) translateZ(calc(var(--cs) / 2)); }
-.face--right { transform: rotateY(90deg) translateZ(calc(var(--cs) / 2)); }
-.face--left { transform: rotateY(-90deg) translateZ(calc(var(--cs) / 2)); }
-.face--top { transform: rotateX(90deg) translateZ(calc(var(--cs) / 2)); }
-.face--bottom { transform: rotateX(-90deg) translateZ(calc(var(--cs) / 2)); }
-.face--b24 { font-size: clamp(18px, 3.6vw, 28px); background: linear-gradient(160deg, #2FC6F6, #1A8FD8); }
-.face--b24 small { display: block; font: 700 12px/1.2 var(--font-b); opacity: .85; margin-top: 8px; }
+.lay__b24 b { font: 800 clamp(20px, 2.2vw, 26px)/1 var(--font-d); }
+.lay__task { align-self: flex-start; padding: 6px 10px; border-radius: 9px; background: rgba(255, 255, 255, .22); font-weight: 800; font-size: 13px; }
+.lay__b24 i { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, .35); }
+.lay__hub {
+  transform: translateZ(var(--gap)); display: grid; place-items: center; align-content: center; gap: 6px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent); border: 1.5px solid var(--accent); color: #fff; font: 800 15px/1 var(--font-d);
+}
+.lay__hub svg { width: 32%; height: auto; aspect-ratio: 1; }
+.lay__nets {
+  transform: translateZ(calc(var(--gap) * 2)); display: grid; grid-template-columns: repeat(4, 1fr); place-items: center;
+  padding: 7%; border: 1.5px dashed var(--line); background: color-mix(in srgb, var(--surface) 40%, transparent);
+}
+.lay__nets .chip { width: calc(var(--ls) * .16); height: calc(var(--ls) * .16); border-radius: 13px; transition: box-shadow .3s; }
+.lay__nets .chip.is-hit { box-shadow: 0 0 0 4px var(--surface), 0 0 0 7px var(--c), 0 0 24px var(--c); }
+.lay__pk { position: absolute; left: 0; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 5px; background: var(--accent); box-shadow: 0 0 0 5px var(--glow); }
 
 /* ---------- 9. Старт ---------- */
 .start-panel {
@@ -742,6 +780,21 @@ a { color: var(--atext); }
 }
 .start-panel canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .start-panel > div, .start-panel > button { position: relative; z-index: 1; }
+.start-panel__text { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+.start-panel__text .btn { margin-top: 28px; }
+/* Сфера: 12 соцсетей и точки вокруг SEOlit */
+.globe { width: 320px; height: 320px; perspective: 900px; display: grid; place-items: center; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.globe:active { cursor: grabbing; }
+.globe__in { position: relative; width: 0; height: 0; transform-style: preserve-3d; }
+.globe__core {
+  position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(255, 255, 255, .16); box-shadow: 0 0 0 1px rgba(255, 255, 255, .3), 0 0 50px rgba(255, 255, 255, .25);
+}
+.globe__core svg { width: 54px; height: 54px; }
+.globe__pt { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+.globe__pt.chip { width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 13px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .35); transition: box-shadow .3s; }
+.globe__pt.chip.is-hit { box-shadow: 0 0 0 3px #fff, 0 0 26px #fff; }
+.globe__dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, .7); }
 .start-panel .h2 { font-size: clamp(34px, 5vw, 64px); }
 .start-panel p { margin: 10px 0 0; font-size: 18px; opacity: .9; }
 .start-panel .btn { background: #fff; color: #1D4ED8; }
@@ -770,16 +823,18 @@ a { color: var(--atext); }
   .cross, .price, .sched, .b24 { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .dots { display: none; }
   .auto { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 0; }
-  .auto > .site, .auto > .feed { width: 100%; max-width: 460px; }
+  .auto > .site, .auto > .phone-wrap { width: 100%; max-width: 460px; }
+  .phone { --ry: -6deg; }
   .wire { width: 2px; height: 46px; margin: 6px 0; }
   .wire::after { left: -4px; animation-name: runY; }
   @keyframes runY { 0% { top: 0; opacity: 0; } 15%, 85% { opacity: 1; } 100% { top: calc(100% - 10px); opacity: 0; } }
-  .feed { min-height: 0; margin-top: 4px; }
+  .phone-wrap { margin-top: 4px; }
   .flow { grid-template-columns: minmax(0, 1fr); justify-items: stretch; }
   .flow .wire { justify-self: center; }
   .step { min-height: 0; }
   .start-panel { grid-template-columns: minmax(0, 1fr); }
-  .b24 .cube-wrap { order: -1; }
+  .b24 .lay-wrap { order: -1; }
+  .globe { justify-self: center; width: 280px; height: 280px; }
   .ai__head { flex-direction: column; align-items: stretch; gap: 24px; }
   .ai__models { align-items: flex-start; }
   .ai__pills { justify-content: flex-start; max-width: none; }

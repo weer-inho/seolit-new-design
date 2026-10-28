@@ -10,6 +10,7 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const TAU = Math.PI * 2;
+  const easeIO = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
   const mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
   const mqDark = matchMedia('(prefers-color-scheme: dark)');
@@ -62,8 +63,8 @@
     const [v, d] = typeof i === 'string' ? ['0 0 24 24', i] : [i.v, i.d];
     return `<svg viewBox="${v}" aria-hidden="true"><path d="${d}"></path></svg>`;
   };
-  // Статичные плашки из разметки (сайдбар, доска, куб, декор): подпись → значок
-  $$('.chip, .face, .deco--chip > i').forEach((el) => {
+  // Статичные плашки из разметки (сайдбар, доска, декор): подпись → значок
+  $$('.chip, .deco--chip > i').forEach((el) => {
     const n = NETS.find((x) => x.s === el.textContent.trim());
     if (!n || !ICONS[n.s]) return;
     el.innerHTML = icon(n.s);
@@ -196,8 +197,8 @@
   // Окно ниже 600 px — обычная прокрутка. Плавно в обоих режимах движения: это действие пользователя.
   (function pager() {
     const STEP = 700, NEAR = 400;
-    const GRAB = '.ball, #cubeScene, input[type="range"]'; // пока их тянут мышью — не листаем
-    const NO_TOUCH = '.ball, #cubeScene, input[type="range"]'; // у них свои жесты пальцем
+    const GRAB = '.ball, #layStage, #globe, input[type="range"]'; // пока их тянут мышью — не листаем
+    const NO_TOUCH = '.ball, input[type="range"]'; // у них свои жесты пальцем
     const FIELD = 'input, textarea, select, [contenteditable]';
     const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
     const out = (k) => 1 - Math.pow(1 - k, 3);
@@ -554,7 +555,8 @@
      ========================================================== */
   (function autopost() {
     const box = $('#autoDemo'), btn = $('#autoBtn'), hub = $('#autoHub'), feed = $('#autoFeed');
-    const cnt = $('#autoCount'), art = $('#autoArt'), title = $('#autoTitle');
+    const cnt = $('#autoCount'), art = $('#autoArt'), title = $('#autoTitle'), phone = $('#autoPhone');
+    let sway = 0;
     const titles = ['Новинки недели в каталоге', 'Статья: как выбрать подарок', 'Отзыв покупателя', 'Акция выходного дня', 'Свежий кейс в блоге', 'Обзор новой модели'];
     let ti = 0, ni = 0, count = 0, busy = false, lastUser = -1e9, acc = 2.5;
 
@@ -614,6 +616,10 @@
 
     watch(box, {
       tick(dt, now) {
+        if (phone && !still) {
+          sway += dt;
+          phone.style.setProperty('--ry', ((innerWidth < 900 ? -6 : -14) + Math.sin(sway * 0.6) * 5).toFixed(2) + 'deg');
+        }
         if (busy || now - lastUser < 9000) return;
         acc += dt;
         if (acc > 4.2) { acc = 0; publish(); }
@@ -887,6 +893,43 @@
     });
   })();
 
+  /* ---------- «Публикуемся!»: веер постов по соцсетям ---------- */
+  (function howFan() {
+    const fan = $('#howFan');
+    if (!fan) return;
+    const front = $('.step--go', fan);
+    const cards = ['ВК', 'TG', 'OK', 'Pi', 'X'].map((s) => {
+      const n = NETS.find((x) => x.s === s);
+      const c = document.createElement('div');
+      c.className = 'fan__card';
+      c.setAttribute('aria-hidden', 'true');
+      c.style.setProperty('--c', n.c);
+      c.innerHTML = `<span class="fan__h"><span class="chip" style="--c:${n.c}">${icon(n.s)}</span>${n.n}</span><span class="fan__img"></span><i class="fan__l"></i><i class="fan__l" style="width:70%"></i>`;
+      fan.insertBefore(c, front);
+      return c;
+    });
+    // still: веер раскрыт и стоит, карточки подсвечиваются по очереди
+    let p = still ? 1 : 0, pT = p, auto = 0, pause = 0, lit = 0, litT = 0;
+    fan.addEventListener('click', () => { if (!still) { pT = pT ? 0 : 1; pause = 6; } });
+    watch(fan, {
+      tick(dt) {
+        if (still) pT = 1;
+        else if (pause > 0) pause -= dt;
+        else { auto += dt; if (auto > (pT ? 3.2 : 2)) { auto = 0; pT = pT ? 0 : 1; } }
+        p = still ? 1 : lerp(p, pT, 1 - Math.exp(-dt * 4));
+        const e = easeIO(clamp(p, 0, 1));
+        cards.forEach((c, i) => {
+          const k = i - (cards.length - 1) / 2;
+          const tx = lerp(0, k * 34, e), ty = lerp(0, -18 - (2 - Math.abs(k)) * 8, e), tz = lerp(-10 - i * 3, -40 - Math.abs(k) * 20, e);
+          c.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, ${tz.toFixed(1)}px) rotateZ(${(k * 7 * e).toFixed(2)}deg) rotateY(${(-k * 8 * e).toFixed(2)}deg)`;
+        });
+        litT += dt;
+        if (e > 0.8 && litT > 0.5) { litT = 0; cards.forEach((c, i) => c.classList.toggle('is-lit', i === lit)); lit = (lit + 1) % cards.length; }
+        if (e < 0.3) cards.forEach((c) => c.classList.remove('is-lit'));
+      },
+    });
+  })();
+
   /* ==========================================================
      5. Цена: калькулятор, 3D-наклон, бегущие строки
      ========================================================== */
@@ -1149,42 +1192,96 @@
     });
   })();
 
-  /* ==========================================================
-     8. 3D-куб Битрикс24
-     ========================================================== */
-  (function cube() {
-    const scene = $('#cubeScene'), cubeEl = $('#cube');
-    let rx = -18, ry = 32, vx = 0, vy = still ? 0 : 26, drag = false, lx = 0, ly = 0, lt = 0;
-    const apply = () => { cubeEl.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`; };
-    apply();
-    scene.addEventListener('pointerdown', (e) => {
-      drag = true; lx = e.clientX; ly = e.clientY; lt = performance.now();
-      scene.style.cursor = 'grabbing';
-      try { scene.setPointerCapture(e.pointerId); } catch (_) { /* ничего */ }
+  /* ---------- Перетаскивание 3D-сцен (слои, сфера): сдвиг, скорость, касание ---------- */
+  // Пальцем крутим только по горизонтали: вертикальный свайп листает страницу (pager)
+  function dragSpin(el, h) {
+    let on = false, touch = false, lx = 0, ly = 0, lt = 0, vx = 0, vy = 0, moved = 0, target = null;
+    el.addEventListener('pointerdown', (e) => {
+      on = true; touch = e.pointerType === 'touch'; moved = 0; vx = vy = 0;
+      lx = e.clientX; ly = e.clientY; lt = performance.now(); target = e.target;
+      try { el.setPointerCapture(e.pointerId); } catch (_) { /* ничего */ }
     });
-    scene.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      const now = performance.now(), dts = Math.max(0.008, (now - lt) / 1000);
-      const dx = e.clientX - lx, dy = e.clientY - ly;
-      ry += dx * 0.5; rx -= dy * 0.5;
-      vy = lerp(vy, (dx * 0.5) / dts, 0.5); vx = lerp(vx, (-dy * 0.5) / dts, 0.5);
+    el.addEventListener('pointermove', (e) => {
+      if (!on) return;
+      const now = performance.now(), dts = Math.max(8, now - lt) / 1000;
+      const dx = e.clientX - lx, dy = touch ? 0 : e.clientY - ly;
+      moved += Math.abs(dx) + Math.abs(dy);
+      vx = lerp(vx, dx / dts, 0.5); vy = lerp(vy, dy / dts, 0.5);
       lx = e.clientX; ly = e.clientY; lt = now;
-      apply();
+      h.move(dx, dy);
     });
-    const end = () => { drag = false; scene.style.cursor = ''; vx = clamp(vx, -600, 600); vy = clamp(vy, -600, 600); };
-    scene.addEventListener('pointerup', end);
-    scene.addEventListener('pointercancel', end);
-    watch(scene, {
+    const end = () => {
+      if (!on) return;
+      on = false;
+      if (performance.now() - lt > 100) vx = vy = 0;
+      if (h.up) h.up(vx, vy, moved < 6, target);
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    return () => on;
+  }
+
+  /* ==========================================================
+     8. Битрикс24: слои в изометрии (Битрикс24 → SEOlit → соцсети)
+     ========================================================== */
+  (function layers() {
+    const st = $('#layStage'), sc = $('#lay'), netsEl = $('#layNets');
+    if (!st) return;
+    netsEl.innerHTML = NETS.map((n) => `<span class="chip" style="--c:${n.c}" title="${n.n}">${icon(n.s)}</span>`).join('');
+    const chips = $$('.chip', netsEl);
+    const flash = (el) => { el.classList.remove('is-hit'); void el.offsetWidth; el.classList.add('is-hit'); setTimeout(() => el.classList.remove('is-hit'), 600); };
+    let rz = -38, rx = 58, vz = 0, gap = 72, t = 0, hover = false, acc = 0, lit = 0;
+    const pks = [];
+    const held = dragSpin(st, {
+      move(dx, dy) { rz += dx * 0.4; rx = clamp(rx - dy * 0.25, 28, 75); },
+      up(vx) { vz = clamp(vx * 0.4, -320, 320); },
+    });
+    if (fine) {
+      st.addEventListener('pointerenter', () => { hover = true; });
+      st.addEventListener('pointerleave', () => { hover = false; });
+    }
+    function emit() {
+      const el = document.createElement('span');
+      el.className = 'lay__pk';
+      sc.appendChild(el);
+      pks.push({ el, to: chips[(Math.random() * chips.length) | 0], t: 0 });
+    }
+    watch(st, {
       tick(dt) {
-        if (drag) return;
-        // still: сам не вращается, после поворота пальцем быстро останавливается там, где оставили
-        if (still && Math.abs(vx) + Math.abs(vy) < 0.05) return;
-        const k = 1 - Math.exp(-dt * (still ? 6 : 1.4));
-        vy = lerp(vy, still ? 0 : 26, k);
-        vx = lerp(vx, 0, k);
-        ry += vy * dt; rx += vx * dt;
-        if (!still) rx = lerp(rx, -18, 1 - Math.exp(-dt * 0.8));
-        apply();
+        t += dt;
+        if (!held()) {
+          // как на подставке: медленный поворот; still — только докат после руки
+          rz += ((still ? 0 : 8) + vz) * dt;
+          vz *= Math.exp(-dt * (still ? 6 : 2));
+          rx = lerp(rx, 58, 1 - Math.exp(-dt * 1.5));
+        }
+        // слои расходятся, когда их трогают; сами чуть дышат
+        const base = still ? 72 : 72 + 6 * Math.sin(t * 1.3);
+        gap = lerp(gap, hover || held() ? 108 : base, 1 - Math.exp(-dt * 5));
+        sc.style.setProperty('--rz', rz.toFixed(2) + 'deg');
+        sc.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+        sc.style.setProperty('--gap', gap.toFixed(1) + 'px');
+        acc += dt;
+        if (still) {
+          // без полётов: соцсети вспыхивают по очереди
+          if (acc > 0.5) { acc = 0; flash(chips[lit++ % chips.length]); }
+          return;
+        }
+        if (acc > 0.45) { acc = 0; emit(); }
+        const c = sc.offsetWidth / 2;
+        for (let i = pks.length - 1; i >= 0; i--) {
+          const p = pks[i];
+          p.t += dt / 1.3;
+          if (p.t >= 1) { flash(p.to); p.el.remove(); pks.splice(i, 1); continue; }
+          let x = c, y = c, z;
+          if (p.t < 0.45) z = gap * easeIO(p.t / 0.45); // вверх: Битрикс24 → SEOlit
+          else {
+            const k = easeIO((p.t - 0.45) / 0.55); // от SEOlit к соцсети на верхнем слое
+            const tx = p.to.offsetLeft + p.to.offsetWidth / 2, ty = p.to.offsetTop + p.to.offsetHeight / 2;
+            x = lerp(c, tx, k); y = lerp(c, ty, k); z = lerp(gap, gap * 2, k) + Math.sin(k * Math.PI) * 30;
+          }
+          p.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px)`;
+        }
       },
     });
   })();
@@ -1228,6 +1325,53 @@
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.l, 0, TAU); ctx.fill();
         }
         ctx.globalAlpha = 1;
+      },
+    });
+  })();
+
+  /* ---------- Сфера: 12 соцсетей и точки вокруг SEOlit ---------- */
+  (function globe() {
+    const st = $('#globe'), sp = $('#globeIn');
+    if (!st) return;
+    const N = 40, golden = Math.PI * (3 - Math.sqrt(5));
+    const chipAt = new Map(NETS.map((n, j) => [Math.floor(((j + 0.5) * N) / NETS.length), n]));
+    const pts = [], chips = [];
+    for (let i = 0; i < N; i++) {
+      const y = 1 - ((i + 0.5) * 2) / N, r = Math.sqrt(1 - y * y), ph = i * golden;
+      const n = chipAt.get(i), el = document.createElement('span');
+      if (n) { el.className = 'globe__pt chip'; el.style.setProperty('--c', n.c); el.title = n.n; el.innerHTML = icon(n.s); chips.push(el); }
+      else el.className = 'globe__pt globe__dot';
+      sp.appendChild(el);
+      pts.push({ el, x: Math.cos(ph) * r, y, z: Math.sin(ph) * r });
+    }
+    const flash = (el) => { el.classList.remove('is-hit'); void el.offsetWidth; el.classList.add('is-hit'); setTimeout(() => el.classList.remove('is-hit'), 600); };
+    let ay = 0, ax = 0.35, vay = still ? 0 : 0.35, vax = 0, t = 0, acc = 0, lit = 0;
+    const held = dragSpin(st, {
+      move(dx, dy) { ay += dx * 0.008; ax += dy * 0.008; },
+      up(vx, vy, tap, target) {
+        if (tap) { const c = target && target.closest('.globe__pt.chip'); if (c) flash(c); return; }
+        vay = clamp(vx * 0.008, -6, 6); vax = clamp(vy * 0.008, -6, 6);
+      },
+    });
+    watch(st, {
+      tick(dt) {
+        t += dt;
+        const R = st.offsetWidth * 0.4;
+        if (!held()) {
+          // still: сама не вращается, после руки быстро останавливается; значки вспыхивают по очереди
+          vay = lerp(vay, still ? 0 : 0.35, 1 - Math.exp(-dt * (still ? 5 : 0.8)));
+          vax = lerp(vax, 0, 1 - Math.exp(-dt * (still ? 5 : 1.2)));
+          ay += vay * dt; ax += vax * dt;
+          if (!still) ax = lerp(ax, 0.35 + Math.sin(t * 0.4) * 0.15, 1 - Math.exp(-dt * 0.5));
+        }
+        if (still) { acc += dt; if (acc > 0.6) { acc = 0; flash(chips[lit++ % chips.length]); } }
+        const cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
+        for (const p of pts) {
+          const x1 = p.x * cy + p.z * sy, z1 = -p.x * sy + p.z * cy;
+          const y2 = p.y * cx - z1 * sx, z2 = p.y * sx + z1 * cx;
+          p.el.style.transform = `translate3d(${(x1 * R).toFixed(1)}px, ${(y2 * R).toFixed(1)}px, ${(z2 * R).toFixed(1)}px)`;
+          p.el.style.opacity = (0.35 + 0.65 * (z2 + 1) / 2).toFixed(2);
+        }
       },
     });
   })();
