@@ -1388,7 +1388,8 @@
   /* ---------- Запуск ---------- */
   let last = performance.now();
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    // шаг не больше 0,1 с: время идёт верно от 10 кадров/с, а после возврата на вкладку нет скачка
+    const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     if (scrollDirty) { scrollDirty = false; updateScroll(); }
     for (const m of modules) if (m.always || m.active) m.tick(dt, now);
