@@ -49,6 +49,7 @@
       <a href="#cross">Кросспостинг</a>
       <a href="#price">Цена</a>
       <a href="#schedule">Расписание</a>
+      <a href="#ai">ИИ</a>
       <a href="#bitrix">Битрикс24</a>
     </nav>
     <div class="hdr__act">
@@ -69,6 +70,7 @@
   <a href="#how" aria-label="Как это работает"><span></span></a>
   <a href="#price" aria-label="Цена"><span></span></a>
   <a href="#schedule" aria-label="Расписание"><span></span></a>
+  <a href="#ai" aria-label="ИИ-соавтор"><span></span></a>
   <a href="#bitrix" aria-label="Битрикс24"><span></span></a>
   <a href="#start" aria-label="Попробовать"><span></span></a>
 </nav>
@@ -369,7 +371,85 @@
   </div>
 </section>
 
-<!-- 7. БИТРИКС24 -->
+<!-- 7. ИИ-СОАВТОР (тёмный в обеих темах) -->
+<section class="scr scr--ai" id="ai">
+  <div class="deco deco--plus deco--more" style="right:6%; top:10%" data-speed="-0.5" aria-hidden="true"><i></i></div>
+
+  <div class="wrap" id="aiBox">
+    <header class="ai__head rv" data-speed="-0.05">
+      <div class="ai__intro">
+        <p class="ai__badge">ИИ-соавтор</p>
+        <h2 class="h2">Текст поста пишет нейросеть. Публикуете вы.</h2>
+        <p class="lead">Нажмите «ИИ соавтор» рядом с текстом публикации, выберите модель и готовую инструкцию. Ответ сразу можно вставить в пост.</p>
+      </div>
+      <div class="ai__models">
+        <span class="ai__cap" id="aiModelsCap">Модели</span>
+        <div class="ai__pills" role="group" aria-labelledby="aiModelsCap">
+          <button class="ai__pill is-on" type="button" data-m="0" aria-pressed="true">Yandex GPT Lite</button>
+          <button class="ai__pill" type="button" data-m="1" aria-pressed="false">Yandex GPT Pro</button>
+          <button class="ai__pill" type="button" data-m="2" aria-pressed="false">Yandex Llama 8B</button>
+          <button class="ai__pill" type="button" data-m="3" aria-pressed="false">Yandex Llama 70B</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="ai__stage rv">
+      <div class="ai__form">
+        <div class="ai__form-h"><b>Задание · Редактирование</b><span>Ручная публикация</span></div>
+        <div class="ai__field"><span class="ai__k">Заголовок публикации</span><span>Как выбрать подарок и не ошибиться</span></div>
+        <div class="ai__field">
+          <span class="ai__k">Текст публикации</span>
+          <p class="ai__text is-empty" id="aiText">Здесь появится текст от ИИ соавтора</p>
+          <div class="ai__row">
+            <span class="ai__robot">
+              <svg class="ai__bot" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3" class="b"></rect><circle cx="9" cy="14" r="1.6" class="e"></circle><circle cx="15" cy="14" r="1.6" class="e"></circle><path d="M12 8V4.5" class="s"></path><circle cx="12" cy="3.5" r="1.6" class="b"></circle><rect x="1.5" y="12" width="2.5" height="4" rx="1" class="b"></rect><rect x="20" y="12" width="2.5" height="4" rx="1" class="b"></rect></svg>
+              ИИ соавтор
+            </span>
+            <span class="ai__note">есть у текста и полного текста публикации</span>
+          </div>
+        </div>
+        <div class="ai__field"><span class="ai__k">Хэштеги</span><span>#подарки #идеи</span></div>
+        <div class="ai__field"><span class="ai__k">Ссылка на материал</span><span>ваш-сайт.ru/blog/podarki</span></div>
+      </div>
+
+      <div class="ai__win" data-speed="0.04">
+        <div class="ai__win-h"><b>ИИ соавтор</b><span aria-hidden="true">×</span></div>
+        <div class="ai__grp">
+          <span class="ai__k2" id="aiListCap">Подключение ИИ</span>
+          <div class="ai__list" role="group" aria-labelledby="aiListCap">
+            <button class="ai__opt is-on" type="button" data-m="0" aria-pressed="true">Yandex GPT Lite</button>
+            <button class="ai__opt" type="button" data-m="1" aria-pressed="false">Yandex GPT Pro</button>
+            <button class="ai__opt" type="button" data-m="2" aria-pressed="false">Yandex Llama 8B</button>
+            <button class="ai__opt" type="button" data-m="3" aria-pressed="false">Yandex Llama 70B</button>
+          </div>
+        </div>
+        <div class="ai__grp">
+          <span class="ai__k2">Готовая инструкция для ИИ соавтора</span>
+          <span class="ai__select">Например: анонс статьи <span aria-hidden="true">⌄</span></span>
+        </div>
+        <p class="ai__prompt" id="aiPrompt">Напиши короткий анонс статьи «Как выбрать подарок» со ссылкой на сайт.</p>
+        <div class="ai__grp">
+          <label class="ai__k2 ai__k2--fg" for="aiTemp">Случайность (креативность)</label>
+          <input class="ai__range" id="aiTemp" type="range" min="0" max="100" step="1" value="38">
+        </div>
+        <div class="ai__meta"><span>Токенов в запросе: ≈ 24</span><span>1 токен Lite: 0,0002 ₽</span></div>
+        <button class="ai__send" id="aiSend" type="button">ОТПРАВИТЬ ЗАПРОС</button>
+        <div class="ai__ans">
+          <span class="ai__k3">Ответ · <span id="aiAnsModel">Yandex GPT Lite</span></span>
+          <p class="ai__ans-t is-empty" id="aiAns">Ответ появится здесь</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai__cards rv">
+      <div class="ai__card"><b>4 модели Yandex</b><span>GPT Lite и Pro, Llama 8B и 70B на выбор</span></div>
+      <div class="ai__card"><b>Готовые инструкции</b><span>Не нужно каждый раз писать запрос с нуля</span></div>
+      <div class="ai__card"><b>Цена видна заранее</b><span>Число токенов и их стоимость до отправки</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. БИТРИКС24 -->
 <section class="scr scr--alt" id="bitrix">
   <div class="deco deco--chip deco--more deco--sm" style="--c:#1B7DB0; --d:-2.5s; right:6%; top:14%" data-speed="0.5" aria-hidden="true"><i>TG</i></div>
   <div class="bg-dots" data-speed="-0.12" aria-hidden="true"></div>
@@ -402,7 +482,7 @@
   </div>
 </section>
 
-<!-- 8. СТАРТ -->
+<!-- 9. СТАРТ -->
 <section class="scr" id="start">
   <div class="deco deco--chip deco--more deco--sm" style="--c:#16181C; --d:-1s; left:4%; top:10%" data-speed="-0.45" aria-hidden="true"><i>X</i></div>
   <div class="deco deco--ring deco--more" style="--s:220px; right:-80px; bottom:12%" data-speed="0.4" aria-hidden="true"><i></i></div>

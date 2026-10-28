@@ -7,7 +7,7 @@
 |---|---|---|
 | `hero-notion.html`, `hero-notion.png` | Первый экран, 1440 px | ✅ реализован в `#hero` |
 | `hero-notion-mobile.html`, `hero-notion-mobile.png` | Первый экран, телефон 390 px | ✅ реализован |
-| `ai-coauthor.html`, `ai-coauthor.png` | ИИ-соавтор, 1440 px | 🆕 нужно сделать (`prompts/02`) |
+| `ai-coauthor.html`, `ai-coauthor.png` | ИИ-соавтор, 1440 px | ✅ реализован в `#ai` |
 | `site-hero-desktop.png`, `site-hero-mobile.png` | Как сейчас выглядит сайт | для сравнения |
 
 Макет ИИ-соавтора обрезан снизу: три карточки под окном есть в HTML, но не поместились в кадр 960 px.

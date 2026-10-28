@@ -239,7 +239,7 @@
       if (!on || grab || e.ctrlKey || !e.deltaY || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const now = performance.now(), gap = now - wheelT, abs = Math.abs(e.deltaY);
       wheelT = now;
-      if (locked && !anim && (gap > 200 || abs > wheelAbs * 2 + 10)) locked = false;
+      if (locked && !anim && (gap > 300 || abs > wheelAbs * 2 + 10)) locked = false;
       wheelAbs = abs;
       if (locked || anim) { e.preventDefault(); return; }
       const dir = Math.sign(e.deltaY), y = scrollY, st = stops(), t = aim(dir, y, st);
@@ -654,19 +654,20 @@
       b.state = 'free'; b.el.classList.remove('is-caught');
       b.el.setAttribute('aria-label', `${b.n.n}: подключить`);
     }
-    // Случайное место подальше от узла; в режиме still мяч стоит и проявляется там
+    // Случайное место подальше от узла и случайное направление; в still — медленнее и с проявлением
     function place(b) {
       let tries = 0;
       do { b.x = rnd(r, W - r); b.y = rnd(top + r, H - r); tries++; }
       while (tries < 60 && Math.hypot(b.x - hub.x, b.y - hub.y) < hub.R + r + 24);
       b.s = 1; b.thrown = 0;
-      if (still) { b.vx = b.vy = 0; fadeIn(b.el); }
+      const a = rnd(0, TAU), sp = still ? rnd(25, 45) : rnd(60, 150);
+      b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp;
+      if (still) fadeIn(b.el);
     }
     function scatter() {
       balls.forEach((b) => {
         markFree(b);
         place(b);
-        if (!still) { const a = rnd(0, TAU), sp = rnd(60, 150); b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp; }
       });
       caught = 0; setCount();
       msg.classList.add('is-hidden');
@@ -767,7 +768,7 @@
       tick(dt) {
         dt = Math.min(dt, 0.033);
         spin += dt * 0.5;
-        const minSp = still ? 0 : 45;
+        const minSp = still ? 25 : 45; // мячи плавают сами в обоих режимах
         for (const b of balls) {
           if (b.state === 'home') {
             // still: без полёта к узлу — сразу на место и проявление
@@ -779,9 +780,10 @@
           } else if (b.state === 'free') {
             b.x += b.vx * dt; b.y += b.vy * dt;
             const sp = Math.hypot(b.vx, b.vy);
-            if (still) { const f = Math.exp(-dt * 5); b.vx *= f; b.vy *= f; } // брошенный мяч быстро останавливается
-            else { b.vx += (Math.random() - 0.5) * 70 * dt; b.vy += (Math.random() - 0.5) * 70 * dt; }
-            if (sp > 190) { const f = Math.exp(-dt * 1.4); b.vx *= f; b.vy *= f; }
+            const jit = still ? 35 : 70;
+            b.vx += (Math.random() - 0.5) * jit * dt; b.vy += (Math.random() - 0.5) * jit * dt;
+            if (still && sp > 60) { const f = Math.exp(-dt * 2); b.vx *= f; b.vy *= f; } // брошенный мяч быстро успокаивается
+            else if (sp > 190) { const f = Math.exp(-dt * 1.4); b.vx *= f; b.vy *= f; }
             else if (sp < minSp && sp > 0.01) { b.vx *= minSp / sp; b.vy *= minSp / sp; }
             if (b.x < r) { b.x = r; b.vx = Math.abs(b.vx) * 0.9; }
             if (b.x > W - r) { b.x = W - r; b.vx = -Math.abs(b.vx) * 0.9; }
@@ -1053,7 +1055,96 @@
   })();
 
   /* ==========================================================
-     7. 3D-куб Битрикс24
+     7. ИИ-соавтор: модели по очереди, запрос → ответ → в пост
+     ========================================================== */
+  (function aiCoauthor() {
+    const box = $('#aiBox');
+    if (!box) return;
+    const btns = $$('[data-m]', box), names = $$('.ai__pill', box).map((b) => b.textContent);
+    const prompt = $('#aiPrompt'), send = $('#aiSend'), ans = $('#aiAns'), ansModel = $('#aiAnsModel');
+    const text = $('#aiText'), range = $('#aiTemp');
+    const ANSWER = 'Не знаете, что подарить? Собрали 7 идей для близких и коллег — от уютных мелочей до полезной техники. Всё с ценами и ссылками в статье на сайте.';
+    const EMPTY_ANS = ans.textContent, EMPTY_TEXT = text.textContent;
+    // Сценарий, секунды: свечение запроса → нажатие → «Пишу анонс…» → печать 35 симв/с → перенос в форму
+    const T_PRESS = 1.3, T_WAIT = 1.5, T_TYPE = 2.7, CPS = 35;
+    let model = 0, picked = false, mAcc = 0, t = 0, stage = 0, autoRange = true, rt = 0;
+    const typeEnd = () => T_TYPE + (fade ? 0 : ANSWER.length / CPS);
+
+    function setModel(i) {
+      model = i;
+      btns.forEach((b) => { const on = +b.dataset.m === i; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+      ansModel.textContent = names[i];
+    }
+    function setAns(txt, cls) { ans.textContent = txt; ans.className = 'ai__ans-t' + (cls ? ' ' + cls : ''); }
+    function restart() {
+      t = 0; stage = 0;
+      setAns(EMPTY_ANS, 'is-empty');
+      text.textContent = EMPTY_TEXT; text.classList.add('is-empty');
+      prompt.classList.add('is-glow');
+    }
+    function setRange(v) { range.value = Math.round(v); range.style.setProperty('--v', range.value + '%'); }
+
+    btns.forEach((b) => b.addEventListener('click', () => { picked = true; setModel(+b.dataset.m); restart(); }));
+    // Кнопка запускает цикл сразу; во время цикла повторный клик ничего не делает
+    send.addEventListener('click', () => {
+      if (stage >= 1 && stage < 5) return;
+      restart(); t = T_PRESS;
+    });
+    const stopAuto = () => { autoRange = false; };
+    range.addEventListener('pointerdown', stopAuto);
+    range.addEventListener('keydown', stopAuto);
+    range.addEventListener('input', () => { autoRange = false; setRange(+range.value); });
+
+    setRange(38);
+    restart();
+
+    watch(box, {
+      tick(dt) {
+        t += dt;
+        if (stage === 0 && t >= T_PRESS) {
+          stage = 1;
+          send.classList.add('is-press');
+          setTimeout(() => send.classList.remove('is-press'), 200);
+        }
+        if (stage === 1 && t >= T_WAIT) { stage = 2; setAns('Пишу анонс…', 'is-wait'); }
+        if (stage === 2 && t >= T_TYPE) {
+          stage = 3;
+          setAns(fade ? ANSWER : '');
+          if (fade) fadeIn(ans);
+        }
+        if (stage === 3) {
+          // fade: ответ появляется целиком, без печати
+          if (!fade) {
+            const n = Math.min(ANSWER.length, Math.floor((t - T_TYPE) * CPS));
+            if (ans.textContent.length !== n) ans.textContent = ANSWER.slice(0, n);
+          }
+          if (t >= typeEnd()) stage = 4;
+        }
+        if (stage === 4 && t >= typeEnd() + 0.4) {
+          // ответ переносится в «Текст публикации» с короткой подсветкой
+          stage = 5;
+          prompt.classList.remove('is-glow');
+          text.textContent = ANSWER;
+          text.classList.remove('is-empty');
+          text.classList.add('is-new');
+          fadeIn(text);
+          requestAnimationFrame(() => requestAnimationFrame(() => text.classList.remove('is-new')));
+        }
+        if (stage === 5 && t >= Math.max(9, typeEnd() + 2.6)) restart();
+
+        // Модели подсвечиваются по очереди, пока посетитель не выбрал свою
+        if (!picked) {
+          mAcc += dt;
+          if (mAcc >= 2) { mAcc = 0; setModel((model + 1) % names.length); }
+        }
+        // Ползунок «Случайность» ходит 38 % ↔ 62 % за 5 с, пока его не тронули
+        if (autoRange) { rt += dt; setRange(50 - 12 * Math.cos((rt * TAU) / 5)); }
+      },
+    });
+  })();
+
+  /* ==========================================================
+     8. 3D-куб Битрикс24
      ========================================================== */
   (function cube() {
     const scene = $('#cubeScene'), cubeEl = $('#cube');
@@ -1093,7 +1184,7 @@
   })();
 
   /* ==========================================================
-     8. Старт: искры за курсором и конфетти
+     9. Старт: искры за курсором и конфетти
      ========================================================== */
   (function start() {
     const panel = $('.start-panel'), btn = $('#startBtn');
