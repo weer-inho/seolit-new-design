@@ -90,6 +90,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-snap-type: y proximity; scroll-padding-top: 70px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 @media (max-height: 600px) { html { scroll-snap-type: none; } }
+/* Пошаговую прокрутку ведёт js (pager): доводка и плавность CSS ему мешают */
+html.paged { scroll-snap-type: none; scroll-behavior: auto; }
 body {
   margin: 0;
   background: var(--bg);
@@ -336,6 +338,7 @@ a { color: var(--atext); }
 .btn--soft::before { background: radial-gradient(160px circle at var(--mx) var(--my), var(--glow), transparent 60%); }
 .btn--xs { min-height: 36px; padding: 0 14px; border-radius: 10px; font-size: 14px; margin-left: auto; }
 .chip--xs { width: 20px; height: 20px; border-radius: 6px; font-size: 8.5px; }
+.chip--sm { width: 24px; height: 24px; border-radius: 7px; font-size: 10px; }
 
 .hero2 { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px; }
 .hero2__title {
@@ -433,9 +436,11 @@ a { color: var(--atext); }
 }
 .netstrip__label { flex: none; padding: 18px max(16px, env(safe-area-inset-left, 0px)) 18px max(24px, env(safe-area-inset-left, 0px)); font-size: 13px; font-weight: 700; color: var(--muted); background: var(--surface); position: relative; z-index: 1; }
 .netstrip__vp { overflow: hidden; flex: 1; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.netstrip__track { display: flex; gap: 0; width: max-content; padding: 16px 0; font-size: clamp(17px, 1.8vw, 22px); font-weight: 800; color: var(--muted); animation: mq 34s linear infinite; }
+.netstrip__track { display: flex; gap: 0; width: max-content; padding: 16px 0; font-size: clamp(17px, 1.8vw, 22px); font-weight: 800; color: var(--muted); animation: mq 40s linear infinite; will-change: transform; }
 .netstrip__track span { white-space: nowrap; }
-.netstrip__set { display: flex; gap: 44px; padding-right: 44px; }
+/* два одинаковых набора, отступ после последнего пункта = gap, поэтому сдвиг на −50% бесшовный */
+.netstrip__set { display: flex; align-items: center; gap: 44px; padding-right: 44px; }
+.netstrip__item { display: inline-flex; align-items: center; gap: 10px; }
 .netstrip__track b { color: var(--line); font-weight: 800; }
 
 /* ---------- 2. Автопостинг ---------- */
@@ -782,7 +787,44 @@ a { color: var(--atext); }
 @media (pointer: coarse) { .hint-fine { display: none; } }
 @media (pointer: fine) { .hint-coarse { display: none; } }
 
+/* Уменьшение движения (SPEC.md): перемещения, вращения и масштаб стоят,
+   смена состояний остаётся — проявлением opacity на месте за .35 с */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+
+  /* Стоят: декор, качания, вращения, бегущие строки */
+  .deco > i, .sway, .fly, .post, .post__sun, .stage-hint svg, .site__new, .hub svg,
+  .sb-hub__ring, .pcard::after, .netstrip__track, .mq__track,
+  .i-clock .hand, .i-slide .knob-a, .i-slide .knob-b, .i-shield, .i-repeat { animation: none; }
+  .wire::after, .ripple { display: none; }
+  .post__cap::after { content: none; } /* текст появляется целиком — курсор печати не нужен */
+
+  /* Те же анимации, но только прозрачностью */
+  .rv { animation-name: rvFade; }
+  .roller__dot { animation-name: dotFade; }
+  .roller__word.is-out { animation: fadeOut .35s ease-out forwards; }
+  .roller__word.is-in, .bcard.is-new, .feed__item { animation: fadeIn .35s ease-out both; }
+  .how[data-src="site"] .src--site, .how[data-src="social"] .src--social, .how[data-src="head"] .src--head { animation: fadeIn .35s ease-out; }
+  .step__burst .chip { animation-name: chipFade; }
+  .orbit__glow { animation-name: glowFade; }
+  .node.is-hit::after { animation: hitFade .6s ease-out; }
+  .hub::before { animation-name: haloFade; }
+  .hub.is-pulse { animation: fadeIn .35s ease-out; }
+  .scroll-cue::after { animation-name: cueFade; }
+
+  /* Переходы без сдвига и масштаба */
+  .btn:active, .icon-btn:hover, .brand:hover svg { transform: none; }
+  .sb-hub__core { transition: opacity .35s; }
+  .sb-hub.is-pulse .sb-hub__core { transform: none; opacity: .7; }
+  .sb-msg.is-hidden { transform: translateX(-50%); }
+  .dots a span { transition-property: background-color; }
 }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes rvFade { from { opacity: .2; } }
+@keyframes dotFade { 50% { opacity: .35; } }
+@keyframes chipFade { 0%, 10% { opacity: .25; } 25%, 85% { opacity: 1; } 100% { opacity: .25; } }
+@keyframes glowFade { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@keyframes hitFade { from { opacity: .9; } to { opacity: 0; } }
+@keyframes haloFade { from { opacity: .5; } to { opacity: 0; } }
+@keyframes cueFade { 0%, 100% { opacity: 0; } 30% { opacity: 1; } }

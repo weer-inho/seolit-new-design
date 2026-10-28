@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEOlit — hero с живым словом</title>
+<!-- Макет из холста дизайна. Это референс для реализации, не рабочий код сайта. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1D4ED8}a:hover{color:#0D1526}
+@keyframes roll{0%,20%{transform:translateY(0)}25%,45%{transform:translateY(-1.2em)}50%,70%{transform:translateY(-2.4em)}75%,95%{transform:translateY(-3.6em)}100%{transform:translateY(-4.8em)}}
+.roll{animation:roll 10s cubic-bezier(.7,0,.3,1) infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+.dotp{animation:pulse 1.4s ease-in-out infinite}
+@keyframes move{0%,18%{transform:translate(244px,0)}28%,50%{transform:translate(488px,0)}60%,92%{transform:translate(732px,0)}100%{transform:translate(732px,0);opacity:0}}
+.mover{animation:move 7s cubic-bezier(.6,0,.3,1) infinite}
+@keyframes stA{0%,22%{opacity:1}26%,100%{opacity:0}}
+@keyframes stB{0%,22%{opacity:0}26%,54%{opacity:1}58%,100%{opacity:0}}
+@keyframes stC{0%,54%{opacity:0}58%,100%{opacity:1}}
+.stA{animation:stA 7s infinite}.stB{animation:stB 7s infinite}.stC{animation:stC 7s infinite}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.sway{animation:sway 4s ease-in-out infinite;transform-origin:50% 90%}
+.sway2{animation:sway 5s ease-in-out infinite reverse;transform-origin:50% 100%}
+@keyframes mq{to{transform:translateX(-50%)}}
+.mq{animation:mq 30s linear infinite}
+@keyframes fly{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(14px,-10px) rotate(8deg)}100%{transform:translate(0,0) rotate(0)}}
+.fly{animation:fly 3s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1180px; box-sizing: border-box; background: #FFFFFF; color: #111318; font-family: Manrope, system-ui, sans-serif; overflow: hidden; position: relative; display: flex; flex-direction: column">
+
+<header style="display: flex; align-items: center; padding: 18px 28px; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#2563EB"></circle><circle cx="24" cy="24" r="12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"></circle><path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path><circle cx="24" cy="24" r="4.5" fill="#fff"></circle><circle cx="24" cy="12" r="3.5" fill="#fff"></circle><circle cx="34.4" cy="30" r="3.5" fill="#fff"></circle><circle cx="13.6" cy="30" r="3.5" fill="#fff"></circle></svg>
+<b style="font-size: 18px">SEOlit</b>
+</div>
+<nav aria-label="Разделы" style="margin: 0 auto; display: flex; gap: 28px; font-size: 15px; font-weight: 600">
+<a href="#" style="color: #111318; text-decoration: none">Возможности ⌄</a>
+<a href="#" style="color: #111318; text-decoration: none">ИИ-помощник</a>
+<a href="#" style="color: #111318; text-decoration: none">Цена</a>
+<a href="#" style="color: #111318; text-decoration: none">Битрикс24</a>
+</nav>
+<a href="#" style="color: #111318; text-decoration: none; font-weight: 600">Вход</a>
+<a href="#" style="padding: 10px 16px; border-radius: 10px; background: #2563EB; color: #fff; text-decoration: none; font-weight: 700">Попробовать бесплатно</a>
+</header>
+
+<div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 72px 120px 0; gap: 22px; position: relative; z-index: 2">
+<h1 style="margin: 0; font-size: 84px; line-height: 1.04; font-weight: 800; letter-spacing: -0.045em">Ваш пост выходит во всех<br>соцсетях <span style="display: inline-flex; align-items: center; gap: 18px; padding: 0 28px 0 22px; height: 1.2em; border-radius: 999px; background: #E8F0FF; vertical-align: middle; font-weight: 700; letter-spacing: -0.03em"><span class="dotp" style="width: 0.32em; height: 0.32em; border-radius: 50%; background: #2563EB; flex: none"></span><span style="display: block; height: 1.2em; overflow: hidden; text-align: left"><span class="roll" style="display: flex; flex-direction: column; line-height: 1.2em"><span>сразу</span><span>по расписанию</span><span>без копипаста</span><span>с адаптацией</span><span>сразу</span></span></span></span></h1>
+<p style="margin: 0; font-size: 21px; color: #3D4250; max-width: 760px; line-height: 1.5">Автопостинг с сайта и кросспостинг в 12 соцсетей. Своё оформление для каждой, расписание и интеграция с Битрикс24.</p>
+<div style="display: flex; gap: 12px">
+<a href="#" style="padding: 13px 20px; border-radius: 10px; background: #2563EB; color: #fff; text-decoration: none; font-weight: 700; font-size: 17px">Попробовать 3 дня бесплатно</a>
+<a href="#" style="padding: 13px 20px; border-radius: 10px; background: #E8F0FF; color: #1D4ED8; text-decoration: none; font-weight: 700; font-size: 17px">Посмотреть демо</a>
+</div>
+</div>
+
+<svg class="sway" width="130" height="130" viewBox="0 0 120 120" aria-hidden="true" style="position: absolute; right: 190px; top: 470px; z-index: 3"><circle cx="60" cy="62" r="50" fill="#fff" stroke="#111318" stroke-width="3"></circle><circle cx="44" cy="54" r="4" fill="#111318"></circle><circle cx="74" cy="54" r="4" fill="#111318"></circle><path d="M42 76 Q60 92 80 74" fill="none" stroke="#111318" stroke-width="3" stroke-linecap="round"></path><path d="M30 26 Q40 10 56 20" fill="none" stroke="#111318" stroke-width="3" stroke-linecap="round"></path></svg>
+<svg class="fly" width="72" height="56" viewBox="0 0 72 56" aria-hidden="true" style="position: absolute; right: 120px; top: 440px; z-index: 3"><path d="M4 26 L66 6 L44 50 L34 32 Z" fill="#fff" stroke="#111318" stroke-width="3" stroke-linejoin="round"></path><path d="M34 32 L66 6" stroke="#111318" stroke-width="3"></path></svg>
+<svg class="sway2" width="110" height="150" viewBox="0 0 110 150" aria-hidden="true" style="position: absolute; left: 140px; top: 900px; z-index: 3"><circle cx="52" cy="40" r="28" fill="#fff" stroke="#111318" stroke-width="3"></circle><circle cx="52" cy="10" r="11" fill="#111318"></circle><circle cx="43" cy="42" r="3.5" fill="#111318"></circle><circle cx="62" cy="42" r="3.5" fill="#111318"></circle><path d="M45 54 Q53 60 61 53" fill="none" stroke="#111318" stroke-width="3" stroke-linecap="round"></path><path d="M30 70 Q52 62 74 70 L80 140 L24 140 Z" fill="#fff" stroke="#111318" stroke-width="3" stroke-linejoin="round"></path><rect x="62" y="84" width="26" height="40" rx="5" fill="#2563EB" stroke="#111318" stroke-width="3"></rect></svg>
+
+<div style="position: relative; z-index: 1; margin: 52px auto 0; width: 1250px; border: 1px solid #E4E6EB; border-radius: 14px; box-shadow: 0 30px 70px -30px rgba(17,19,24,.25); background: #fff; display: flex; flex-direction: column; overflow: hidden; height: 640px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #EEF0F3; background: #FAFAFB; font-size: 13px; font-weight: 600; color: #4A4F5C">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #E4E6EB"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #E4E6EB"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #E4E6EB"></span>
+<span style="margin-left: 14px">SEOlit</span><span style="margin-left: 120px; padding: 4px 10px; border-radius: 8px; background: #fff; border: 1px solid #EEF0F3">Магазин «Пример»</span>
+</div>
+<div style="display: flex; flex: 1; min-height: 0">
+<aside style="width: 230px; flex: none; background: #FAFAFB; border-right: 1px solid #EEF0F3; padding: 16px 12px; display: flex; flex-direction: column; gap: 18px; font-size: 13px; color: #3D4250">
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #8A8F9C; font-weight: 700">Сегодня</span>
+<span style="display: flex; justify-content: space-between"><span>Анонс статьи</span><span style="color: #8A8F9C">12:00</span></span>
+<span style="display: flex; justify-content: space-between"><span>Акция дня</span><span style="color: #8A8F9C">15:30</span></span>
+<span style="display: flex; justify-content: space-between"><span>Отзыв недели</span><span style="color: #8A8F9C">18:00</span></span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #8A8F9C; font-weight: 700">Соцсети</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #0060D1; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">ВК</span>ВКонтакте</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #1B7DB0; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">TG</span>Telegram</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #C2560A; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">OK</span>Одноклассники</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #1268B3; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">ММ</span>Мой Мир</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #C8001E; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">Pi</span>Pinterest</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 6px; background: #0A66C2; color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center">In</span>LinkedIn</span>
+<span style="color: #8A8F9C">… ещё 6</span></div>
+</aside>
+<section style="flex: 1; padding: 30px 32px; display: flex; flex-direction: column; gap: 18px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 16px">
+<span style="width: 56px; height: 56px; border-radius: 50%; background: #F1F3F6; display: grid; place-items: center"><svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#2563EB"></circle><path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="3" stroke-linecap="round"></path><circle cx="24" cy="24" r="5" fill="#fff"></circle><circle cx="24" cy="12" r="4" fill="#fff"></circle><circle cx="34.4" cy="30" r="4" fill="#fff"></circle><circle cx="13.6" cy="30" r="4" fill="#fff"></circle></svg></span>
+<b style="font-size: 30px; letter-spacing: -0.02em">Контент-план</b>
+<span style="margin-left: auto; padding: 6px 12px; border-radius: 8px; background: #2563EB; color: #fff; font-size: 13px; font-weight: 700">+ Пост</span>
+</div>
+<div style="display: flex; gap: 18px; font-size: 13px; font-weight: 700; color: #6B7080; border-bottom: 1px solid #EEF0F3; padding-bottom: 10px">
+<span style="color: #111318; padding: 4px 10px; border-radius: 8px; background: #F1F3F6">Доска</span><span style="padding: 4px 0">Календарь</span><span style="padding: 4px 0">Очередь</span><span style="padding: 4px 0">Аналитика</span>
+</div>
+<div style="position: relative; display: grid; grid-template-columns: repeat(4, 228px); gap: 16px">
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 12px; background: #F7F7F9">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: #fff"><span style="width: 8px; height: 8px; border-radius: 50%; background: #9AA1AE"></span>Черновик</span><span style="color: #8A8F9C">3</span></span>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Подборка подарков к праздникам<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #0060D1; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ВК</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #C8001E; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">Pi</span></span></div>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Интервью с основателем<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #1B7DB0; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">TG</span></span></div>
+
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 12px; background: #FDF8EE">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: #fff"><span style="width: 8px; height: 8px; border-radius: 50%; background: #D97706"></span>Запланирован</span><span style="color: #8A8F9C">5</span></span>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Статья: как выбрать подарок<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #0060D1; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ВК</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #1268B3; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ММ</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #C2560A; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">OK</span></span></div>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Акция выходного дня<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #0060D1; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ВК</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #1B7DB0; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">TG</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #0A66C2; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">In</span></span></div>
+
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 12px; background: #F1F5FE">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: #fff"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2563EB"></span>Публикуется</span><span style="color: #8A8F9C">2</span></span>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Отзыв покупателя<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #1B7DB0; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">TG</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #16181C; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">X</span></span></div>
+
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 12px; background: #EFF8F3">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: #fff"><span style="width: 8px; height: 8px; border-radius: 50%; background: #0B8A5F"></span>Опубликован</span><span style="color: #8A8F9C">34</span></span>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Свежий кейс в блоге<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #0060D1; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ВК</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #1B7DB0; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">TG</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #C2560A; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">OK</span></span></div>
+
+<div style="padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(17,19,24,.08); display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600">Обзор новой модели<span style="display: flex; gap: 4px"><span style="width: 18px; height: 18px; border-radius: 5px; background: #1268B3; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ММ</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #C8001E; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">Pi</span></span></div>
+
+</div>
+
+<div class="mover" style="position: absolute; left: 10px; top: 46px; width: 208px; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 14px 30px -10px rgba(37,99,235,.45); border: 1.5px solid #2563EB; display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 700">Новинки недели в каталоге
+<span style="display: flex; gap: 4px; align-items: center"><span style="width: 18px; height: 18px; border-radius: 5px; background: #0060D1; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">ВК</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #1B7DB0; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">TG</span><span style="width: 18px; height: 18px; border-radius: 5px; background: #C2560A; color: #fff; font-size: 8px; font-weight: 800; display: grid; place-items: center">OK</span>
+<span style="position: relative; margin-left: auto; width: 96px; height: 18px; font-size: 11px">
+<span class="stA" style="position: absolute; right: 0; color: #B45309">12:00</span>
+<span class="stB" style="position: absolute; right: 0; color: #1D4ED8">публикуется…</span>
+<span class="stC" style="position: absolute; right: 0; color: #0B8A5F">✓ в 3 соцсетях</span>
+</span></span>
+</div>
+</div>
+</section>
+</div>
+</div>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; height: 64px; background: #fff; border-top: 1px solid #EEF0F3; display: flex; align-items: center; overflow: hidden">
+<span style="flex: none; padding: 0 28px; font-size: 13px; font-weight: 700; color: #8A8F9C; background: #fff; position: relative; z-index: 1">Публикуем в</span>
+<div class="mq" style="display: flex; gap: 48px; white-space: nowrap; font-size: 22px; font-weight: 800; color: #3D4250; width: max-content">
+<span>ВКонтакте  ·</span><span>Telegram  ·</span><span>Одноклассники  ·</span><span>Мой Мир  ·</span><span>X  ·</span><span>Pinterest  ·</span><span>Tumblr  ·</span><span>LinkedIn  ·</span><span>Живой Журнал  ·</span><span>TikTok  ·</span><span>Blogger  ·</span><span>Reddit  ·</span><span>ВКонтакте  ·</span><span>Telegram  ·</span><span>Одноклассники  ·</span><span>Мой Мир  ·</span><span>X  ·</span><span>Pinterest  ·</span><span>Tumblr  ·</span><span>LinkedIn  ·</span><span>Живой Журнал  ·</span><span>TikTok  ·</span><span>Blogger  ·</span><span>Reddit  ·</span>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -14,8 +14,13 @@
   const mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
   const mqDark = matchMedia('(prefers-color-scheme: dark)');
   const fine = matchMedia('(pointer: fine)').matches;
-  let reduced = mqReduce.matches;
-  mqReduce.addEventListener?.('change', (e) => { reduced = e.matches; });
+  // «Уменьшение движения» — два режима (SPEC.md):
+  // still — крупное движение выключено: параллакс, вращения, полёты пакетов, конфетти, магнит, перелёт карточек;
+  // fade  — смена состояний остаётся, но вместо движения элемент проявляется на месте (opacity, FADE мс).
+  let still = mqReduce.matches, fade = mqReduce.matches;
+  mqReduce.addEventListener?.('change', (e) => { still = fade = e.matches; });
+  const FADE = 350;
+  const fadeIn = (el) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE, easing: 'ease-out' });
 
   // Цвета соцсетей (подписи вместо логотипов)
   const NETS = [
@@ -100,7 +105,7 @@
       const x = e.clientX - r.left, y = e.clientY - r.top;
       b.style.setProperty('--mx', x + 'px');
       b.style.setProperty('--my', y + 'px');
-      if (fine && !reduced && b.classList.contains('magnetic')) {
+      if (fine && !still && b.classList.contains('magnetic')) {
         const cx = r.left - ox + r.width / 2, cy = r.top - oy + r.height / 2;
         ox = (e.clientX - cx) * 0.18; oy = (e.clientY - cy) * 0.3;
         b.style.transform = `translate(${ox.toFixed(1)}px, ${oy.toFixed(1)}px)`;
@@ -131,7 +136,7 @@
     const y = scrollY, max = root.scrollHeight - innerHeight;
     prog.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
     hdr.classList.toggle('is-scrolled', y > 8);
-    if (reduced) { par.forEach((p) => { p.el.style.translate = ''; }); return; }
+    if (still) { par.forEach((p) => { p.el.style.translate = ''; }); return; }
     const vh = innerHeight, k = innerWidth < 900 ? 0.55 : 1;
     const rects = new Map();
     for (const p of par) {
@@ -153,12 +158,171 @@
   }, { rootMargin: '-45% 0px -45% 0px' });
   sections.forEach((s) => dotIO.observe(s));
 
+  /* ---------- Пошаговая прокрутка по экранам ---------- */
+  // Колесо, свайп, PageDown/PageUp, стрелки, пробел = соседний экран за STEP мс.
+  // Экран выше окна сначала прокручивается внутри себя, на краю — переход дальше.
+  // Окно ниже 600 px — обычная прокрутка. Плавно в обоих режимах движения: это действие пользователя.
+  (function pager() {
+    const STEP = 700, NEAR = 400;
+    const GRAB = '.ball, #cubeScene, #orbit, input[type="range"]'; // пока их тянут мышью — не листаем
+    const NO_TOUCH = '.ball, #cubeScene, input[type="range"]'; // у них свои жесты пальцем
+    const FIELD = 'input, textarea, select, [contenteditable]';
+    const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+    const out = (k) => 1 - Math.pow(1 - k, 3);
+    let on = false, anim = null, grab = false;
+    let locked = false, wheelT = 0, wheelAbs = 0, pred = 0, settle = false, scrollT = 0;
+
+    const sync = () => { on = innerHeight >= 600; root.classList.toggle('paged', on); };
+    sync();
+    addEventListener('resize', sync);
+    addEventListener('scroll', () => { scrollT = performance.now(); }, { passive: true });
+
+    // Границы экранов в координатах scrollY: a — верх экрана под шапкой, b — низ экрана у низа окна
+    function stops() {
+      const hh = hdr.offsetHeight, vh = innerHeight - hh, y0 = scrollY, max = root.scrollHeight - innerHeight;
+      return sections.map((s) => {
+        const r = s.getBoundingClientRect(), a = Math.min(max, Math.round(r.top + y0 - hh));
+        return { a, b: Math.min(max, Math.max(a, Math.round(a + r.height - vh))) };
+      });
+    }
+    const where = (y, st) => st.reduce((c, s, i) => (s.a <= y + 2 ? i : c), 0);
+    // Куда ехать из y в сторону dir. inside — высокий экран ещё не докручен до края, to — этот край.
+    function aim(dir, y, st) {
+      const c = where(y, st), s = st[c];
+      if (dir > 0) return y < s.b - 2 ? { inside: true, to: s.b } : { to: c + 1 < st.length ? st[c + 1].a : s.b };
+      if (y > s.b + 2) return { to: s.b }; // между экранами — к низу текущего
+      return y > s.a + 2 ? { inside: true, to: s.a } : { to: c > 0 ? st[c - 1].b : 0 };
+    }
+    const jump = (y) => scrollTo(0, Math.round(y));
+    function go(to, ms, ease = inOut) {
+      if (Math.abs(to - scrollY) < 1) { anim = null; return; }
+      anim = { from: scrollY, to, t0: performance.now(), ms: ms || (Math.abs(to - scrollY) < innerHeight / 2 ? NEAR : STEP), ease };
+    }
+    // Шаг с клавиатуры: внутри высокого экрана — на 85% окна, но не дальше края
+    function step(dir) {
+      const st = stops(), y = anim ? anim.to : scrollY, t = aim(dir, y, st), d = innerHeight * 0.85;
+      go(t.inside ? (dir > 0 ? Math.min(t.to, y + d) : Math.max(t.to, y - d)) : t.to);
+    }
+
+    addEventListener('pointerdown', (e) => { grab = !!e.target.closest?.(GRAB); }, true);
+    addEventListener('pointerup', () => { grab = false; }, true);
+    addEventListener('pointercancel', () => { grab = false; }, true);
+
+    // Колесо и тачпад: после шага глушим «хвост» инерции, пока не будет паузы или нового рывка
+    addEventListener('wheel', (e) => {
+      if (!on || grab || e.ctrlKey || !e.deltaY || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      const now = performance.now(), gap = now - wheelT, abs = Math.abs(e.deltaY);
+      wheelT = now;
+      if (locked && !anim && (gap > 200 || abs > wheelAbs * 2 + 10)) locked = false;
+      wheelAbs = abs;
+      if (locked || anim) { e.preventDefault(); return; }
+      const dir = Math.sign(e.deltaY), y = scrollY, st = stops(), t = aim(dir, y, st);
+      if (t.inside) {
+        const d = e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerHeight : 1);
+        pred = (gap < 150 ? pred : y) + d; // браузер прокручивает колесо плавно — копим ожидаемую позицию
+        if (dir > 0 ? pred <= t.to : pred >= t.to) { settle = true; return; } // обычная прокрутка
+      }
+      if (Math.abs(t.to - y) < 1) return;
+      e.preventDefault();
+      locked = true;
+      go(t.to);
+    }, { passive: false });
+
+    addEventListener('keydown', (e) => {
+      if (!on || grab || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      const el = e.target instanceof Element ? e.target : document.body;
+      if (el.closest(FIELD)) return;
+      let dir = 0;
+      if (e.key === 'PageDown' || e.key === 'ArrowDown') dir = 1;
+      else if (e.key === 'PageUp' || e.key === 'ArrowUp') dir = -1;
+      else if (e.key === ' ' && !el.closest('a, button, summary, [role="button"]')) dir = e.shiftKey ? -1 : 1;
+      if (!dir) return;
+      e.preventDefault();
+      step(dir);
+    });
+
+    // Свайп: внутри высокого экрана страница идёт за пальцем (с докатом), на краю — переход
+    let tch = null;
+    addEventListener('touchstart', (e) => {
+      tch = null;
+      if (!on || e.touches.length > 1 || e.target.closest?.(NO_TOUCH)) return;
+      anim = null;
+      const p = e.touches[0];
+      tch = { x: p.clientX, y: p.clientY, sy: scrollY, st: stops(), axis: '', pts: [{ y: p.clientY, t: e.timeStamp }] };
+    }, { passive: true });
+    addEventListener('touchmove', (e) => {
+      if (!tch) return;
+      if (e.touches.length > 1) { tch = null; return; }
+      const p = e.touches[0], dx = p.clientX - tch.x, dy = p.clientY - tch.y;
+      if (!tch.axis) {
+        tch.axis = Math.abs(dy) >= Math.abs(dx) ? 'y' : 'x';
+        tch.dir = dy < 0 ? 1 : -1;
+        tch.in = aim(tch.dir, tch.sy, tch.st).inside;
+        tch.c = where(tch.sy, tch.st);
+      }
+      if (tch.axis !== 'y') return; // горизонтальный жест — орбите, бегущим строкам
+      if (e.cancelable) e.preventDefault();
+      if (tch.in) {
+        const s = tch.st[tch.c];
+        jump(clamp(tch.sy - dy, s.a, s.b));
+        tch.pts.push({ y: p.clientY, t: e.timeStamp });
+        if (tch.pts.length > 5) tch.pts.shift();
+      } else if (!tch.done && Math.abs(dy) > 40) {
+        tch.done = true;
+        step(tch.dir);
+      }
+    }, { passive: false });
+    addEventListener('touchend', (e) => {
+      if (!tch || tch.axis !== 'y') { tch = null; return; }
+      if (tch.in) {
+        const a = tch.pts[0], b = tch.pts[tch.pts.length - 1], s = tch.st[tch.c];
+        const v = e.timeStamp - b.t < 80 && b.t > a.t ? (b.y - a.y) / (b.t - a.t) : 0;
+        if (Math.abs(v) > 0.2) go(clamp(scrollY - v * 320, s.a, s.b), 650, out);
+      } else if (!tch.done) {
+        // короткий быстрый взмах тоже считается
+        const dy = (e.changedTouches[0]?.clientY ?? tch.y) - tch.y, a = tch.pts[0];
+        if (Math.abs(dy) > 16 && e.timeStamp - a.t < 300) step(tch.dir);
+      }
+      tch = null;
+    });
+    addEventListener('touchcancel', () => { tch = null; });
+
+    // Ссылки на экраны (точки, меню, «Попробовать») — тем же плавным переходом и с учётом шапки
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest?.('a[href^="#"]');
+      if (!on || !a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const i = sections.findIndex((s) => '#' + s.id === a.hash);
+      if (i < 0) return;
+      e.preventDefault();
+      go(stops()[i].a, STEP);
+      history.replaceState(null, '', a.hash);
+    });
+
+    modules.push({
+      always: true,
+      tick(dt, now) {
+        if (anim) {
+          const k = clamp((now - anim.t0) / anim.ms, 0, 1);
+          jump(lerp(anim.from, anim.to, anim.ease(k)));
+          if (k >= 1) anim = null;
+          return;
+        }
+        // После обычной прокрутки колесом не оставляем страницу «между экранами»
+        if (settle && !tch && now - scrollT > 160 && now - wheelT > 160) {
+          settle = false;
+          const st = stops(), y = scrollY, c = where(y, st), s = st[c];
+          if (y > s.b + 2 && c + 1 < st.length) go(y - s.b < st[c + 1].a - y ? s.b : st[c + 1].a, NEAR);
+        }
+      },
+    });
+  })();
+
   /* ---------- Конфетти ---------- */
   const cf = regCanvas($('#confetti'));
   const pieces = [];
   let cfDirty = false;
   function confetti(x, y, n = 110) {
-    if (reduced) n = Math.min(n, 30);
+    if (still) return;
     const cols = [T.accent, '#F5B83D', '#0B8A5F', '#E5484D', '#2FC6F6', '#7C3AED'];
     for (let i = 0; i < n; i++) {
       const a = rnd(0, TAU), sp = rnd(220, 720);
@@ -197,7 +361,9 @@
     let word = $('#rollerWord');
     const words = ['сразу', 'по расписанию', 'без копипаста', 'с адаптацией'];
     let wi = 0, acc = 0;
-    win.style.transition = 'width .55s cubic-bezier(.22,1,.36,1)';
+    // в режиме fade слова сменяются проявлением (CSS), ширина подстраивается за то же время
+    const setTr = () => { win.style.transition = `width ${fade ? FADE : 550}ms cubic-bezier(.22,1,.36,1)`; };
+    setTr();
 
     function measure(text) {
       const probe = document.createElement('span');
@@ -224,13 +390,12 @@
       word.className = 'roller__word is-in';
       word.textContent = words[wi];
       win.appendChild(word);
-      fit();
+      setTr(); fit();
     }
     win.style.position = 'relative';
 
     watch(roller, {
       tick(dt) {
-        if (reduced) return;
         acc += dt;
         if (acc > 2.6) { acc = 0; next(); }
       },
@@ -284,16 +449,17 @@
       return d;
     }
     function setCount(i, delta) { cnt[i] += delta; counters[i].textContent = cnt[i]; }
-    // FLIP: карточки плавно переезжают из старого места в новое
+    // FLIP: карточки плавно переезжают из старого места в новое.
+    // В режиме still перелёта нет: карточка в новой колонке проявляется на месте.
     function flip(change) {
-      const before = new Map($$('.bcard', board).map((c) => [c, c.getBoundingClientRect()]));
+      const before = new Map($$('.bcard', board).map((c) => [c, { r: c.getBoundingClientRect(), p: c.parentNode }]));
       change();
-      if (reduced) return;
       $$('.bcard', board).forEach((c) => {
         const f = before.get(c);
         if (!f) return;
+        if (still) { if (f.p !== c.parentNode) fadeIn(c); return; }
         const l = c.getBoundingClientRect();
-        const dx = f.left - l.left, dy = f.top - l.top;
+        const dx = f.r.left - l.left, dy = f.r.top - l.top;
         if (Math.abs(dx) + Math.abs(dy) > 0.5) {
           c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.6,0,.3,1)' });
         }
@@ -322,7 +488,6 @@
 
     watch(board, {
       tick(dt) {
-        if (reduced) return;
         for (let k = travelers.length - 1; k >= 0; k--) {
           const tr = travelers[k];
           tr.t += dt;
@@ -347,7 +512,8 @@
   (function netstrip() {
     const track = $('#netstrip');
     if (!track) return;
-    const one = NETS.map((n) => `<span>${n.n}</span>`).join('<b>·</b>');
+    // Два одинаковых набора: дорожка сдвигается на −50% и стык совпадает пиксель в пиксель
+    const one = NETS.map((n) => `<span class="netstrip__item"><span class="chip chip--sm" style="--c:${n.c}" aria-hidden="true">${n.s}</span>${n.n}</span>`).join('<b>·</b>');
     track.innerHTML = `<span class="netstrip__set">${one}<b>·</b></span><span class="netstrip__set" aria-hidden="true">${one}<b>·</b></span>`;
   })();
 
@@ -367,12 +533,12 @@
     });
 
     let W = 0, H = 0, R = 0;
-    let rot = 0, vel = 0.35, tilt = 0.42, tiltT = 0.42;
+    let rot = 0, vel = still ? 0 : 0.35, tilt = 0.42, tiltT = 0.42;
     let drag = false, lastX = 0, lastT = 0, moved = 0, downNode = null;
     const base = 0.35;
     const packets = [];
     const hitSet = new Set();
-    let emitAcc = 0;
+    let emitAcc = 0, lit = 0;
 
     const caps = ['Новинки недели уже на сайте', 'Статья: как выбрать подарок', 'Акция выходного дня', 'Отзыв покупателя недели', 'Свежий кейс в блоге'];
     let capI = 0, capT = 99;
@@ -381,7 +547,11 @@
     size();
     if ('ResizeObserver' in window) new ResizeObserver(size).observe(el);
 
-    function fire(node, n = 3) { for (let k = 0; k < n; k++) packets.push({ to: node, t: -k * 0.14, dur: 0.75 }); }
+    // still: пакеты не летят, соцсеть сразу вспыхивает
+    function fire(node, n = 3) {
+      if (still) { hit(node); return; }
+      for (let k = 0; k < n; k++) packets.push({ to: node, t: -k * 0.14, dur: 0.75 });
+    }
     function hit(node) {
       node.el.classList.remove('is-hit'); void node.el.offsetWidth; node.el.classList.add('is-hit');
       hitSet.add(node.i);
@@ -396,7 +566,7 @@
     });
     el.addEventListener('pointermove', (e) => {
       const r = el.getBoundingClientRect();
-      if (fine && !drag) {
+      if (fine && !drag && !still) {
         const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
         tiltT = 0.32 + 0.2 * clamp(py, 0, 1);
         core.style.setProperty('--rx', ((0.5 - py) * 16).toFixed(1) + 'deg');
@@ -434,9 +604,10 @@
     watch(el, {
       tick(dt) {
         if (!drag) {
-          const target = reduced ? 0 : base * (vel < 0 ? -1 : 1);
-          vel = lerp(vel, target, 1 - Math.exp(-dt * 1.2));
-          rot += vel * dt;
+          // still: сама не крутится, после броска пальцем быстро останавливается
+          const target = still ? 0 : base * (vel < 0 ? -1 : 1);
+          vel = lerp(vel, target, 1 - Math.exp(-dt * (still ? 6 : 1.2)));
+          if (Math.abs(vel) > 1e-4) rot += vel * dt;
         }
         tilt = lerp(tilt, tiltT, 0.06);
         el.style.setProperty('--tilt-ratio', tilt.toFixed(3));
@@ -452,13 +623,14 @@
           n.el.style.opacity = (0.5 + 0.5 * (z + 1) / 2).toFixed(2);
         }
 
-        if (!reduced) {
-          emitAcc += dt;
-          if (emitAcc > 0.42) {
-            emitAcc = 0;
-            const front = nodes.filter((n) => n.z > -0.15);
-            if (front.length) fire(front[(Math.random() * front.length) | 0], 1);
-          }
+        emitAcc += dt;
+        if (still) {
+          // вместо полётов соцсети подсвечиваются по очереди
+          if (emitAcc > 0.6) { emitAcc = 0; hit(nodes[lit++ % nodes.length]); }
+        } else if (emitAcc > 0.42) {
+          emitAcc = 0;
+          const front = nodes.filter((n) => n.z > -0.15);
+          if (front.length) fire(front[(Math.random() * front.length) | 0], 1);
         }
 
         const { ctx } = fx;
@@ -479,12 +651,15 @@
         }
         ctx.globalAlpha = 1;
 
-        // Подпись поста печатается
+        // Подпись поста печатается (fade: появляется целиком)
         const full = caps[capI];
-        if (reduced) { if (cap.textContent !== full) cap.textContent = full; return; }
         capT += dt * 28;
-        const shown = Math.min(full.length, Math.floor(capT));
-        if (cap.textContent.length !== shown) cap.textContent = full.slice(0, shown);
+        if (fade) {
+          if (cap.textContent !== full) { cap.textContent = full; fadeIn(cap); }
+        } else {
+          const shown = Math.min(full.length, Math.floor(capT));
+          if (cap.textContent.length !== shown) cap.textContent = full.slice(0, shown);
+        }
         if (capT > full.length + 60) { capI = (capI + 1) % caps.length; capT = 0; }
       },
     });
@@ -505,14 +680,16 @@
       const a = box.getBoundingClientRect(), r = el.getBoundingClientRect();
       return { x: r.left - a.left + r.width / 2, y: r.top - a.top + r.height / 2 };
     };
+    // still: пакет не летит, но ритм тот же — следующий шаг через dur
     function fly(from, to, dur) {
+      if (still) return wait(dur);
       const p = document.createElement('span');
       p.className = 'packet';
       box.appendChild(p);
       const an = p.animate(
         [{ transform: `translate(${from.x}px, ${from.y}px) scale(.5)`, opacity: 0.5 },
          { transform: `translate(${to.x}px, ${to.y}px) scale(1)`, opacity: 1 }],
-        { duration: reduced ? 1 : dur, easing: 'cubic-bezier(.6,0,.3,1)' });
+        { duration: dur, easing: 'cubic-bezier(.6,0,.3,1)' });
       return an.finished.then(() => p.remove(), () => p.remove());
     }
     function addItem(n, t) {
@@ -555,7 +732,7 @@
 
     watch(box, {
       tick(dt, now) {
-        if (busy || reduced || now - lastUser < 9000) return;
+        if (busy || now - lastUser < 9000) return;
         acc += dt;
         if (acc > 4.2) { acc = 0; publish(); }
       },
@@ -567,13 +744,13 @@
      ========================================================== */
   (function sandbox() {
     const box = $('#sandbox'), hubEl = $('#sbHub'), cntEl = $('#sbCount'), msg = $('#sbMsg'), hud = $('.sb-hud', box);
-    const balls = NETS.slice(1).map((n) => {
+    const balls = NETS.slice(1).map((n, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ball'; b.textContent = n.s; b.title = n.n;
       b.style.setProperty('--c', n.c);
       b.setAttribute('aria-label', `${n.n}: подключить`);
       box.appendChild(b);
-      return { el: b, n, x: 0, y: 0, vx: 0, vy: 0, state: 'free', thrown: 0, s: 1, samples: [] };
+      return { el: b, n, i, x: 0, y: 0, vx: 0, vy: 0, state: 'free', thrown: 0, s: 1, samples: [] };
     });
     let W = 0, H = 0, r = 28, top = 0, hub = { x: 0, y: 0, R: 60 };
     let caught = 0, spin = 0, msgTimer = 0;
@@ -601,22 +778,34 @@
       b.state = 'free'; b.el.classList.remove('is-caught');
       b.el.setAttribute('aria-label', `${b.n.n}: подключить`);
     }
+    // Случайное место подальше от узла; в режиме still мяч стоит и проявляется там
+    function place(b) {
+      let tries = 0;
+      do { b.x = rnd(r, W - r); b.y = rnd(top + r, H - r); tries++; }
+      while (tries < 60 && Math.hypot(b.x - hub.x, b.y - hub.y) < hub.R + r + 24);
+      b.s = 1; b.thrown = 0;
+      if (still) { b.vx = b.vy = 0; fadeIn(b.el); }
+    }
     function scatter() {
       balls.forEach((b) => {
         markFree(b);
-        let tries = 0;
-        do { b.x = rnd(r, W - r); b.y = rnd(top + r, H - r); tries++; }
-        while (tries < 60 && Math.hypot(b.x - hub.x, b.y - hub.y) < hub.R + r + 24);
-        const a = rnd(0, TAU), sp = rnd(60, 150);
-        b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp; b.s = 1; b.thrown = 0;
+        place(b);
+        if (!still) { const a = rnd(0, TAU), sp = rnd(60, 150); b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp; }
       });
       caught = 0; setCount();
       msg.classList.add('is-hidden');
+    }
+    // Место пойманного мяча на круге вокруг узла. В still место постоянное, без кружения.
+    function slot(b, k, n) {
+      const a = still ? -Math.PI / 2 + (b.i * TAU) / balls.length : spin + (k * TAU) / n;
+      const orR = hub.R + r * 0.72 + 8;
+      return { x: hub.x + Math.cos(a) * orR, y: hub.y + Math.sin(a) * orR };
     }
     function capture(b) {
       if (b.state === 'caught') return;
       b.state = 'caught'; b.el.classList.add('is-caught');
       b.el.setAttribute('aria-label', `${b.n.n}: подключено, нажмите, чтобы отключить`);
+      if (still) { Object.assign(b, slot(b), { s: 0.72 }); fadeIn(b.el); }
       caught++; setCount();
       hubEl.classList.remove('is-pulse'); void hubEl.offsetWidth; hubEl.classList.add('is-pulse');
       setTimeout(() => hubEl.classList.remove('is-pulse'), 420);
@@ -630,6 +819,7 @@
     }
     function pushOut(b) {
       markFree(b);
+      if (still) { place(b); return; }
       const a = Math.atan2(b.y - hub.y, b.x - hub.x);
       b.vx = Math.cos(a) * 460; b.vy = Math.sin(a) * 460; b.thrown = 0;
     }
@@ -700,18 +890,21 @@
     watch(box, {
       tick(dt) {
         dt = Math.min(dt, 0.033);
-        spin += dt * (reduced ? 0 : 0.5);
-        const minSp = reduced ? 0 : 45;
+        spin += dt * 0.5;
+        const minSp = still ? 0 : 45;
         for (const b of balls) {
           if (b.state === 'home') {
+            // still: без полёта к узлу — сразу на место и проявление
+            if (still) { capture(b); continue; }
             const dx = hub.x - b.x, dy = hub.y - b.y, d = Math.hypot(dx, dy) || 1;
             b.vx = lerp(b.vx, (dx / d) * 900, 0.18); b.vy = lerp(b.vy, (dy / d) * 900, 0.18);
             b.x += b.vx * dt; b.y += b.vy * dt;
             if (d < hub.R) capture(b);
           } else if (b.state === 'free') {
             b.x += b.vx * dt; b.y += b.vy * dt;
-            if (!reduced) { b.vx += (Math.random() - 0.5) * 70 * dt; b.vy += (Math.random() - 0.5) * 70 * dt; }
             const sp = Math.hypot(b.vx, b.vy);
+            if (still) { const f = Math.exp(-dt * 5); b.vx *= f; b.vy *= f; } // брошенный мяч быстро останавливается
+            else { b.vx += (Math.random() - 0.5) * 70 * dt; b.vy += (Math.random() - 0.5) * 70 * dt; }
             if (sp > 190) { const f = Math.exp(-dt * 1.4); b.vx *= f; b.vy *= f; }
             else if (sp < minSp && sp > 0.01) { b.vx *= minSp / sp; b.vy *= minSp / sp; }
             if (b.x < r) { b.x = r; b.vx = Math.abs(b.vx) * 0.9; }
@@ -752,14 +945,14 @@
         }
         // Подключённые кружат вокруг SEOlit
         const cs = balls.filter((b) => b.state === 'caught');
-        const orR = hub.R + r * 0.72 + 8;
         cs.forEach((b, k) => {
-          const a = spin + (k * TAU) / cs.length;
-          b.x = lerp(b.x, hub.x + Math.cos(a) * orR, 0.15);
-          b.y = lerp(b.y, hub.y + Math.sin(a) * orR, 0.15);
+          const p = slot(b, k, cs.length);
+          if (still) { b.x = p.x; b.y = p.y; b.s = 0.72; return; }
+          b.x = lerp(b.x, p.x, 0.15);
+          b.y = lerp(b.y, p.y, 0.15);
           b.s = lerp(b.s, 0.72, 0.15);
         });
-        balls.forEach((b) => { if (b.state !== 'caught') b.s = lerp(b.s, b.state === 'drag' ? 1.12 : 1, 0.2); });
+        balls.forEach((b) => { if (b.state !== 'caught') b.s = lerp(b.s, b.state === 'drag' && !still ? 1.12 : 1, 0.2); });
         render();
       },
     });
@@ -786,7 +979,8 @@
       box.dataset.src = k;
       btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.src === k)));
       title.textContent = D[k].t;
-      if (reduced) { text.textContent = D[k].x; return; }
+      // fade: текст не печатается, а проявляется целиком вместе с заголовком
+      if (fade) { text.textContent = D[k].x; tc = D[k].x.length + 1; fadeIn(title); fadeIn(text); return; }
       text.textContent = '';
       text.classList.add('typing');
     }
@@ -795,13 +989,13 @@
     watch(box, {
       tick(dt) {
         const full = D[cur].x;
-        if (!reduced && tc < full.length + 1) {
+        if (tc < full.length + 1) {
           tc += dt * 40;
           const n = Math.min(full.length, Math.floor(tc));
           if (text.textContent.length !== n) text.textContent = full.slice(0, n);
           if (n >= full.length) text.classList.remove('typing');
         }
-        if (!user && !reduced) {
+        if (!user) {
           acc += dt;
           if (acc > 7.5) pick(order[(order.indexOf(cur) + 1) % order.length]);
         }
@@ -823,6 +1017,7 @@
     if (fine) {
       card.addEventListener('pointerenter', () => { hover = true; });
       card.addEventListener('pointermove', (e) => {
+        if (still) return; // наклон в 3D — крупное движение
         const r = card.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
         card.style.setProperty('--ry', ((px - 0.5) * 14).toFixed(1) + 'deg');
@@ -838,7 +1033,7 @@
           shown = Math.abs(target - shown) < 1 ? target : lerp(shown, target, 1 - Math.exp(-dt * 10));
           sum.textContent = Math.round(shown).toLocaleString('ru-RU');
         }
-        if (!hover && !reduced) {
+        if (!hover && !still) {
           t += dt;
           card.style.setProperty('--ry', (Math.sin(t * 0.8) * 6).toFixed(2) + 'deg');
           card.style.setProperty('--rx', (Math.cos(t * 0.6) * 4).toFixed(2) + 'deg');
@@ -882,7 +1077,7 @@
     const cvEl = $('#chart'), lim = $('#limit'), limOut = $('#limitOut'), stPub = $('#stPub'), stQ = $('#stQ');
     const cv = regCanvas(cvEl);
     const N = 24, step = 0.9, maxV = 12;
-    let limit = 4, queue = 0, pubTotal = 0, hour = 0, phase = 0, hoverX = -1;
+    let limit = 4, queue = 0, pubTotal = 0, hour = 0, phase = 0, hoverX = -1, fresh = 1, acc = 0;
     const bars = [];
     function newHour() {
       hour++;
@@ -919,11 +1114,14 @@
         ctx.fillText(String(v), padL - 8, y(v));
       });
       const slot = cw / N, bw = Math.max(4, slot * 0.62);
+      // still: столбцы не едут, сетка стоит со сдвигом в один час, новый столбец проявляется
+      const ph = still ? 1 : phase;
       let hov = null;
       ctx.save();
       ctx.beginPath(); ctx.rect(padL, 0, cw + 4, h); ctx.clip();
       bars.forEach((b, i) => {
-        const x = padL + (i - phase) * slot + (slot - bw) / 2;
+        const x = padL + (i - ph) * slot + (slot - bw) / 2;
+        ctx.globalAlpha = still && i === bars.length - 1 ? fresh : 1;
         ctx.fillStyle = T.accent;
         rr(ctx, x, y(b.pub), bw, y(0) - y(b.pub), 4);
         if (b.q > 0) {
@@ -935,6 +1133,7 @@
         if (hoverX >= x && hoverX <= x + bw) hov = { b, x };
       });
       ctx.restore();
+      ctx.globalAlpha = 1;
 
       ctx.strokeStyle = T.coral; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
       ctx.beginPath(); ctx.moveTo(padL, y(limit)); ctx.lineTo(w, y(limit)); ctx.stroke(); ctx.setLineDash([]);
@@ -963,8 +1162,15 @@
     draw();
     watch(cvEl, {
       tick(dt) {
-        if (!reduced) phase += dt / step;
-        while (phase >= 1) { phase -= 1; newHour(); }
+        if (still) {
+          // обновление раз в 2 с без сдвига
+          acc += dt;
+          if (acc >= 2) { acc = 0; fresh = 0; newHour(); }
+          fresh = Math.min(1, fresh + (dt * 1000) / FADE);
+        } else {
+          phase += dt / step;
+          while (phase >= 1) { phase -= 1; newHour(); }
+        }
         draw();
       },
     });
@@ -975,7 +1181,7 @@
      ========================================================== */
   (function cube() {
     const scene = $('#cubeScene'), cubeEl = $('#cube');
-    let rx = -18, ry = 32, vx = 0, vy = 26, drag = false, lx = 0, ly = 0, lt = 0;
+    let rx = -18, ry = 32, vx = 0, vy = still ? 0 : 26, drag = false, lx = 0, ly = 0, lt = 0;
     const apply = () => { cubeEl.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`; };
     apply();
     scene.addEventListener('pointerdown', (e) => {
@@ -998,11 +1204,13 @@
     watch(scene, {
       tick(dt) {
         if (drag) return;
-        const k = 1 - Math.exp(-dt * 1.4);
-        vy = lerp(vy, reduced ? 0 : 26, k);
+        // still: сам не вращается, после поворота пальцем быстро останавливается там, где оставили
+        if (still && Math.abs(vx) + Math.abs(vy) < 0.05) return;
+        const k = 1 - Math.exp(-dt * (still ? 6 : 1.4));
+        vy = lerp(vy, still ? 0 : 26, k);
         vx = lerp(vx, 0, k);
         ry += vy * dt; rx += vx * dt;
-        rx = lerp(rx, -18, 1 - Math.exp(-dt * 0.8));
+        if (!still) rx = lerp(rx, -18, 1 - Math.exp(-dt * 0.8));
         apply();
       },
     });
@@ -1031,7 +1239,7 @@
         t += dt;
         let x = px, y = py;
         if (x < 0) { x = w * (0.5 + 0.42 * Math.sin(t * 0.7)); y = h * (0.5 + 0.34 * Math.sin(t * 1.3)); }
-        if (!reduced) {
+        if (!still) {
           emit += dt;
           while (emit > 0.018) { emit -= 0.018; ps.push({ x, y, vx: rnd(-50, 50), vy: rnd(-70, 20), l: 1, r: rnd(1.5, 4.2) }); }
         }

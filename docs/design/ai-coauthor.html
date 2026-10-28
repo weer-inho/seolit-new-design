@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEOlit — ИИ-соавтор</title>
+<!-- Макет из холста дизайна. Это референс для реализации, не рабочий код сайта. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#8DB1FF}a:hover{color:#FFFFFF}
+@keyframes glow{0%,100%{box-shadow:0 0 0 1px #3B74F6,0 0 24px rgba(59,116,246,.5)}50%{box-shadow:0 0 0 1px #6E9BFF,0 0 42px rgba(59,116,246,.85)}}
+.glow{animation:glow 2.4s ease-in-out infinite}
+@keyframes type{0%,10%{width:0}100%{width:100%}}
+.ty{display:block;white-space:nowrap;overflow:hidden;width:0;animation:type 1.5s steps(40,end) infinite alternate}
+@keyframes pick{0%,22%{background:#1D4ED8;color:#fff;border-color:#3B74F6}25%,100%{background:transparent;color:#C9D3E6;border-color:#24304D}}
+.pick{animation:pick 8s infinite}
+@keyframes knob{0%,100%{left:38%}50%{left:62%}}
+.knob{animation:knob 5s ease-in-out infinite}
+@keyframes fill{0%,100%{width:38%}50%{width:62%}}
+.fill{animation:fill 5s ease-in-out infinite}
+@keyframes press{0%,80%,100%{transform:scale(1)}85%{transform:scale(.95)}}
+.press{animation:press 4s infinite}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.shim{background:linear-gradient(90deg,#6B7894 0%,#FFFFFF 50%,#6B7894 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 2s linear infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bob{animation:bob 1.6s ease-in-out infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,226,122,.7)}100%{box-shadow:0 0 0 14px rgba(255,226,122,0)}}
+.ring{animation:ring 1.8s ease-out infinite}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 960px; box-sizing: border-box; background: #000000; color: #E9EEF8; font-family: Manrope, system-ui, sans-serif; overflow: hidden; padding: 64px 100px 0; display: flex; flex-direction: column; gap: 32px">
+
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px">
+<span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #FFE27A; color: #0B1020; font-size: 13px; font-weight: 800">ИИ-соавтор</span>
+<h2 style="margin: 0; font-size: 56px; line-height: 1.06; font-weight: 800; letter-spacing: -0.035em">Текст поста пишет нейросеть. Публикуете вы.</h2>
+<p style="margin: 0; font-size: 20px; color: #9BA8BE; line-height: 1.5">Нажмите «ИИ соавтор» рядом с текстом публикации, выберите модель и готовую инструкцию. Ответ сразу можно вставить в пост.</p>
+</div>
+<div style="flex: none; display: flex; flex-direction: column; gap: 8px; align-items: flex-end">
+<span style="font-size: 13px; font-weight: 700; color: #6B7894">Модели</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; max-width: 380px">
+<span class="pick" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #24304D; font-size: 14px; font-weight: 800; animation-delay: 0s">Yandex GPT Lite</span><span class="pick" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #24304D; font-size: 14px; font-weight: 800; animation-delay: 2s">Yandex GPT Pro</span><span class="pick" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #24304D; font-size: 14px; font-weight: 800; animation-delay: 4s">Yandex Llama 8B</span><span class="pick" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #24304D; font-size: 14px; font-weight: 800; animation-delay: 6s">Yandex Llama 70B</span>
+</div>
+</div>
+</div>
+
+<div style="height: 590px; border-radius: 22px; border: 1px solid #1B2236; background: radial-gradient(ellipse at 30% 20%, #0B1430 0%, #04060C 60%); display: flex; gap: 36px; padding: 36px; box-sizing: border-box">
+
+<div style="flex: 1; min-width: 0; border-radius: 14px; background: #F6F8FB; color: #0D1526; padding: 24px 26px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; justify-content: space-between; align-items: center"><b style="font-size: 18px">Задание · Редактирование</b><span style="font-size: 13px; color: #55617A">Ручная публикация</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #DCE3EF; padding-bottom: 8px"><span style="font-size: 12px; color: #1D4ED8; font-weight: 700">Заголовок публикации</span><span style="font-size: 16px; font-weight: 600">Как выбрать подарок и не ошибиться</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #DCE3EF; padding-bottom: 12px">
+<span style="font-size: 12px; color: #1D4ED8; font-weight: 700">Текст публикации</span>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.45; min-height: 112px">
+<span class="ty" style="animation-delay: .2s">Не знаете, что подарить? Собрали 7 идей</span>
+<span class="ty" style="animation-delay: 1.4s">для близких и коллег — от уютных мелочей</span>
+<span class="ty" style="animation-delay: 2.6s">до полезной техники. Всё с ценами</span>
+<span class="ty" style="animation-delay: 3.8s; color: #1D4ED8">и ссылками в статье на сайте.</span>
+</div>
+<div style="display: flex; gap: 10px; align-items: center">
+<span class="ring" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #FFE27A; font-weight: 800; font-size: 15px">
+<svg class="bob" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3" fill="#0D1526"></rect><circle cx="9" cy="14" r="1.6" fill="#FFE27A"></circle><circle cx="15" cy="14" r="1.6" fill="#FFE27A"></circle><path d="M12 8V4.5" stroke="#0D1526" stroke-width="2" stroke-linecap="round"></path><circle cx="12" cy="3.5" r="1.6" fill="#0D1526"></circle><rect x="1.5" y="12" width="2.5" height="4" rx="1" fill="#0D1526"></rect><rect x="20" y="12" width="2.5" height="4" rx="1" fill="#0D1526"></rect></svg>
+ИИ соавтор</span>
+<span style="font-size: 13px; color: #55617A">есть у текста и полного текста публикации</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #DCE3EF; padding-bottom: 8px"><span style="font-size: 12px; color: #1D4ED8; font-weight: 700">Хэштеги</span><span style="font-size: 15px">#подарки #идеи</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #1D4ED8; font-weight: 700">Ссылка на материал</span><span style="font-size: 15px">ваш-сайт.ru/blog/podarki</span></div>
+</div>
+
+<div style="width: 400px; flex: none; display: flex; flex-direction: column; gap: 14px; font-size: 13px">
+<div style="display: flex; justify-content: space-between; align-items: center"><b style="font-size: 17px">ИИ соавтор</b><span style="color: #6B7894; font-size: 18px">×</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="color: #8DB1FF; font-weight: 700; font-size: 12px">Подключение ИИ</span>
+<div style="border-radius: 10px; background: #10172A; border: 1px solid #1B2236; overflow: hidden">
+<div class="pick" style="padding: 9px 12px; font-weight: 700; border: 0 solid transparent; animation-delay: 0s">Yandex GPT Lite</div><div class="pick" style="padding: 9px 12px; font-weight: 700; border: 0 solid transparent; animation-delay: 2s">Yandex GPT Pro</div><div class="pick" style="padding: 9px 12px; font-weight: 700; border: 0 solid transparent; animation-delay: 4s">Yandex Llama 8B</div><div class="pick" style="padding: 9px 12px; font-weight: 700; border: 0 solid transparent; animation-delay: 6s">Yandex Llama 70B</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="color: #8DB1FF; font-weight: 700; font-size: 12px">Готовая инструкция для ИИ соавтора</span>
+<span style="padding: 9px 12px; border-radius: 10px; background: #10172A; border: 1px solid #1B2236; font-weight: 700; display: flex; justify-content: space-between">Например: анонс статьи <span>⌄</span></span>
+</div>
+<div class="glow" style="padding: 12px 14px; border-radius: 12px; background: #0A1022; line-height: 1.45; font-weight: 600">Напиши короткий анонс статьи «Как выбрать подарок» со ссылкой на сайт.</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-weight: 700; color: #C9D3E6">Случайность (креативность)</span>
+<span style="position: relative; height: 4px; border-radius: 2px; background: #24304D; margin: 6px 6px 4px">
+<span class="fill" style="position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #3B74F6"></span>
+<span class="knob" style="position: absolute; top: -6px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff"></span>
+</span>
+</div>
+<div style="display: flex; justify-content: space-between; color: #9BA8BE; font-weight: 700"><span>Токенов в запросе: ≈ 24</span><span>1 токен Lite: 0,0002 ₽</span></div>
+<span class="press" style="align-self: flex-start; padding: 11px 18px; border-radius: 10px; background: #2563EB; font-weight: 800; letter-spacing: .02em">ОТПРАВИТЬ ЗАПРОС</span>
+<div style="padding: 12px 14px; border-radius: 12px; border: 1px solid #1B2236; display: flex; flex-direction: column; gap: 6px"><span style="color: #6B7894; font-weight: 700">Ответ</span><span class="shim" style="font-weight: 700">Пишу анонс…</span></div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div style="padding: 18px; border-radius: 16px; border: 1px solid #1B2236; display: flex; flex-direction: column; gap: 6px"><b style="font-size: 16px">4 модели Yandex</b><span style="font-size: 14px; color: #9BA8BE">GPT Lite и Pro, Llama 8B и 70B на выбор</span></div>
+<div style="padding: 18px; border-radius: 16px; border: 1px solid #1B2236; display: flex; flex-direction: column; gap: 6px"><b style="font-size: 16px">Готовые инструкции</b><span style="font-size: 14px; color: #9BA8BE">Не нужно каждый раз писать запрос с нуля</span></div>
+<div style="padding: 18px; border-radius: 16px; border: 1px solid #1B2236; display: flex; flex-direction: column; gap: 6px"><b style="font-size: 16px">Цена видна заранее</b><span style="font-size: 14px; color: #9BA8BE">Число токенов и их стоимость до отправки</span></div>
+</div>
+</div>
+</body>
+</html>
