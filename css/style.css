@@ -120,8 +120,7 @@ a { color: var(--atext); }
 }
 
 /* ---------- Типографика ---------- */
-.h1, .h2, .h3 { font-family: var(--font-d); margin: 0; text-wrap: balance; letter-spacing: -.02em; }
-.h1 { font-size: clamp(34px, 5.2vw, 66px); line-height: 1.04; font-weight: 800; }
+.h2, .h3 { font-family: var(--font-d); margin: 0; text-wrap: balance; letter-spacing: -.02em; }
 .h2 { font-size: clamp(28px, 3.8vw, 48px); line-height: 1.08; font-weight: 700; }
 .h3 { font-size: 18px; line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
 .lead { margin: 0; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: var(--muted); max-width: 58ch; }
@@ -130,11 +129,6 @@ a { color: var(--atext); }
   font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--atext);
 }
 .eyebrow::before { content: ""; width: 22px; height: 2px; border-radius: 2px; background: currentColor; }
-.price-tag {
-  display: inline-block; padding: 0 .28em; border-radius: .3em;
-  background: var(--accent); color: var(--accent-fg);
-  transform: rotate(-2deg); box-shadow: 0 10px 30px -8px var(--glow);
-}
 .hint { margin: 0; font-size: 14px; color: var(--muted); }
 
 /* ---------- Кнопки: магнит, свечение у курсора, волна ---------- */
@@ -238,6 +232,7 @@ a { color: var(--atext); }
   background: var(--c); color: #fff; font: 800 13px/1 var(--font-b); opacity: .9;
   box-shadow: var(--shadow), inset 0 0 0 1px var(--chip-ring); animation: bob 6s ease-in-out infinite; animation-delay: var(--d, 0s);
 }
+.deco--sm > i { width: 34px; height: 34px; border-radius: 10px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(6deg); } }
 
@@ -255,8 +250,8 @@ a { color: var(--atext); }
   box-shadow: inset 0 0 0 1px var(--chip-ring);
 }
 /* Значки соцсетей внутри плашек (белые, по центру) */
-.chip svg, .node svg, .ball svg, .deco--chip svg { width: 58%; height: 58%; fill: currentColor; }
-.node svg, .ball svg { width: 50%; height: 50%; }
+.chip svg, .ball svg, .deco--chip svg { width: 58%; height: 58%; fill: currentColor; }
+.ball svg { width: 50%; height: 50%; }
 
 /* Появление при прокрутке (только где браузер умеет scroll-driven анимации) */
 @supports (animation-timeline: view()) {
@@ -264,81 +259,12 @@ a { color: var(--atext); }
   @keyframes rv { from { opacity: .2; transform: translateY(46px) scale(.98); } to { opacity: 1; transform: none; } }
 }
 
-/* ---------- 1. Hero: 3D-орбита ---------- */
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 40px; align-items: center; }
-.hero__text { display: flex; flex-direction: column; gap: 24px; }
+/* ---------- Общее: кнопки в ряд, подсказка под интерактивом, курсор печати ---------- */
 .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
-.hero__stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-
-.orbit {
-  position: relative; width: min(100%, 560px); aspect-ratio: 1 / 1; max-width: 100%;
-  touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none;
-}
-.orbit.is-drag { cursor: grabbing; }
-.orbit__fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 55; pointer-events: none; }
-.orbit__glow {
-  position: absolute; inset: 22%; border-radius: 50%; z-index: 0;
-  background: radial-gradient(circle, var(--glow), transparent 68%); filter: blur(10px);
-  animation: breathe 5s ease-in-out infinite;
-}
-@keyframes breathe { 0%, 100% { transform: scale(.92); opacity: .7; } 50% { transform: scale(1.06); opacity: 1; } }
-.orbit__ring {
-  position: absolute; left: 7%; right: 7%; top: 50%; aspect-ratio: 1 / var(--tilt-ratio, .42);
-  transform: translateY(-50%); border-radius: 50%; border: 1.5px dashed var(--line); z-index: 1;
-}
-.node {
-  --c: var(--accent);
-  position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; border-radius: 18px;
-  border: 0; background: var(--c); color: #fff; font: 800 14px/1 var(--font-b);
-  display: grid; place-items: center; cursor: pointer; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35), inset 0 0 0 1px var(--chip-ring);
-  will-change: transform, opacity;
-}
-.node::after {
-  content: ""; position: absolute; inset: -6px; border-radius: 22px; border: 2px solid var(--c); opacity: 0;
-}
-.node.is-hit::after { animation: hit .6s var(--ease); }
-@keyframes hit { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.35); } }
-
-.orbit__core {
-  position: absolute; left: 50%; top: 43%; width: 34%; z-index: 50;
-  transform: translate(-50%, -50%) perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform .2s ease-out;
-}
-.post {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 12px;
-  box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 9px;
-  animation: floaty 5s ease-in-out infinite;
-}
-@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.post__top { display: flex; align-items: center; gap: 8px; }
-.post__ava { width: 24px; height: 24px; border-radius: 50%; flex: none; }
-.post__ava svg { width: 24px; height: 24px; }
-.post__name { height: 7px; flex: 1; max-width: 60%; border-radius: 4px; background: var(--line); }
-.post__img { position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: var(--soft); }
-.post__sun { position: absolute; width: 22%; aspect-ratio: 1; border-radius: 50%; background: #F5B83D; top: 14%; left: 16%; animation: sun 6s ease-in-out infinite; }
-@keyframes sun { 50% { transform: translate(140%, 10%); } }
-.post__hill { position: absolute; bottom: -30%; width: 90%; aspect-ratio: 1; border-radius: 50%; background: var(--accent); opacity: .85; }
-.post__hill--a { left: -30%; }
-.post__hill--b { right: -40%; opacity: .55; bottom: -45%; }
-.post__cap { margin: 0; font-size: 12px; font-weight: 700; line-height: 1.35; min-height: 2.7em; color: var(--fg); }
-.post__cap::after { content: "▍"; color: var(--accent); animation: caret 1s steps(1) infinite; }
-@keyframes caret { 50% { opacity: 0; } }
-.post__meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--muted); }
-.post__meta b { color: var(--mint); }
-
 .stage-hint { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); margin: 0; }
 .stage-hint svg { animation: swipe 2.4s ease-in-out infinite; }
 @keyframes swipe { 0%, 100% { transform: translateX(-6px); } 50% { transform: translateX(6px); } }
-
-.scroll-cue {
-  position: absolute; left: 50%; bottom: 22px; z-index: 3; transform: translateX(-50%);
-  width: 26px; height: 42px; border-radius: 14px; border: 2px solid var(--line);
-}
-.scroll-cue::after {
-  content: ""; position: absolute; left: 50%; top: 8px; width: 4px; height: 8px; margin-left: -2px;
-  border-radius: 2px; background: var(--accent); animation: cue 1.8s ease-in-out infinite;
-}
-@keyframes cue { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
+@keyframes caret { 50% { opacity: 0; } }
 
 /* ---------- 1. Hero в стиле Notion: живое слово + доска ---------- */
 .btn--soft { background: var(--soft-btn); color: var(--atext); }
@@ -693,7 +619,7 @@ a { color: var(--atext); }
 }
 .cube { position: relative; width: var(--cs); height: var(--cs); transform-style: preserve-3d; will-change: transform; }
 .face {
-  position: absolute; inset: 0; border-radius: 26px; display: grid; place-items: center; text-align: center;
+  position: absolute; inset: 0; border-radius: 0; display: grid; place-items: center; text-align: center; /* скругление давало дырки в вершинах */
   background: var(--c, var(--surface)); color: #fff; border: 1px solid rgba(255, 255, 255, .18);
   font: 800 clamp(28px, 6vw, 46px)/1 var(--font-d); backface-visibility: hidden;
   box-shadow: inset 0 0 60px rgba(0, 0, 0, .18);
@@ -741,9 +667,7 @@ a { color: var(--atext); }
 @media (max-width: 900px) {
   .scr { padding-block: 84px 56px; }
   .scr--hero { padding-block: 28px 72px; }
-  .hero, .cross, .price, .sched, .b24 { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .hero__stage { order: 2; }
-  .orbit { width: min(100%, 440px); }
+  .cross, .price, .sched, .b24 { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .dots { display: none; }
   .auto { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 0; }
   .auto > .site, .auto > .feed { width: 100%; max-width: 460px; }
@@ -757,7 +681,6 @@ a { color: var(--atext); }
   .start-panel { grid-template-columns: minmax(0, 1fr); }
   .b24 .cube-wrap { order: -1; }
   .sec-head { margin-bottom: 32px; }
-  .scroll-cue { display: none; }
 }
 @media (max-width: 900px) {
   .app__side { display: none; }
@@ -773,16 +696,13 @@ a { color: var(--atext); }
   .app__logo { width: 38px; height: 38px; }
   .app__logo svg { width: 24px; height: 24px; }
   .netstrip__label { display: none; }
+  .deco--more { display: none; } /* на телефоне лишний декор мешает читать */
 }
 @media (max-width: 520px) {
   .hdr__login { display: none; }
   .hdr__in { gap: 12px; }
   .brand b { font-size: 17px; }
   .cta-row .btn { width: 100%; }
-  .node { width: 46px; height: 46px; border-radius: 14px; font-size: 12px; }
-  .post { padding: 9px; gap: 7px; border-radius: 16px; }
-  .post__cap { font-size: 10.5px; }
-  .post__meta { font-size: 9.5px; }
   .feat-grid { grid-template-columns: minmax(0, 1fr); }
   .principles { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .chart canvas { height: 200px; }
@@ -791,8 +711,6 @@ a { color: var(--atext); }
   .sb-btns .sb-btn { flex: 1; }
 }
 
-@media (pointer: coarse) { .hint-fine { display: none; } }
-@media (pointer: fine) { .hint-coarse { display: none; } }
 
 /* Уменьшение движения (SPEC.md): перемещения, вращения и масштаб стоят,
    смена состояний остаётся — проявлением opacity на месте за .35 с */
@@ -800,24 +718,25 @@ a { color: var(--atext); }
   html { scroll-behavior: auto; }
 
   /* Стоят: декор, качания, вращения, бегущие строки */
-  .deco > i, .sway, .fly, .post, .post__sun, .stage-hint svg, .site__new, .hub svg,
-  .sb-hub__ring, .pcard::after, .netstrip__track, .mq__track,
+  .deco > i, .sway, .fly, .stage-hint svg, .site__new, .hub svg,
+  .sb-hub__ring, .pcard::after,
   .i-clock .hand, .i-slide .knob-a, .i-slide .knob-b, .i-shield, .i-repeat { animation: none; }
   .wire::after, .ripple { display: none; }
-  .post__cap::after { content: none; } /* текст появляется целиком — курсор печати не нужен */
 
   /* Те же анимации, но только прозрачностью */
   .rv { animation-name: rvFade; }
   .roller__dot { animation-name: dotFade; }
-  .roller__word.is-out { animation: fadeOut .35s ease-out forwards; }
-  .roller__word.is-in, .bcard.is-new, .feed__item { animation: fadeIn .35s ease-out both; }
+  /* старое слово гаснет, затем проявляется новое — без наложения */
+  .roller__word.is-out { animation: fadeOut .15s ease-in forwards; }
+  .roller__word.is-in { animation: fadeIn .2s ease-out .15s both; }
+  .bcard.is-new, .feed__item { animation: fadeIn .35s ease-out both; }
+  /* бегущие строки едут вдвое медленнее */
+  .netstrip__track { animation-duration: 80s; }
+  .mq__track { animation-duration: calc(var(--dur, 40s) * 2); }
   .how[data-src="site"] .src--site, .how[data-src="social"] .src--social, .how[data-src="head"] .src--head { animation: fadeIn .35s ease-out; }
   .step__burst .chip { animation-name: chipFade; }
-  .orbit__glow { animation-name: glowFade; }
-  .node.is-hit::after { animation: hitFade .6s ease-out; }
   .hub::before { animation-name: haloFade; }
   .hub.is-pulse { animation: fadeIn .35s ease-out; }
-  .scroll-cue::after { animation-name: cueFade; }
 
   /* Переходы без сдвига и масштаба */
   .btn:active, .icon-btn:hover, .brand:hover svg { transform: none; }
@@ -831,7 +750,5 @@ a { color: var(--atext); }
 @keyframes rvFade { from { opacity: .2; } }
 @keyframes dotFade { 50% { opacity: .35; } }
 @keyframes chipFade { 0%, 10% { opacity: .25; } 25%, 85% { opacity: 1; } 100% { opacity: .25; } }
-@keyframes glowFade { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
-@keyframes hitFade { from { opacity: .9; } to { opacity: 0; } }
 @keyframes haloFade { from { opacity: .5; } to { opacity: 0; } }
-@keyframes cueFade { 0%, 100% { opacity: 0; } 30% { opacity: 1; } }
+

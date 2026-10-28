@@ -162,8 +162,8 @@
     const y = scrollY, max = root.scrollHeight - innerHeight;
     prog.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
     hdr.classList.toggle('is-scrolled', y > 8);
-    if (still) { par.forEach((p) => { p.el.style.translate = ''; }); return; }
-    const vh = innerHeight, k = innerWidth < 900 ? 0.55 : 1;
+    // still: параллакс остаётся, но вдвое слабее (решение владельца, SPEC.md)
+    const vh = innerHeight, k = (innerWidth < 900 ? 0.55 : 1) * (still ? 0.5 : 1);
     const rects = new Map();
     for (const p of par) {
       let r = rects.get(p.sec);
@@ -190,7 +190,7 @@
   // Окно ниже 600 px — обычная прокрутка. Плавно в обоих режимах движения: это действие пользователя.
   (function pager() {
     const STEP = 700, NEAR = 400;
-    const GRAB = '.ball, #cubeScene, #orbit, input[type="range"]'; // пока их тянут мышью — не листаем
+    const GRAB = '.ball, #cubeScene, input[type="range"]'; // пока их тянут мышью — не листаем
     const NO_TOUCH = '.ball, #cubeScene, input[type="range"]'; // у них свои жесты пальцем
     const FIELD = 'input, textarea, select, [contenteditable]';
     const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
@@ -286,7 +286,7 @@
         tch.in = aim(tch.dir, tch.sy, tch.st).inside;
         tch.c = where(tch.sy, tch.st);
       }
-      if (tch.axis !== 'y') return; // горизонтальный жест — орбите, бегущим строкам
+      if (tch.axis !== 'y') return; // горизонтальный жест не наш
       if (e.cancelable) e.preventDefault();
       if (tch.in) {
         const s = tch.st[tch.c];
@@ -410,7 +410,7 @@
       wi = (wi + 1) % words.length;
       const old = word;
       old.style.position = 'absolute';
-      old.classList.add('is-out');
+      old.classList.replace('is-in', 'is-out') || old.classList.add('is-out'); // is-in объявлен в CSS позже и перебил бы уход
       setTimeout(() => old.remove(), 460);
       word = document.createElement('span');
       word.className = 'roller__word is-in';
@@ -541,156 +541,6 @@
     // Два одинаковых набора: дорожка сдвигается на −50% и стык совпадает пиксель в пиксель
     const one = NETS.map((n) => `<span class="netstrip__item"><span class="chip chip--sm" style="--c:${n.c}" aria-hidden="true">${icon(n.s)}</span>${n.n}</span>`).join('<b>·</b>');
     track.innerHTML = `<span class="netstrip__set">${one}<b>·</b></span><span class="netstrip__set" aria-hidden="true">${one}<b>·</b></span>`;
-  })();
-
-  /* ==========================================================
-     2. Орбита соцсетей (псевдо-3D, крутится сама и пальцем)
-     ========================================================== */
-  (function orbit() {
-    const el = $('#orbit'), core = $('#orbitCore'), cap = $('#postCap'), sentEl = $('#postSent');
-    const fx = regCanvas($('#orbitFx'));
-    const nodes = NETS.map((n, i) => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'node'; b.innerHTML = icon(n.s); b.title = n.n;
-      b.style.setProperty('--c', n.c);
-      b.setAttribute('aria-label', `${n.n}: отправить пост`);
-      el.appendChild(b);
-      return { el: b, i, net: n, x: 0, y: 0, z: 0 };
-    });
-
-    let W = 0, H = 0, R = 0;
-    let rot = 0, vel = still ? 0 : 0.35, tilt = 0.42, tiltT = 0.42;
-    let drag = false, lastX = 0, lastT = 0, moved = 0, downNode = null;
-    const base = 0.35;
-    const packets = [];
-    const hitSet = new Set();
-    let emitAcc = 0, lit = 0;
-
-    const caps = ['Новинки недели уже на сайте', 'Статья: как выбрать подарок', 'Акция выходного дня', 'Отзыв покупателя недели', 'Свежий кейс в блоге'];
-    let capI = 0, capT = 99;
-
-    function size() { W = el.clientWidth; H = el.clientHeight; R = W * 0.43; }
-    size();
-    if ('ResizeObserver' in window) new ResizeObserver(size).observe(el);
-
-    // still: пакеты не летят, соцсеть сразу вспыхивает
-    function fire(node, n = 3) {
-      if (still) { hit(node); return; }
-      for (let k = 0; k < n; k++) packets.push({ to: node, t: -k * 0.14, dur: 0.75 });
-    }
-    function hit(node) {
-      node.el.classList.remove('is-hit'); void node.el.offsetWidth; node.el.classList.add('is-hit');
-      hitSet.add(node.i);
-      sentEl.textContent = hitSet.size >= 12 ? '✓ все 12 соцсетей' : `→ ${hitSet.size} из 12`;
-    }
-
-    el.addEventListener('pointerdown', (e) => {
-      drag = true; moved = 0; lastX = e.clientX; lastT = performance.now();
-      downNode = e.target.closest('.node');
-      el.classList.add('is-drag');
-      try { el.setPointerCapture(e.pointerId); } catch (_) { /* ничего */ }
-    });
-    el.addEventListener('pointermove', (e) => {
-      const r = el.getBoundingClientRect();
-      if (fine && !drag && !still) {
-        const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-        tiltT = 0.32 + 0.2 * clamp(py, 0, 1);
-        core.style.setProperty('--rx', ((0.5 - py) * 16).toFixed(1) + 'deg');
-        core.style.setProperty('--ry', ((px - 0.5) * 22).toFixed(1) + 'deg');
-      }
-      if (!drag) return;
-      const now = performance.now();
-      const dx = e.clientX - lastX;
-      moved += Math.abs(dx);
-      const dth = dx / (R || 1);
-      rot += dth;
-      vel = lerp(vel, dth / Math.max(0.008, (now - lastT) / 1000), 0.5);
-      lastX = e.clientX; lastT = now;
-    });
-    const end = () => {
-      if (!drag) return;
-      drag = false; el.classList.remove('is-drag');
-      vel = clamp(vel, -7, 7);
-      if (moved < 6 && downNode) {
-        const nd = nodes.find((n) => n.el === downNode);
-        if (nd) fire(nd);
-      }
-      downNode = null;
-    };
-    el.addEventListener('pointerup', end);
-    el.addEventListener('pointercancel', () => { drag = false; el.classList.remove('is-drag'); downNode = null; });
-    el.addEventListener('pointerleave', () => {
-      if (!fine || drag) return;
-      tiltT = 0.42;
-      core.style.setProperty('--rx', '0deg'); core.style.setProperty('--ry', '0deg');
-    });
-    // Клавиатура: Enter/пробел на соцсети
-    nodes.forEach((n) => n.el.addEventListener('click', (e) => { if (e.detail === 0) fire(n); }));
-
-    watch(el, {
-      tick(dt) {
-        if (!drag) {
-          // still: сама не крутится, после броска пальцем быстро останавливается
-          const target = still ? 0 : base * (vel < 0 ? -1 : 1);
-          vel = lerp(vel, target, 1 - Math.exp(-dt * (still ? 6 : 1.2)));
-          if (Math.abs(vel) > 1e-4) rot += vel * dt;
-        }
-        tilt = lerp(tilt, tiltT, 0.06);
-        el.style.setProperty('--tilt-ratio', tilt.toFixed(3));
-
-        const cx = W / 2, cy = H / 2;
-        for (const n of nodes) {
-          const th = rot + (n.i * TAU) / nodes.length;
-          const x = Math.cos(th) * R, z = Math.sin(th), y = z * R * tilt;
-          const s = 0.64 + 0.36 * (z + 1) / 2;
-          n.x = cx + x; n.y = cy + y; n.z = z;
-          n.el.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(${s.toFixed(3)})`;
-          n.el.style.zIndex = String(z > 0 ? 51 + Math.round(z * 40) : 10 + Math.round((z + 1) * 30));
-          n.el.style.opacity = (0.5 + 0.5 * (z + 1) / 2).toFixed(2);
-        }
-
-        emitAcc += dt;
-        if (still) {
-          // вместо полётов соцсети подсвечиваются по очереди
-          if (emitAcc > 0.6) { emitAcc = 0; hit(nodes[lit++ % nodes.length]); }
-        } else if (emitAcc > 0.42) {
-          emitAcc = 0;
-          const front = nodes.filter((n) => n.z > -0.15);
-          if (front.length) fire(front[(Math.random() * front.length) | 0], 1);
-        }
-
-        const { ctx } = fx;
-        ctx.clearRect(0, 0, fx.w, fx.h);
-        ctx.lineCap = 'round';
-        for (let k = packets.length - 1; k >= 0; k--) {
-          const p = packets[k];
-          p.t += dt / p.dur;
-          if (p.t < 0) continue;
-          if (p.t >= 1) { hit(p.to); packets.splice(k, 1); continue; }
-          const e1 = 1 - Math.pow(1 - p.t, 3), e0 = 1 - Math.pow(1 - Math.max(0, p.t - 0.1), 3);
-          const x = lerp(cx, p.to.x, e1), y = lerp(cy, p.to.y, e1);
-          const tx = lerp(cx, p.to.x, e0), ty = lerp(cy, p.to.y, e0);
-          ctx.globalAlpha = 0.45; ctx.strokeStyle = T.accent; ctx.lineWidth = 4;
-          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
-          ctx.globalAlpha = 1; ctx.fillStyle = T.accent;
-          ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU); ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-
-        // Подпись поста печатается (fade: появляется целиком)
-        const full = caps[capI];
-        capT += dt * 28;
-        if (fade) {
-          if (cap.textContent !== full) { cap.textContent = full; fadeIn(cap); }
-        } else {
-          const shown = Math.min(full.length, Math.floor(capT));
-          if (cap.textContent.length !== shown) cap.textContent = full.slice(0, shown);
-        }
-        if (capT > full.length + 60) { capI = (capI + 1) % caps.length; capT = 0; }
-      },
-    });
-    // стартовое значение: подпись уже напечатана
-    capT = caps[0].length;
   })();
 
   /* ==========================================================
