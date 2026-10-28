@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3D для экрана Битрикс24</title>
+<meta name="description" content="Пять вариантов 3D вместо куба на экране «В соцсети прямо из Битрикс24». Демо для выбора.">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="3d-variants.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2"></circle>
+    <path d="M24 24 L24 10 M24 24 L36.1 31 M24 24 L11.9 31" stroke="#fff" stroke-width="2.8" stroke-linecap="round"></path>
+    <circle cx="24" cy="24" r="5" fill="#fff"></circle>
+    <circle cx="24" cy="10" r="4" fill="#fff"></circle>
+    <circle cx="36.1" cy="31" r="4" fill="#fff"></circle>
+    <circle cx="11.9" cy="31" r="4" fill="#fff"></circle>
+  </symbol>
+</svg>
+
+<header class="v-top wrap">
+  <div>
+    <p class="eyebrow">Демо · экран «Битрикс24»</p>
+    <h1 class="h2">Пять вариантов 3D вместо куба</h1>
+    <p class="lead">Всё ниже можно трогать: тянуть мышью или пальцем, кликать. Выберите вариант — его перенесём на сайт вместо куба.</p>
+    <p class="hint">Демо всегда показывает полное движение, даже если в системе включено «уменьшение движения». Как вариант поведёт себя в этом режиме на сайте — написано в карточке.</p>
+  </div>
+  <button class="icon-btn" id="themeBtn" type="button" aria-label="Переключить тему">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+  </button>
+</header>
+
+<main class="wrap v-grid">
+
+  <!-- 1. Слои -->
+  <article class="v-card">
+    <div class="v-stage" id="v1" aria-label="Слои: Битрикс24, SEOlit и соцсети. Потяните, чтобы повернуть.">
+      <div class="v-fit"><div class="v1-scene" id="v1Scene">
+        <div class="v1-layer v1-b24">
+          <b>Битрикс24</b>
+          <span class="v1-task">Задача · Анонс статьи</span>
+          <i></i><i></i><i style="width:60%"></i>
+        </div>
+        <div class="v1-layer v1-hub"><svg><use href="#mark"></use></svg><span>SEOlit</span></div>
+        <div class="v1-layer v1-nets" id="v1Nets"></div>
+      </div></div>
+    </div>
+    <div class="v-info">
+      <span class="v-num">1 · рекомендую</span>
+      <h2 class="h3">Слои в изометрии</h2>
+      <p>Снизу — Битрикс24 с задачей, посередине — SEOlit, сверху — 12 соцсетей. Пакеты поднимаются по слоям, соцсеть вспыхивает. Прямо показывает путь «из CRM в соцсети».</p>
+      <ul>
+        <li><b>Руками:</b> тянуть — поворот и наклон; наведение — слои расходятся.</li>
+        <li><b>Телефон:</b> сцена меньше, жест по горизонтали крутит.</li>
+        <li><b>Reduce:</b> сцена стоит, пакеты не летят, соцсети вспыхивают по очереди.</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- 2. Призма -->
+  <article class="v-card">
+    <div class="v-stage" id="v2" aria-label="Шестигранная призма: один пост в оформлении шести соцсетей. Потяните, чтобы повернуть.">
+      <div class="v-fit"><div class="v2-prism" id="v2Prism"></div></div>
+    </div>
+    <div class="v-info">
+      <span class="v-num">2</span>
+      <h2 class="h3">Шестигранная призма</h2>
+      <p>На каждой грани — один и тот же пост в оформлении разных соцсетей. Показывает «своё оформление для каждой».</p>
+      <ul>
+        <li><b>Руками:</b> тянуть — поворот с инерцией, клик — следующая грань.</li>
+        <li><b>Телефон:</b> призма меньше, свайп вбок крутит.</li>
+        <li><b>Reduce:</b> не крутится сама; грани меняются проявлением раз в 3 с.</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- 3. Веер -->
+  <article class="v-card">
+    <div class="v-stage" id="v3" aria-label="Веер карточек: из задачи Битрикс24 разлетаются посты по соцсетям. Нажмите, чтобы раскрыть.">
+      <div class="v-fit"><div class="v3-deck" id="v3Deck">
+        <div class="v3-card v3-front">
+          <b>Битрикс24</b>
+          <span class="v3-k">Задача</span>
+          <span class="v3-t">Анонс статьи «Как выбрать подарок»</span>
+          <span class="v3-btn">Опубликовать в соцсети</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="v-info">
+      <span class="v-num">3</span>
+      <h2 class="h3">Веер карточек</h2>
+      <p>Впереди задача из Битрикс24. Каждые несколько секунд из неё веером разлетаются посты по соцсетям и снова собираются.</p>
+      <ul>
+        <li><b>Руками:</b> клик — раскрыть или собрать; мышь наклоняет колоду.</li>
+        <li><b>Телефон:</b> касание раскрывает.</li>
+        <li><b>Reduce:</b> веер раскрыт и стоит; карточки подсвечиваются по очереди.</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- 4. Сфера -->
+  <article class="v-card">
+    <div class="v-stage" id="v4" aria-label="Сфера из значков соцсетей вокруг SEOlit. Потяните, чтобы покрутить.">
+      <div class="v-fit"><div class="v4-sphere" id="v4Sphere">
+        <div class="v4-core"><svg><use href="#mark"></use></svg></div>
+      </div></div>
+    </div>
+    <div class="v-info">
+      <span class="v-num">4</span>
+      <h2 class="h3">Сфера из значков</h2>
+      <p>12 соцсетей и точки на вращающейся сфере вокруг SEOlit. Эффектно, но про Битрикс24 говорит меньше остальных.</p>
+      <ul>
+        <li><b>Руками:</b> тянуть в любую сторону — вращение с инерцией; клик по значку — вспышка.</li>
+        <li><b>Телефон:</b> то же пальцем.</li>
+        <li><b>Reduce:</b> сфера стоит, значки вспыхивают по очереди.</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- 5. Телефон -->
+  <article class="v-card">
+    <div class="v-stage" id="v5" aria-label="Телефон в 3D: пост из Битрикс24 падает в ленту соцсети. Потяните, чтобы повернуть.">
+      <div class="v-fit"><div class="v5-scene" id="v5Scene">
+        <div class="v5-b24" id="v5B24"><b>Битрикс24</b><span>Задача · Анонс статьи</span></div>
+        <div class="v5-phone" id="v5Phone">
+          <div class="v5-side"></div>
+          <div class="v5-screen"><div class="v5-bar"><i></i></div><div class="v5-feed" id="v5Feed"></div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="v-info">
+      <span class="v-num">5</span>
+      <h2 class="h3">Телефон в 3D</h2>
+      <p>Смартфон с лентой медленно поворачивается, пост из карточки Битрикс24 перелетает в ленту — каждый раз в новой соцсети.</p>
+      <ul>
+        <li><b>Руками:</b> тянуть — повернуть телефон, отпустить — вернётся.</li>
+        <li><b>Телефон:</b> сцена меньше, карточка Битрикс24 над телефоном.</li>
+        <li><b>Reduce:</b> телефон стоит, новый пост проявляется в ленте без перелёта.</li>
+      </ul>
+    </div>
+  </article>
+
+</main>
+
+<footer class="wrap v-foot"><a href="../../index.html">← на сайт</a></footer>
+
+<script src="3d-variants.js"></script>
+</body>
+</html>

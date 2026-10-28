@@ -1,0 +1,140 @@
+/* Демо: варианты 3D для экрана «Битрикс24». Токены и база — из css/style.css */
+
+.v-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-block: 56px 32px; }
+.v-top > div { display: flex; flex-direction: column; gap: 14px; }
+.v-top .h2 { font-size: clamp(28px, 4vw, 44px); }
+.v-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding-bottom: 48px; }
+.v-card { display: flex; flex-direction: column; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); overflow: hidden; }
+.v-card:first-child { grid-column: 1 / -1; }
+.v-stage {
+  position: relative; height: 440px; overflow: hidden; display: grid; place-items: center;
+  background: radial-gradient(ellipse at 50% 60%, var(--soft), transparent 70%), var(--bg);
+  cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+}
+.v-stage:active { cursor: grabbing; }
+.v-fit { display: grid; place-items: center; }
+.v-info { padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 10px; }
+.v-info p { margin: 0; color: var(--muted); line-height: 1.55; }
+.v-info ul { margin: 4px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+.v-info li b { color: var(--fg); }
+.v-num { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--atext); }
+.v-foot { padding-bottom: 40px; }
+
+/* Общая карточка Битрикс24 (те же цвета, что у грани куба) */
+.v1-b24, .v3-card.v3-front, .v5-b24 { background: linear-gradient(160deg, #2FC6F6, #1A8FD8); color: #fff; }
+.chip.is-hit { box-shadow: 0 0 0 4px var(--surface), 0 0 0 7px var(--c), 0 0 24px var(--c); }
+
+/* ---------- 1. Слои ---------- */
+#v1 { perspective: 1300px; }
+.v1-scene {
+  --gap: 72px; position: relative; width: 270px; height: 270px; transform-style: preserve-3d;
+  transform: translateY(30px) rotateX(var(--rx, 58deg)) rotateZ(var(--rz, -38deg));
+}
+.v1-layer { position: absolute; inset: 0; border-radius: 26px; transform-style: preserve-3d; }
+.v1-b24 {
+  padding: 26px; display: flex; flex-direction: column; gap: 12px; transform: translateZ(0);
+  box-shadow: 0 40px 60px -20px rgba(13, 21, 38, .45);
+}
+.v1-b24 b { font: 800 26px/1 var(--font-d); }
+.v1-task { align-self: flex-start; padding: 6px 10px; border-radius: 9px; background: rgba(255, 255, 255, .22); font-weight: 800; font-size: 13px; }
+.v1-b24 i { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, .35); }
+.v1-hub {
+  transform: translateZ(var(--gap)); display: grid; place-items: center; align-content: center; gap: 6px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent); border: 1.5px solid var(--accent);
+  backdrop-filter: blur(2px); color: #fff; font: 800 15px/1 var(--font-d);
+}
+.v1-hub svg { width: 84px; height: 84px; }
+.v1-nets {
+  transform: translateZ(calc(var(--gap) * 2)); display: grid; grid-template-columns: repeat(4, 1fr); place-items: center;
+  padding: 18px; border: 1.5px dashed var(--line); background: color-mix(in srgb, var(--surface) 40%, transparent);
+}
+.v1-nets .chip { width: 44px; height: 44px; border-radius: 13px; transition: box-shadow .3s; }
+.v1-pk { position: absolute; left: 0; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 5px; background: var(--accent); box-shadow: 0 0 0 5px var(--glow); }
+
+/* ---------- 2. Призма ---------- */
+#v2 { perspective: 1100px; }
+.v2-prism { --w: 190px; --h: 300px; position: relative; width: var(--w); height: var(--h); transform-style: preserve-3d; }
+.v2-face {
+  position: absolute; inset: 0; border-radius: 18px; overflow: hidden; backface-visibility: hidden;
+  background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column;
+  box-shadow: inset 0 0 0 1px var(--chip-ring);
+}
+.v2-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--c); color: #fff; font-weight: 800; font-size: 13px; }
+.v2-head .chip { width: 24px; height: 24px; border-radius: 7px; background: rgba(255, 255, 255, .2); }
+.v2-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
+.v2-img { border-radius: 10px; background: var(--soft); position: relative; overflow: hidden; flex: none; }
+.v2-img::after { content: ""; position: absolute; inset: auto -25% -55% -25%; aspect-ratio: 1; border-radius: 50%; background: var(--c); opacity: .75; }
+.v2-t { font-weight: 800; font-size: 13px; line-height: 1.3; }
+.v2-l { height: 7px; border-radius: 4px; background: var(--line); }
+.v2-tags { font-size: 11px; font-weight: 700; color: var(--atext); }
+
+/* ---------- 3. Веер ---------- */
+#v3 { perspective: 1200px; }
+.v3-deck { position: relative; width: 200px; height: 270px; transform-style: preserve-3d; transform: rotateX(var(--rx, 10deg)) rotateY(var(--ry, 0deg)); transition: transform .3s ease-out; }
+.v3-card {
+  position: absolute; inset: 0; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 18px 36px -16px rgba(13, 21, 38, .4);
+  transform-origin: 50% 110%; backface-visibility: hidden; transition: box-shadow .3s;
+}
+.v3-card.is-lit { box-shadow: 0 0 0 3px var(--c), 0 18px 36px -12px var(--c); }
+.v3-front { z-index: 2; padding: 20px; gap: 10px; border: 0; }
+.v3-front b { font: 800 22px/1 var(--font-d); }
+.v3-k { font-size: 12px; font-weight: 800; opacity: .8; text-transform: uppercase; letter-spacing: .08em; margin-top: 18px; }
+.v3-t { font-size: 17px; font-weight: 800; line-height: 1.3; }
+.v3-btn { margin-top: auto; padding: 10px 12px; border-radius: 10px; background: #fff; color: #1A8FD8; font-weight: 800; font-size: 13px; text-align: center; }
+.v3-post .v3-h { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; }
+.v3-post .chip { width: 26px; height: 26px; border-radius: 8px; }
+.v3-post .v3-img { flex: 1; border-radius: 10px; background: color-mix(in srgb, var(--c) 22%, var(--soft)); }
+.v3-post .v3-l { height: 7px; border-radius: 4px; background: var(--line); }
+
+/* ---------- 4. Сфера ---------- */
+#v4 { perspective: 900px; }
+.v4-sphere { position: relative; width: 0; height: 0; transform-style: preserve-3d; }
+.v4-core {
+  position: absolute; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%;
+  background: var(--accent); display: grid; place-items: center; box-shadow: 0 0 60px var(--glow);
+}
+.v4-core svg { width: 60px; height: 60px; }
+.v4-pt { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+.v4-pt.chip { width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 14px; border: 0; cursor: pointer; transition: box-shadow .3s; }
+.v4-dot { width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--muted); }
+
+/* ---------- 5. Телефон ---------- */
+#v5 { perspective: 1200px; }
+.v5-scene { position: relative; width: 420px; height: 420px; transform-style: preserve-3d; }
+.v5-phone {
+  position: absolute; left: 190px; top: 10px; width: 200px; height: 400px; border-radius: 34px; transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 6deg)) rotateY(var(--ry, -22deg));
+}
+.v5-side { position: absolute; inset: 0; border-radius: 34px; background: var(--muted); transform: translateZ(-10px); }
+.v5-screen {
+  position: absolute; inset: 0; border-radius: 34px; border: 8px solid var(--fg); background: var(--bg); overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.v5-bar { height: 26px; flex: none; display: grid; place-items: center; }
+.v5-bar i { width: 60px; height: 6px; border-radius: 3px; background: var(--line); }
+.v5-feed { flex: 1; padding: 6px 10px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.v5-post { flex: none; padding: 10px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 7px; }
+.v5-post .v5-h { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800; }
+.v5-post .chip { width: 22px; height: 22px; border-radius: 7px; }
+.v5-post .v5-img { height: 58px; border-radius: 9px; background: color-mix(in srgb, var(--c) 25%, var(--soft)); }
+.v5-post .v5-t { font-size: 11px; font-weight: 700; line-height: 1.3; }
+.v5-b24 {
+  position: absolute; left: 0; top: 70px; width: 170px; padding: 16px; border-radius: 18px; display: flex; flex-direction: column; gap: 8px;
+  transform: translateZ(90px) rotateY(14deg); box-shadow: 0 24px 40px -18px rgba(13, 21, 38, .45);
+}
+.v5-b24 b { font: 800 18px/1 var(--font-d); }
+.v5-b24 span { font-size: 12px; font-weight: 700; opacity: .9; }
+.v5-fly { position: absolute; left: 0; top: 0; width: 150px; padding: 10px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 16px 30px -12px rgba(13, 21, 38, .4); pointer-events: none; }
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 900px) {
+  .v-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .v-stage { height: 380px; }
+  .v-fit { scale: .78; }
+  .v5-scene { width: 330px; }
+  .v5-phone { left: 120px; }
+  .v5-b24 { top: 0; width: 150px; }
+}
