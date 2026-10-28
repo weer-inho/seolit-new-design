@@ -26,6 +26,7 @@
   --t-amber: #FDF6E7;
   --t-blue: #EEF3FE;
   --t-green: #ECF7F1;
+  --chip-ring: transparent;
 
   --font-d: "Unbounded", "Manrope", system-ui, sans-serif;
   --font-b: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -59,6 +60,7 @@
     --t-amber: #221C12;
     --t-blue: #121D36;
     --t-green: #0F2219;
+    --chip-ring: rgba(255, 255, 255, .22);
     color-scheme: dark;
   }
 }
@@ -83,6 +85,7 @@
   --t-amber: #221C12;
   --t-blue: #121D36;
   --t-green: #0F2219;
+  --chip-ring: rgba(255, 255, 255, .22);
   color-scheme: dark;
 }
 
@@ -233,7 +236,7 @@ a { color: var(--atext); }
 .deco--chip > i {
   font-style: normal; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
   background: var(--c); color: #fff; font: 800 13px/1 var(--font-b); opacity: .9;
-  box-shadow: var(--shadow); animation: bob 6s ease-in-out infinite; animation-delay: var(--d, 0s);
+  box-shadow: var(--shadow), inset 0 0 0 1px var(--chip-ring); animation: bob 6s ease-in-out infinite; animation-delay: var(--d, 0s);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(6deg); } }
@@ -249,7 +252,11 @@ a { color: var(--atext); }
   --c: var(--accent);
   flex: none; display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 11px;
   background: var(--c); color: #fff; font: 800 12px/1 var(--font-b); letter-spacing: .01em;
+  box-shadow: inset 0 0 0 1px var(--chip-ring);
 }
+/* Значки соцсетей внутри плашек (белые, по центру) */
+.chip svg, .node svg, .ball svg, .deco--chip svg { width: 58%; height: 58%; fill: currentColor; }
+.node svg, .ball svg { width: 50%; height: 50%; }
 
 /* Появление при прокрутке (только где браузер умеет scroll-driven анимации) */
 @supports (animation-timeline: view()) {
@@ -283,7 +290,7 @@ a { color: var(--atext); }
   --c: var(--accent);
   position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; border-radius: 18px;
   border: 0; background: var(--c); color: #fff; font: 800 14px/1 var(--font-b);
-  display: grid; place-items: center; cursor: pointer; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35);
+  display: grid; place-items: center; cursor: pointer; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35), inset 0 0 0 1px var(--chip-ring);
   will-change: transform, opacity;
 }
 .node::after {
@@ -540,10 +547,10 @@ a { color: var(--atext); }
   position: absolute; left: 0; top: 0; border: 0; padding: 0; border-radius: 30%;
   background: var(--c); color: #fff; font: 800 14px/1 var(--font-b);
   display: grid; place-items: center; cursor: grab; touch-action: none;
-  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, .4); will-change: transform; z-index: 3;
+  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, .4), inset 0 0 0 1px var(--chip-ring); will-change: transform; z-index: 3;
 }
 .ball:active { cursor: grabbing; }
-.ball.is-drag { z-index: 6; box-shadow: 0 22px 40px -10px rgba(0, 0, 0, .5); }
+.ball.is-drag { z-index: 6; box-shadow: 0 22px 40px -10px rgba(0, 0, 0, .5), inset 0 0 0 1px var(--chip-ring); }
 .ball.is-caught { z-index: 4; border-radius: 50%; }
 .sb-hud {
   position: absolute; left: 14px; right: 14px; top: 14px; z-index: 8; display: flex; flex-wrap: wrap;
@@ -691,7 +698,7 @@ a { color: var(--atext); }
   font: 800 clamp(28px, 6vw, 46px)/1 var(--font-d); backface-visibility: hidden;
   box-shadow: inset 0 0 60px rgba(0, 0, 0, .18);
 }
-.face svg { width: 56%; height: 56%; }
+.face svg { width: 56%; height: 56%; fill: currentColor; }
 .face--front { transform: translateZ(calc(var(--cs) / 2)); }
 .face--back { transform: rotateY(180deg) translateZ(calc(var(--cs) / 2)); }
 .face--right { transform: rotateY(90deg) translateZ(calc(var(--cs) / 2)); }
