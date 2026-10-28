@@ -1299,9 +1299,13 @@
       px = e.clientX - r.left; py = e.clientY - r.top;
     });
     panel.addEventListener('pointerleave', () => { px = -1; });
-    btn.addEventListener('click', () => {
+    // «Начать работу» — ссылка на регистрацию: сначала конфетти, через 700 мс переход; в still — сразу
+    btn.addEventListener('click', (e) => {
+      if (still || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
       const r = btn.getBoundingClientRect();
       confetti(r.left + r.width / 2, r.top + r.height / 2, 150);
+      setTimeout(() => { location.href = btn.href; }, 700);
     });
     watch(panel, {
       tick(dt) {
