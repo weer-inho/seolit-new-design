@@ -123,9 +123,11 @@
 
   /* ---------- Главный цикл и видимость модулей ---------- */
   const modules = [];
+  const hdrH = () => document.getElementById('hdr').offsetHeight;
   function watch(el, m) {
     m.active = false;
-    new IntersectionObserver((es) => { m.active = es[0].isIntersecting; }, { rootMargin: '120px' }).observe(el);
+    // видим, только если в кадре есть площадь, не считая полосы под липкой шапкой
+    new IntersectionObserver((es) => { m.active = es[0].intersectionRatio > 0; }, { rootMargin: `-${hdrH() + 4}px 0px 0px 0px`, threshold: [0, 0.001] }).observe(el);
     modules.push(m);
     return m;
   }
@@ -190,6 +192,9 @@
     });
   }, { rootMargin: '-45% 0px -45% 0px' });
   sections.forEach((s) => dotIO.observe(s));
+  // Экран вне видимости: CSS-анимации внутри на паузе (.scr.is-off в CSS), чтобы не грузить процессор
+  const offIO = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-off', !(e.intersectionRatio > 0))), { rootMargin: `-${hdrH() + 4}px 0px 0px 0px`, threshold: [0, 0.001] });
+  sections.forEach((s) => offIO.observe(s));
 
   /* ---------- Пошаговая прокрутка по экранам ---------- */
   // Колесо, свайп, PageDown/PageUp, стрелки, пробел = соседний экран за STEP мс.
@@ -618,7 +623,8 @@
       tick(dt, now) {
         if (phone && !still) {
           sway += dt;
-          phone.style.setProperty('--ry', ((innerWidth < 900 ? -6 : -14) + Math.sin(sway * 0.6) * 5).toFixed(2) + 'deg');
+          // transform напрямую: смена наследуемой переменной пересчитывала стили всей ленты
+          phone.style.transform = `rotateX(4deg) rotateY(${((innerWidth < 900 ? -6 : -14) + Math.sin(sway * 0.6) * 5).toFixed(2)}deg)`;
         }
         if (busy || now - lastUser < 9000) return;
         acc += dt;
@@ -947,8 +953,7 @@
         if (still) return; // наклон в 3D — крупное движение
         const r = card.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-        card.style.setProperty('--ry', ((px - 0.5) * 14).toFixed(1) + 'deg');
-        card.style.setProperty('--rx', ((0.5 - py) * 12).toFixed(1) + 'deg');
+        card.style.transform = `rotateX(${((0.5 - py) * 12).toFixed(1)}deg) rotateY(${((px - 0.5) * 14).toFixed(1)}deg)`;
         card.style.setProperty('--gx', (px * 100).toFixed(0) + '%');
         card.style.setProperty('--gy', (py * 100).toFixed(0) + '%');
       });
@@ -962,8 +967,7 @@
         }
         if (!hover && !still) {
           t += dt;
-          card.style.setProperty('--ry', (Math.sin(t * 0.8) * 6).toFixed(2) + 'deg');
-          card.style.setProperty('--rx', (Math.cos(t * 0.6) * 4).toFixed(2) + 'deg');
+          card.style.transform = `rotateX(${(Math.cos(t * 0.6) * 4).toFixed(2)}deg) rotateY(${(Math.sin(t * 0.8) * 6).toFixed(2)}deg)`;
           card.style.setProperty('--gx', (50 + Math.sin(t * 0.8) * 30).toFixed(0) + '%');
         }
       },
@@ -1225,7 +1229,7 @@
      8. Битрикс24: слои в изометрии (Битрикс24 → SEOlit → соцсети)
      ========================================================== */
   (function layers() {
-    const st = $('#layStage'), sc = $('#lay'), netsEl = $('#layNets');
+    const st = $('#layStage'), sc = $('#lay'), netsEl = $('#layNets'), hubEl = $('.lay__hub', sc);
     if (!st) return;
     netsEl.innerHTML = NETS.map((n) => `<span class="chip" style="--c:${n.c}" title="${n.n}">${icon(n.s)}</span>`).join('');
     const chips = $$('.chip', netsEl);
@@ -1258,9 +1262,10 @@
         // слои расходятся, когда их трогают; сами чуть дышат
         const base = still ? 72 : 72 + 6 * Math.sin(t * 1.3);
         gap = lerp(gap, hover || held() ? 108 : base, 1 - Math.exp(-dt * 5));
-        sc.style.setProperty('--rz', rz.toFixed(2) + 'deg');
-        sc.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-        sc.style.setProperty('--gap', gap.toFixed(1) + 'px');
+        // transform напрямую: смена наследуемых переменных пересчитывала стили всех слоёв и значков
+        sc.style.transform = `translateY(${(sc.offsetWidth * 0.3).toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg)`;
+        hubEl.style.transform = `translateZ(${gap.toFixed(1)}px)`;
+        netsEl.style.transform = `translateZ(${(gap * 2).toFixed(1)}px)`;
         acc += dt;
         if (still) {
           // без полётов: соцсети вспыхивают по очереди

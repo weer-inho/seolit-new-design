@@ -22,11 +22,14 @@
 - `favicon.svg`, `.nojekyll` (отключает Jekyll на GitHub Pages).
 
 ## Правила
-- **Цвета только через токены** (`--bg`, `--surface`, `--fg`, `--muted`, `--line`, `--soft`, `--accent`, `--atext`, `--mint`, `--coral`, `--amber`, `--t-*`).
+- **Цвета только через токены** (`--bg`, `--surface`, `--fg`, `--muted`, `--line`, `--soft`, `--accent`, `--atext`, `--mint`, `--coral`, `--amber`, `--t-*`,
+  `--on-coral`, `--b24-*`, `--ai-*`). Текст — контраст ≥ 4.5:1 в обеих темах (проверка — docs/QA.md).
   Новый токен добавляй во все три места: `:root`, `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])`, `:root[data-theme="dark"]`.
 - **Тема**: кнопка `#themeBtn` ставит `data-theme` на `<html>` и пишет `localStorage['seolit-theme']`.
 - **Шрифты**: заголовки экранов — Unbounded (`--font-d`), текст и заголовок hero — Manrope (`--font-b`). Подключены с Google Fonts.
-- **Анимации**: один `requestAnimationFrame`-цикл внизу `main.js`. Модуль регистрируется через `watch(el, { tick(dt) {…} })` и тикает только когда элемент виден.
+- **Анимации**: один `requestAnimationFrame`-цикл внизу `main.js`. Модуль регистрируется через `watch(el, { tick(dt) {…} })` и тикает только когда элемент в кадре.
+  CSS-анимации экрана вне кадра на паузе (класс `is-off` на `.scr`). Каждый кадр меняешь поворот — пиши `el.style.transform`,
+  а не CSS-переменную на контейнере (она пересчитывает стили всего содержимого).
   Для canvas — `regCanvas(canvas)` (учитывает плотность пикселей и ресайз).
 - **Параллакс**: атрибут `data-speed="0.2"` на элементе. Сдвиг идёт через CSS-свойство `translate`, поэтому не конфликтует с `transform`-анимациями.
 - **Уменьшение движения** (`prefers-reduced-motion`): два флага в `main.js`. `still` — крупного движения нет

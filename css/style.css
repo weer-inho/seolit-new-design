@@ -28,6 +28,7 @@
   --t-green: #ECF7F1;
   --chip-ring: transparent;
   --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
+  --on-coral: #FFFFFF; --b24-fg: #0D1526; /* текст на --coral и на градиенте Битрикс24 (контраст ≥ 4.5) */
   /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
   --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
   --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -68,6 +69,7 @@
     --t-green: #0F2219;
     --chip-ring: rgba(255, 255, 255, .22);
     --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
+    --on-coral: #0D1526; --b24-fg: #0D1526; /* текст на --coral и на градиенте Битрикс24 (контраст ≥ 4.5) */
     /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
     --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
     --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -99,6 +101,7 @@
   --t-green: #0F2219;
   --chip-ring: rgba(255, 255, 255, .22);
   --b24-1: #2FC6F6; --b24-2: #1A8FD8; /* фирменный градиент Битрикс24 */
+  --on-coral: #0D1526; --b24-fg: #0D1526; /* текст на --coral и на градиенте Битрикс24 (контраст ≥ 4.5) */
   /* ИИ-соавтор: экран тёмный в обеих темах, карточка формы — светлая */
   --ai-bg: #04060C; --ai-bg2: #0B1430; --ai-surface: #10172A; --ai-line: #1B2236; --ai-line2: #24304D;
   --ai-fg: #E9EEF8; --ai-muted: #9BA8BE; --ai-key: #8DB1FF; --ai-pick: #1D4ED8; --ai-pick-line: #3B74F6;
@@ -130,6 +133,7 @@ img, svg, canvas { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: var(--atext); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.pcard :focus-visible, .start-panel :focus-visible, .step--go :focus-visible { outline-color: #fff; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .wrap {
@@ -229,6 +233,8 @@ a { color: var(--atext); }
   padding-block: 96px 72px;
 }
 .scr--alt { background: var(--surface); }
+/* Экран вне видимости: CSS-анимации на паузе (кроме появления .rv, его ведёт прокрутка) */
+.scr.is-off :not(.rv), .scr.is-off ::before, .scr.is-off ::after { animation-play-state: paused !important; }
 .scr--hero { padding-block: 40px 80px; }
 .bg-dots {
   position: absolute; inset: -10% 0; z-index: 0; pointer-events: none;
@@ -413,7 +419,7 @@ a { color: var(--atext); }
 .site__lines i { height: 7px; border-radius: 4px; background: var(--line); }
 .site__new {
   position: absolute; right: -8px; top: -10px; padding: 4px 9px; border-radius: 8px;
-  background: var(--coral); color: #fff; font: 800 11px/1.2 var(--font-b); letter-spacing: .05em;
+  background: var(--coral); color: var(--on-coral); font: 800 11px/1.2 var(--font-b); letter-spacing: .05em;
   animation: wobble 1.8s ease-in-out infinite;
 }
 @keyframes wobble { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(4deg) scale(1.08); } }
@@ -560,7 +566,7 @@ a { color: var(--atext); }
 .step__t.typing::after { content: "▍"; color: var(--accent); animation: caret 1s steps(1) infinite; }
 .step--go { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
 .step--go .step__ico { background: rgba(255, 255, 255, .16); color: #fff; }
-.step--go .step__k, .step--go .step__t { color: rgba(255, 255, 255, .82); }
+.step--go .step__k, .step--go .step__t { color: rgba(255, 255, 255, .95); } /* .82 давало контраст 4:1 */
 .step--go .h3 { font-size: 26px; }
 .step__burst { display: flex; flex-wrap: wrap; gap: 6px; }
 /* Веер: из «Публикуемся!» разлетаются посты по соцсетям */
@@ -598,11 +604,11 @@ a { color: var(--atext); }
   content: ""; position: absolute; width: 280px; height: 280px; right: -90px; bottom: -110px; border-radius: 50%;
   border: 40px solid rgba(255, 255, 255, .08); animation: spin 30s linear infinite;
 }
-.pcard__k { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.pcard__k { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .95; }
 .pcard__sum { font-family: var(--font-d); font-size: clamp(48px, 7vw, 76px); font-weight: 800; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; transform: translateZ(40px); }
-.pcard__sum small { font-family: var(--font-b); font-size: 18px; font-weight: 700; letter-spacing: 0; opacity: .85; }
-.pcard__inc { margin: 0; font-weight: 600; opacity: .9; }
-.range { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: rgba(255, 255, 255, .12); position: relative; z-index: 1; }
+.pcard__sum small { font-family: var(--font-b); font-size: 18px; font-weight: 700; letter-spacing: 0; opacity: .95; }
+.pcard__inc { margin: 0; font-weight: 600; opacity: .95; }
+.range { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: rgba(13, 21, 38, .14); position: relative; z-index: 1; }
 .range label { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 15px; }
 .range output { font-family: var(--font-d); font-variant-numeric: tabular-nums; }
 .range input { width: 100%; accent-color: #fff; height: 28px; cursor: pointer; }
@@ -753,17 +759,18 @@ a { color: var(--atext); }
 }
 .lay__l { position: absolute; inset: 0; border-radius: 26px; transform-style: preserve-3d; }
 .lay__b24 {
-  padding: calc(var(--ls) * .1); display: flex; flex-direction: column; gap: 12px; color: #fff;
+  padding: calc(var(--ls) * .1); display: flex; flex-direction: column; gap: 12px; color: var(--b24-fg);
   background: linear-gradient(160deg, var(--b24-1), var(--b24-2)); box-shadow: 0 40px 60px -20px rgba(13, 21, 38, .45);
 }
 .lay__b24 b { font: 800 clamp(20px, 2.2vw, 26px)/1 var(--font-d); }
-.lay__task { align-self: flex-start; padding: 6px 10px; border-radius: 9px; background: rgba(255, 255, 255, .22); font-weight: 800; font-size: 13px; }
+.lay__task { align-self: flex-start; padding: 6px 10px; border-radius: 9px; background: rgba(255, 255, 255, .45); font-weight: 800; font-size: 13px; }
 .lay__b24 i { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, .35); }
 .lay__hub {
   transform: translateZ(var(--gap)); display: grid; place-items: center; align-content: center; gap: 6px;
   background: color-mix(in srgb, var(--accent) 55%, transparent); border: 1.5px solid var(--accent); color: #fff; font: 800 15px/1 var(--font-d);
 }
 .lay__hub svg { width: 32%; height: auto; aspect-ratio: 1; }
+.lay__hub span { padding: 4px 10px; border-radius: 8px; background: var(--accent); } /* подпись читается поверх полупрозрачного слоя */
 .lay__nets {
   transform: translateZ(calc(var(--gap) * 2)); display: grid; grid-template-columns: repeat(4, 1fr); place-items: center;
   padding: 7%; border: 1.5px dashed var(--line); background: color-mix(in srgb, var(--surface) 40%, transparent);
@@ -796,7 +803,7 @@ a { color: var(--atext); }
 .globe__pt.chip.is-hit { box-shadow: 0 0 0 3px #fff, 0 0 26px #fff; }
 .globe__dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, .7); }
 .start-panel .h2 { font-size: clamp(34px, 5vw, 64px); }
-.start-panel p { margin: 10px 0 0; font-size: 18px; opacity: .9; }
+.start-panel p { margin: 10px 0 0; font-size: 18px; opacity: .95; }
 .start-panel .btn { background: #fff; color: #1D4ED8; }
 .principles { margin-top: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 24px; }
 .principles div { display: flex; flex-direction: column; gap: 6px; }
@@ -873,6 +880,14 @@ a { color: var(--atext); }
   .sb-btns .sb-btn { flex: 1; }
 }
 
+
+/* Касание: элементы для пальца не меньше 44 px */
+@media (any-pointer: coarse), (max-width: 900px) {
+  .brand, .btn--xs, .sb-btn, .ai__pill, .ai__opt { min-height: 44px; }
+  .range input, .chart__ctl input, .ai__range { height: 44px; }
+  .foot a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+  .foot nav { gap: 0 18px; }
+}
 
 /* Уменьшение движения (SPEC.md): перемещения, вращения и масштаб стоят,
    смена состояний остаётся — проявлением opacity на месте за .35 с */
