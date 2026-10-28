@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Лендинг SEOlit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="SEOlit ведёт все соцсети за 800 ₽ в месяц: автопостинг с сайта, кросспостинг, расписание, аналитика и интеграция с Битрикс24.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Логотип A: узел «один → много» -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" style="fill: var(--accent)"></circle>
+    <circle cx="24" cy="24" r="12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"></circle>
+    <path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path>
+    <circle cx="24" cy="24" r="4.5" fill="#fff"></circle>
+    <circle cx="24" cy="12" r="3.5" fill="#fff"></circle>
+    <circle cx="34.4" cy="30" r="3.5" fill="#fff"></circle>
+    <circle cx="13.6" cy="30" r="3.5" fill="#fff"></circle>
+  </symbol>
+  <symbol id="mark" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2"></circle>
+    <path d="M24 24 L24 10 M24 24 L36.1 31 M24 24 L11.9 31" stroke="#fff" stroke-width="2.8" stroke-linecap="round"></path>
+    <circle cx="24" cy="24" r="5" fill="#fff"></circle>
+    <circle cx="24" cy="10" r="4" fill="#fff"></circle>
+    <circle cx="36.1" cy="31" r="4" fill="#fff"></circle>
+    <circle cx="11.9" cy="31" r="4" fill="#fff"></circle>
+  </symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+</svg>
+
+<div class="progress" aria-hidden="true"><span id="progress"></span></div>
+
+<header class="hdr" id="hdr">
+  <div class="wrap hdr__in">
+    <a class="brand" href="#hero" aria-label="SEOlit, на главный экран">
+      <svg aria-hidden="true"><use href="#logo"></use></svg>
+      <b>SEOlit</b>
+    </a>
+    <nav class="hdr__nav" aria-label="Разделы">
+      <a href="#auto">Автопостинг</a>
+      <a href="#cross">Кросспостинг</a>
+      <a href="#price">Цена</a>
+      <a href="#schedule">Расписание</a>
+      <a href="#bitrix">Битрикс24</a>
+    </nav>
+    <div class="hdr__act">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Включить тёмную тему">
+        <svg class="i-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <svg class="i-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      </button>
+      <a class="hdr__login" href="#">Вход</a>
+      <a class="btn btn--primary btn--sm magnetic" href="#start">Попробовать</a>
+    </div>
+  </div>
+</header>
+
+<nav class="dots" id="dots" aria-label="Экраны">
+  <a href="#hero" aria-label="Главная"><span></span></a>
+  <a href="#nets" aria-label="12 соцсетей"><span></span></a>
+  <a href="#auto" aria-label="Автопостинг"><span></span></a>
+  <a href="#cross" aria-label="Кросспостинг"><span></span></a>
+  <a href="#how" aria-label="Как это работает"><span></span></a>
+  <a href="#price" aria-label="Цена"><span></span></a>
+  <a href="#schedule" aria-label="Расписание"><span></span></a>
+  <a href="#bitrix" aria-label="Битрикс24"><span></span></a>
+  <a href="#start" aria-label="Попробовать"><span></span></a>
+</nav>
+
+<main>
+
+<!-- 1. HERO: живое слово + доска контент-плана -->
+<section class="scr scr--hero" id="hero">
+  <div class="bg-dots" data-speed="-0.12" aria-hidden="true"></div>
+
+  <!-- Рисованные человечки -->
+  <svg class="doodle doodle--face" data-speed="-0.25" viewBox="0 0 120 120" aria-hidden="true"><g class="sway"><circle cx="60" cy="62" r="50" class="d-fill"></circle><circle cx="44" cy="54" r="4" class="d-ink"></circle><circle cx="74" cy="54" r="4" class="d-ink"></circle><path d="M42 76 Q60 92 80 74" class="d-line"></path><path d="M30 26 Q40 10 56 20" class="d-line"></path></g></svg>
+  <svg class="doodle doodle--plane" data-speed="-0.4" viewBox="0 0 72 56" aria-hidden="true"><g class="fly"><path d="M4 26 L66 6 L44 50 L34 32 Z" class="d-fill d-line" stroke-linejoin="round"></path><path d="M34 32 L66 6" class="d-line"></path></g></svg>
+  <svg class="doodle doodle--man" data-speed="0.15" viewBox="0 0 110 150" aria-hidden="true"><g class="sway sway--slow"><circle cx="52" cy="40" r="28" class="d-fill d-line"></circle><circle cx="52" cy="10" r="11" class="d-ink"></circle><circle cx="43" cy="42" r="3.5" class="d-ink"></circle><circle cx="62" cy="42" r="3.5" class="d-ink"></circle><path d="M45 54 Q53 60 61 53" class="d-line"></path><path d="M30 70 Q52 62 74 70 L80 140 L24 140 Z" class="d-fill d-line" stroke-linejoin="round"></path><rect x="62" y="84" width="26" height="40" rx="5" class="d-line" style="fill: var(--accent)"></rect></g></svg>
+
+  <div class="wrap hero2">
+    <h1 class="hero2__title">
+      <span class="sr-only">Ваш пост выходит во всех соцсетях: сразу, по расписанию, без копипаста и с адаптацией.</span>
+      <span aria-hidden="true">Ваш пост выходит во&nbsp;всех соцсетях <span class="roller" id="roller"><i class="roller__dot"></i><span class="roller__win"><span class="roller__word" id="rollerWord">сразу</span></span></span></span>
+    </h1>
+    <p class="lead hero2__lead">Автопостинг с сайта и кросспостинг в 12 соцсетей. Своё оформление для каждой, расписание и интеграция с Битрикс24.</p>
+    <div class="cta-row hero2__cta">
+      <a class="btn btn--primary btn--lg magnetic" href="#start">Попробовать 3 дня бесплатно</a>
+      <a class="btn btn--soft btn--lg magnetic" href="#nets">Посмотреть, как работает</a>
+    </div>
+
+    <div class="app" id="app" data-speed="-0.04">
+      <div class="app__bar" aria-hidden="true"><i></i><i></i><i></i><span>SEOlit</span><span class="app__tab">Магазин «Пример»</span></div>
+      <div class="app__body">
+        <aside class="app__side" aria-hidden="true">
+          <div class="app__group">
+            <span class="app__label">Сегодня</span>
+            <span class="app__row"><span>Анонс статьи</span><em>12:00</em></span>
+            <span class="app__row"><span>Акция дня</span><em>15:30</em></span>
+            <span class="app__row"><span>Отзыв недели</span><em>18:00</em></span>
+          </div>
+          <div class="app__group">
+            <span class="app__label">Соцсети</span>
+            <span class="app__net"><span class="chip chip--xs" style="--c:#0060D1">ВК</span>ВКонтакте</span>
+            <span class="app__net"><span class="chip chip--xs" style="--c:#1B7DB0">TG</span>Telegram</span>
+            <span class="app__net"><span class="chip chip--xs" style="--c:#C2560A">OK</span>Одноклассники</span>
+            <span class="app__net"><span class="chip chip--xs" style="--c:#1268B3">ММ</span>Мой Мир</span>
+            <span class="app__net"><span class="chip chip--xs" style="--c:#C8001E">Pi</span>Pinterest</span>
+            <span class="app__more">… ещё 7</span>
+          </div>
+        </aside>
+        <div class="app__main">
+          <div class="app__head">
+            <span class="app__logo" aria-hidden="true"><svg><use href="#logo"></use></svg></span>
+            <b>Контент-план</b>
+            <button class="btn btn--primary btn--xs" id="appAdd" type="button">+ Пост</button>
+          </div>
+          <div class="app__tabs" aria-hidden="true"><span class="is-on">Доска</span><span>Календарь</span><span>Очередь</span><span>Аналитика</span></div>
+          <div class="board" id="board" aria-label="Доска публикаций, демо">
+            <div class="col col--draft" style="--t: var(--t-gray); --d: #9AA1AE">
+              <div class="col__h"><span class="col__pill"><i></i>Черновик</span><em data-count="3">3</em></div>
+              <div class="col__list">
+                <div class="bcard">Подборка подарков к праздникам<span class="bcard__nets"><span class="chip chip--xs" style="--c:#0060D1">ВК</span><span class="chip chip--xs" style="--c:#C8001E">Pi</span></span></div>
+                <div class="bcard bcard--extra">Интервью с основателем<span class="bcard__nets"><span class="chip chip--xs" style="--c:#1B7DB0">TG</span></span></div>
+              </div>
+            </div>
+            <div class="col" style="--t: var(--t-amber); --d: #D97706">
+              <div class="col__h"><span class="col__pill"><i></i>Запланирован</span><em data-count="5">5</em></div>
+              <div class="col__list">
+                <div class="bcard">Статья: как выбрать подарок<span class="bcard__nets"><span class="chip chip--xs" style="--c:#0060D1">ВК</span><span class="chip chip--xs" style="--c:#1268B3">ММ</span><span class="chip chip--xs" style="--c:#C2560A">OK</span></span></div>
+                <div class="bcard bcard--extra">Акция выходного дня<span class="bcard__nets"><span class="chip chip--xs" style="--c:#0060D1">ВК</span><span class="chip chip--xs" style="--c:#1B7DB0">TG</span><span class="chip chip--xs" style="--c:#0A66C2">In</span></span></div>
+              </div>
+            </div>
+            <div class="col" style="--t: var(--t-blue); --d: #2563EB">
+              <div class="col__h"><span class="col__pill"><i></i>Публикуется</span><em data-count="2">2</em></div>
+              <div class="col__list">
+                <div class="bcard">Отзыв покупателя<span class="bcard__nets"><span class="chip chip--xs" style="--c:#1B7DB0">TG</span><span class="chip chip--xs" style="--c:#16181C">X</span></span></div>
+              </div>
+            </div>
+            <div class="col" style="--t: var(--t-green); --d: #0B8A5F">
+              <div class="col__h"><span class="col__pill"><i></i>Опубликован</span><em data-count="34">34</em></div>
+              <div class="col__list">
+                <div class="bcard">Свежий кейс в блоге<span class="bcard__nets"><span class="chip chip--xs" style="--c:#0060D1">ВК</span><span class="chip chip--xs" style="--c:#1B7DB0">TG</span><span class="chip chip--xs" style="--c:#C2560A">OK</span></span></div>
+                <div class="bcard bcard--extra">Обзор новой модели<span class="bcard__nets"><span class="chip chip--xs" style="--c:#1268B3">ММ</span><span class="chip chip--xs" style="--c:#C8001E">Pi</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="netstrip" aria-label="Публикуем в 12 соцсетей">
+    <span class="netstrip__label">Публикуем в</span>
+    <div class="netstrip__vp"><div class="netstrip__track" id="netstrip"></div></div>
+  </div>
+</section>
+
+<!-- 2. 12 СОЦСЕТЕЙ: 3D-орбита -->
+<section class="scr scr--alt" id="nets">
+  <div class="deco deco--ring" style="--s:420px; left:-180px; top:12%" data-speed="0.25" aria-hidden="true"><i></i></div>
+  <div class="deco deco--plus" style="left:44%; top:14%" data-speed="-0.4" aria-hidden="true"><i></i></div>
+  <div class="deco deco--disc" style="--s:90px; left:6%; bottom:10%" data-speed="0.35" aria-hidden="true"><i></i></div>
+
+  <div class="wrap hero">
+    <div class="hero__text rv">
+      <p class="eyebrow">12 соцсетей</p>
+      <h2 class="h1">Ведёт все соцсети <span class="price-tag">за&nbsp;800&nbsp;₽</span> в&nbsp;месяц</h2>
+      <p class="lead">Не просто копирует, а адаптирует пост под каждую соцсеть. Более 130 ручных настроек. Интеграция с CRM Битрикс24.</p>
+      <div class="cta-row">
+        <a class="btn btn--primary btn--lg magnetic" href="#start">Попробовать 3 дня бесплатно</a>
+        <a class="btn btn--ghost btn--lg magnetic" href="#how">Как это работает</a>
+      </div>
+      <p class="hint">Как правило, 3 дней хватает, чтобы провести всестороннее тестирование.</p>
+    </div>
+
+    <div class="hero__stage">
+      <div class="orbit" id="orbit" role="group" aria-label="Пост расходится по 12 соцсетям. Потяните, чтобы покрутить; нажмите на соцсеть, чтобы отправить в неё пост.">
+        <div class="orbit__glow" aria-hidden="true"></div>
+        <div class="orbit__ring" aria-hidden="true"></div>
+        <canvas class="orbit__fx" id="orbitFx" aria-hidden="true"></canvas>
+        <div class="orbit__core" id="orbitCore">
+          <div class="post">
+            <div class="post__top">
+              <span class="post__ava"><svg aria-hidden="true"><use href="#logo"></use></svg></span>
+              <span class="post__name"></span>
+            </div>
+            <div class="post__img" aria-hidden="true">
+              <span class="post__sun"></span>
+              <span class="post__hill post__hill--a"></span>
+              <span class="post__hill post__hill--b"></span>
+            </div>
+            <p class="post__cap" id="postCap" aria-live="off">Новинки недели уже на сайте</p>
+            <div class="post__meta"><span>Пост</span><b id="postSent">→ 0 соцсетей</b></div>
+          </div>
+        </div>
+      </div>
+      <p class="stage-hint">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"></path></svg>
+        <span class="hint-fine">Потяните, чтобы раскрутить · нажмите на соцсеть</span>
+        <span class="hint-coarse">Проведите пальцем вбок · коснитесь соцсети</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. АВТОПОСТИНГ -->
+<section class="scr" id="auto">
+  <div class="deco deco--chip" style="--c:#0060D1; right:7%; top:14%" data-speed="-0.3" aria-hidden="true"><i>ВК</i></div>
+  <div class="deco deco--chip" style="--c:#1B7DB0; --d:-2s; left:5%; bottom:16%" data-speed="0.3" aria-hidden="true"><i>TG</i></div>
+  <div class="deco deco--ring" style="--s:300px; right:-120px; bottom:-60px" data-speed="0.2" aria-hidden="true"><i></i></div>
+
+  <div class="wrap">
+    <header class="sec-head sec-head--center rv" data-speed="-0.06">
+      <p class="eyebrow">Автопостинг</p>
+      <h2 class="h2">С сайта в 12 соцсетей. За 1 клик.</h2>
+      <p class="lead">Опубликуйте новость, статью, отзыв или товар на своём сайте. SEOlit сам разошлёт материал по всем вашим аккаунтам.</p>
+    </header>
+
+    <div class="auto rv" id="autoDemo">
+      <div class="card site" data-speed="0.04">
+        <div class="site__bar" aria-hidden="true"><i></i><i></i><i></i><span class="site__url">ваш-сайт.ru/blog</span></div>
+        <div class="site__body">
+          <div class="site__art" id="autoArt">
+            <span class="site__thumb" aria-hidden="true"></span>
+            <div class="site__lines">
+              <b id="autoTitle">Новинки недели в каталоге</b>
+              <i></i><i style="width:70%"></i>
+            </div>
+            <span class="site__new">NEW</span>
+          </div>
+          <button class="btn btn--primary magnetic" id="autoBtn" type="button">Опубликовать на сайте</button>
+        </div>
+      </div>
+      <div class="wire" aria-hidden="true"></div>
+      <div class="hub" id="autoHub" aria-hidden="true"><svg><use href="#mark"></use></svg></div>
+      <div class="wire" aria-hidden="true"></div>
+      <ul class="feed" id="autoFeed" aria-label="Лента публикаций"></ul>
+    </div>
+
+    <div class="auto__foot rv">
+      <p class="auto__count" style="margin:0">Опубликовано в демо: <b id="autoCount">0</b></p>
+      <p class="hint">Демо повторяется само. Нажмите кнопку, чтобы опубликовать вручную.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. КРОССПОСТИНГ: ПЕСОЧНИЦА -->
+<section class="scr scr--alt" id="cross">
+  <div class="bg-dots" data-speed="-0.1" aria-hidden="true"></div>
+  <div class="deco deco--plus" style="left:4%; top:18%" data-speed="0.4" aria-hidden="true"><i></i></div>
+  <div class="deco deco--disc" style="--s:160px; right:-40px; top:10%" data-speed="-0.25" aria-hidden="true"><i></i></div>
+
+  <div class="wrap cross">
+    <div class="cross__text rv" data-speed="-0.05">
+      <p class="eyebrow">Кросспостинг</p>
+      <h2 class="h2">Из одной соцсети в 11 других. За 5 секунд.</h2>
+      <p class="lead">Сделайте пост в ведущей соцсети, и SEOlit опубликует его во всех ваших аккаунтах в выбранное время.</p>
+      <p class="lead" style="color:var(--fg)"><b>Попробуйте:</b> поймайте соцсети и закиньте их в SEOlit. Касание тоже работает.</p>
+      <div class="price-note"><b>800 ₽</b><span>Цена не растёт, сколько соцсетей ни подключи: 1 аккаунт в каждой включён.</span></div>
+    </div>
+
+    <div class="sandbox rv" id="sandbox" role="group" aria-label="Песочница: закиньте соцсети в SEOlit">
+      <div class="sb-hud">
+        <span class="sb-count" aria-live="polite">Подключено <b id="sbCount">0</b> из 11</span>
+        <span class="sb-btns">
+          <button class="sb-btn" id="sbAll" type="button">Подключить все</button>
+          <button class="sb-btn" id="sbReset" type="button">Заново</button>
+        </span>
+      </div>
+      <div class="sb-hub" id="sbHub" aria-hidden="true">
+        <span class="sb-hub__ring"></span>
+        <span class="sb-hub__core"><svg><use href="#mark"></use></svg></span>
+        <span class="sb-hub__label">Кидайте сюда</span>
+      </div>
+      <p class="sb-msg is-hidden" id="sbMsg" role="status"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. КАК ЭТО РАБОТАЕТ -->
+<section class="scr" id="how">
+  <div class="deco deco--ring" style="--s:260px; left:-90px; bottom:-40px" data-speed="0.3" aria-hidden="true"><i></i></div>
+  <div class="deco deco--chip" style="--c:#C2560A; right:6%; bottom:18%" data-speed="-0.35" aria-hidden="true"><i>OK</i></div>
+
+  <div class="wrap how" id="howBox" data-src="site">
+    <header class="sec-head sec-head--center rv" data-speed="-0.06">
+      <p class="eyebrow">Это очень просто</p>
+      <h2 class="h2">У вас регулярно есть новые материалы?</h2>
+      <div class="seg" role="group" aria-label="Где появляются материалы">
+        <button type="button" data-src="site" aria-pressed="true">Да, на моём сайте</button>
+        <button type="button" data-src="social" aria-pressed="false">Да, в моей соцсети</button>
+        <button type="button" data-src="head" aria-pressed="false">Да, в моей голове</button>
+      </div>
+    </header>
+
+    <div class="flow rv">
+      <div class="card step" data-speed="0.05">
+        <span class="step__ico" aria-hidden="true">
+          <svg class="src src--site" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"></path></svg>
+          <svg class="src src--social" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"></path></svg>
+          <svg class="src src--head" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"></path></svg>
+        </span>
+        <span class="step__k">Источник</span>
+        <h3 class="h3" id="howTitle">Ваш сайт</h3>
+        <p class="step__t typing" id="howText"></p>
+      </div>
+      <div class="wire" aria-hidden="true"></div>
+      <div class="card step" data-speed="-0.03">
+        <span class="step__ico" aria-hidden="true"><svg viewBox="0 0 48 48" style="width:34px;height:34px"><use href="#logo"></use></svg></span>
+        <span class="step__k">Шаг</span>
+        <h3 class="h3">Регистрируемся в SEOlit</h3>
+        <p class="step__t">Подключаем аккаунты соцсетей и выбираем расписание.</p>
+      </div>
+      <div class="wire" aria-hidden="true"></div>
+      <div class="card step step--go" data-speed="0.05">
+        <span class="step__k">Результат</span>
+        <h3 class="h3">Публикуемся!</h3>
+        <div class="step__burst" aria-hidden="true">
+          <span class="chip" style="--c:#0060D1; --d:0s">ВК</span>
+          <span class="chip" style="--c:#1B7DB0; --d:.15s">TG</span>
+          <span class="chip" style="--c:#C2560A; --d:.3s">OK</span>
+          <span class="chip" style="--c:#1268B3; --d:.45s">ММ</span>
+          <span class="chip" style="--c:#16181C; --d:.6s">X</span>
+          <span class="chip" style="--c:#C8001E; --d:.75s">Pi</span>
+          <span class="chip" style="--c:#0A66C2; --d:.9s">In</span>
+          <span class="chip" style="--c:#004359; --d:1.05s">ЖЖ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. ЦЕНА -->
+<section class="scr scr--alt" id="price">
+  <div class="bg-dots" data-speed="-0.12" aria-hidden="true"></div>
+  <div class="deco deco--plus" style="right:8%; top:16%" data-speed="-0.4" aria-hidden="true"><i></i></div>
+
+  <div class="wrap">
+    <header class="sec-head rv" data-speed="-0.06">
+      <p class="eyebrow">Что вы получаете</p>
+      <h2 class="h2">Всё в одном проекте</h2>
+    </header>
+    <div class="price">
+      <div class="pcard-scene rv">
+        <div class="pcard" id="pcard">
+          <span class="pcard__k">Тариф</span>
+          <div class="pcard__sum"><span id="priceSum">800</span>&nbsp;₽ <small>/ месяц</small></div>
+          <p class="pcard__inc">1 аккаунт в каждой соцсети включён</p>
+          <div class="range">
+            <label for="extra">Дополнительные аккаунты <output id="extraOut" for="extra">0</output></label>
+            <input id="extra" type="range" min="0" max="20" step="1" value="0">
+            <span style="font-size:13px; opacity:.85">Каждый дополнительный аккаунт — 100 ₽ в месяц</span>
+          </div>
+          <a class="btn btn--ghost magnetic" href="#start">Попробовать 3 дня бесплатно</a>
+        </div>
+      </div>
+      <div class="marquee rv" id="marquee" aria-label="Возможности сервиса"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. РАСПИСАНИЕ И АНАЛИТИКА -->
+<section class="scr" id="schedule">
+  <div class="deco deco--ring" style="--s:340px; right:-150px; top:-60px" data-speed="0.25" aria-hidden="true"><i></i></div>
+  <div class="deco deco--chip" style="--c:#C8001E; left:3%; top:22%" data-speed="-0.3" aria-hidden="true"><i>Pi</i></div>
+
+  <div class="wrap sched">
+    <div class="rv" data-speed="-0.05" style="display:flex; flex-direction:column; gap:18px">
+      <p class="eyebrow">Расписание и аналитика</p>
+      <h2 class="h2">Постинг по вашим правилам</h2>
+      <div class="feat-grid">
+        <div class="card feat">
+          <svg class="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path class="hand" d="M12 12V6.5"></path><path class="hand hand--h" d="M12 12h3.5"></path></svg>
+          <b>Отложенный постинг</b><span>Своё время для каждой соцсети</span>
+        </div>
+        <div class="card feat">
+          <svg class="i-slide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"></path><circle class="knob-a" cx="9" cy="8" r="2.4" fill="var(--surface)"></circle><circle class="knob-b" cx="13" cy="16" r="2.4" fill="var(--surface)"></circle></svg>
+          <b>Частота постинга</b><span>Гибкая частота и ограничения по символам</span>
+        </div>
+        <div class="card feat">
+          <svg class="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          <b>Лимит</b><span>Защита аккаунтов от блокировки</span>
+        </div>
+        <div class="card feat">
+          <svg class="i-repeat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"></path><path d="M18 3v4h-4M6 21v-4h4"></path></svg>
+          <b>Автоповтор</b><span>Бесконечная очередь с автоочисткой</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card chart rv">
+      <div class="chart__head">
+        <b class="h3">Лимит постов в час</b>
+        <div class="legend"><span><i class="l-pub"></i>Опубликовано</span><span><i class="l-q"></i>Ждёт в очереди</span><span><i class="l-lim"></i>Лимит</span></div>
+      </div>
+      <canvas id="chart" role="img" aria-label="Живой график: посты выходят не чаще лимита, остальные ждут в очереди"></canvas>
+      <div class="chart__ctl">
+        <label for="limit">Лимит <input id="limit" type="range" min="1" max="8" step="1" value="4"> <output id="limitOut" for="limit">4</output></label>
+        <div class="stats"><span>Опубликовано: <b id="stPub">0</b></span><span>В очереди: <b id="stQ">0</b></span></div>
+      </div>
+      <p class="note">Иллюстрация. Подвигайте лимит: лишние посты не теряются, а выходят позже.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8. БИТРИКС24 -->
+<section class="scr scr--alt" id="bitrix">
+  <div class="bg-dots" data-speed="-0.12" aria-hidden="true"></div>
+  <div class="deco deco--disc" style="--s:120px; left:8%; top:12%" data-speed="0.3" aria-hidden="true"><i></i></div>
+  <div class="deco deco--plus" style="right:10%; bottom:16%" data-speed="-0.35" aria-hidden="true"><i></i></div>
+
+  <div class="wrap b24">
+    <div class="b24__text rv" data-speed="-0.05">
+      <p class="eyebrow">Интеграция</p>
+      <h2 class="h2">В соцсети прямо из Битрикс24</h2>
+      <p class="lead">Установите приложение «Seolit: автопостинг в соцсети и каналы Telegram» и работайте с соцсетями напрямую из Битрикс24.</p>
+      <a class="btn btn--primary btn--lg magnetic" href="#">Мы в Битрикс24</a>
+    </div>
+    <div class="cube-wrap rv">
+      <div class="cube-scene" id="cubeScene" role="img" aria-label="Куб: Битрикс24, SEOlit и соцсети. Потяните, чтобы повернуть.">
+        <div class="cube" id="cube">
+          <div class="face face--front face--b24"><span>Битрикс24<small>приложение SEOlit</small></span></div>
+          <div class="face face--back" style="--c:var(--accent)"><svg aria-hidden="true"><use href="#mark"></use></svg></div>
+          <div class="face face--right" style="--c:#0060D1">ВК</div>
+          <div class="face face--left" style="--c:#1B7DB0">TG</div>
+          <div class="face face--top" style="--c:#C2560A">OK</div>
+          <div class="face face--bottom" style="--c:#16181C">X</div>
+        </div>
+      </div>
+      <p class="stage-hint">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"></path></svg>
+        Потяните куб
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. СТАРТ -->
+<section class="scr" id="start">
+  <div class="wrap">
+    <div class="start-panel rv">
+      <canvas id="startFx" aria-hidden="true"></canvas>
+      <div>
+        <h2 class="h2">3 дня бесплатно</h2>
+        <p>Полноценный тестовый период со всеми функциями.</p>
+      </div>
+      <button class="btn btn--lg magnetic" id="startBtn" type="button">Начать работу</button>
+    </div>
+
+    <div class="principles rv">
+      <div><b>Широкий охват</b><span>Своё расписание для каждой соцсети</span></div>
+      <div><b>Шаблоны</b><span>Работа с текстом и изображениями, водяные знаки</span></div>
+      <div><b>Фильтрация</b><span>Отбор материалов по множеству параметров</span></div>
+      <div><b>Совместная работа</b><span>Делегирование прав внутри команды</span></div>
+      <div><b>Экономия</b><span>Заменяет отдельного сотрудника для ведения соцсетей</span></div>
+      <div><b>Простота</b><span>Новичок сразу настроит всё под себя</span></div>
+      <div><b>Поддержка</b><span>Следим за изменениями в работе соцсетей</span></div>
+      <div><b>Нестандартные задачи</b><span>Продублировать 1000 постов из VK в OK или очистить 30 000 неактуальных фото</span></div>
+    </div>
+
+    <footer class="foot">
+      <span>© 2026 SEOlit</span>
+      <nav aria-label="Ссылки"><a href="#">Инструкция</a><a href="#">Прайс</a><a href="#">Рефералы</a><a href="#">Блог</a><a href="#">Контакты</a></nav>
+    </footer>
+  </div>
+</section>
+
+</main>
+
+<canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+<script src="js/main.js"></script>
+</body>
+</html>
