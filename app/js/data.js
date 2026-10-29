@@ -282,10 +282,10 @@
   };
   // История баланса: + пополнение, − списание за проект или дополнительный аккаунт
   const payments = [
-    { at: at(-2, 14, 5), sum: -800, what: L('Продление «Магазин «Пример»» на 30 дней', 'Example Store renewed for 30 days', '«Мысал» дүкені 30 күнге ұзартылды') },
+    { at: at(-2, 14, 5), sum: -800, what: L('Продление: Магазин «Пример», 30 дней', 'Renewal: Example Store, 30 days', 'Ұзарту: «Мысал» дүкені, 30 күн') },
     { at: at(-5, 11, 30), sum: 3000, what: L('Пополнение картой', 'Top-up by card', 'Картамен толтыру') },
     { at: at(-9, 9, 0), sum: -100, what: L('Дополнительный аккаунт Telegram, 30 дней', 'Extra Telegram account, 30 days', 'Қосымша Telegram аккаунты, 30 күн') },
-    { at: at(-12, 18, 40), sum: -800, what: L('Продление «seolit_ru test» на 30 дней', 'seolit_ru test renewed for 30 days', '«seolit_ru test» 30 күнге ұзартылды') },
+    { at: at(-12, 18, 40), sum: -800, what: L('Продление: seolit_ru test, 30 дней', 'Renewal: seolit_ru test, 30 days', 'Ұзарту: seolit_ru test, 30 күн') },
     { at: at(-20, 10, 15), sum: 5000, what: L('Пополнение по счёту', 'Top-up by invoice', 'Шот бойынша толтыру') },
   ];
   const apiKeys = [{ id: 'k1', name: L('Сайт example.ru', 'example.ru website', 'example.ru сайты'), key: 'sl_live_4f9c2a7e1b8d4c03a6e5', at: at(-40), used: at(0, 9, 12) }];

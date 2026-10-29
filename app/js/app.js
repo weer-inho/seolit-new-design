@@ -103,6 +103,7 @@
     $$('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
     $$('[data-lang-btn]').forEach((b) => { b.innerHTML = I18N.LABEL[l] + ico('down', 'ico--sm'); b.setAttribute('aria-label', langLabel()); b.title = langLabel(); });
     syncTheme(); setTitle();
+    $$('[data-enough]').forEach((el) => { el.textContent = enough(); });
     const pb = $('[data-profile]'); if (pb) pb.setAttribute('aria-label', t('top.profile', { email: DEMO.loggedIn() || DEMO.user.email }));
   });
 
@@ -224,6 +225,12 @@
   ];
   // В меню «Очередь» — сколько постов ждёт во всех проектах
   const queueCount = () => DEMO.stats().plan;
+  // «Хватит примерно на N месяцев»: баланс / (800 ₽ × оплаченные свои проекты)
+  function enough() {
+    const n = DEMO.db.projects.filter((p) => p.own && (p.st === 'ok' || p.st === 'err') && p.until > Date.now()).length * 800;
+    const m = n ? Math.floor(DEMO.db.balance / n) : 0;
+    return !n ? '' : m ? plural(m, 'p.enough') : t('bal.enoughLess');
+  }
   const navLink = (k, cls = 'side__link') => `<a class="${cls}" href="${href(k)}"${k === active ? ' aria-current="page"' : ''}>${ico(k)}<span data-i18n="nav.${k}">${esc(t('nav.' + k))}</span>${k === 'queue' ? `<span class="count num" data-queue-count>${I18N.num(queueCount())}</span>` : ''}</a>`;
 
   // Крошки: [{ key | text, href }]; последняя — текущая страница
@@ -262,7 +269,7 @@
       ${NAV.map(([g, items]) => `<div class="side__grp"><span class="side__ttl" data-i18n="${g}">${esc(t(g))}</span>${items.map((k) => navLink(k)).join('')}</div>`).join('')}
       <div class="side__foot">
         <div class="bal"><span class="lbl" data-i18n="bal.lbl">${esc(t('bal.lbl'))}</span><b data-balance>${money(DEMO.db.balance)}</b>
-          <span data-i18n="bal.enough">${esc(t('bal.enough'))}</span>
+          <span data-enough>${esc(enough())}</span>
           <a class="btn btn--p" href="balance.html" data-i18n="bal.topup">${esc(t('bal.topup'))}</a></div>
         ${navLink('help')}${navLink('news')}
       </div></nav>`;
@@ -565,7 +572,7 @@
         <div class="page__head d-only"><div><h1>${esc(t('prj.title'))}</h1>
           <p>${esc(plural(own.length, 'p.own'))} · ${esc(plural(shared.length, 'p.sharedYou'))}</p></div>
           <button type="button" class="btn" data-new>${ico('plus', 'ico--sm')}${esc(t('prj.newProject'))}</button></div>
-        <section class="card mbal m-only"><div><span class="lbl">${esc(t('bal.lbl'))}</span><b class="num" data-balance>${money(DEMO.db.balance)}</b><span class="muted">${esc(t('bal.enough'))}</span></div>
+        <section class="card mbal m-only"><div><span class="lbl">${esc(t('bal.lbl'))}</span><b class="num" data-balance>${money(DEMO.db.balance)}</b><span class="muted" data-enough>${esc(enough())}</span></div>
           <a class="btn btn--p" href="balance.html">${esc(t('bal.topup'))}</a></section>
         ${al.length && !query ? `<section class="attn" aria-labelledby="attnT">
           <h2 class="attn__t d-only" id="attnT">${ico('alert', 'ico--sm')}${esc(t('prj.attention'))} · ${al.length}</h2>
@@ -1396,5 +1403,5 @@
   syncTheme();
   I18N.apply();
 
-  window.APP = { $, $$, esc, tx, ico, IC, net, netName, toast, demo, dialog, confirmBox, setCrumbs, onSearch: (fn) => searchSubs.push(fn), reduce, lcFirst, PAGE, DAY, THUMBS, srcPlate };
+  window.APP = { $, $$, esc, tx, ico, IC, net, netName, toast, demo, dialog, confirmBox, setCrumbs, onSearch: (fn) => searchSubs.push(fn), reduce, lcFirst, enough, PAGE, DAY, THUMBS, srcPlate };
 })();

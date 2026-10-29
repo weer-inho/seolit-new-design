@@ -16,7 +16,7 @@
   const sel = (id, opts, cur, attrs = '') => `<span class="sel sel--full"><select id="${id}" ${attrs}>${opts.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(cur) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span>`;
   const chk = (id, label, on) => `<label class="check"><input type="checkbox" id="${id}"${on ? ' checked' : ''}><span>${esc(label)}</span></label>`;
   const radios = (name, opts, cur) => opts.map(([v, l]) => `<label class="check"><input type="radio" name="${name}" value="${v}"${v === cur ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('');
-  const setBalance = () => $$('[data-balance]').forEach((el) => { el.textContent = money(db().balance); });
+  const setBalance = () => { $$('[data-balance]').forEach((el) => { el.textContent = money(db().balance); }); $$('[data-enough]').forEach((el) => { el.textContent = APP.enough(); }); };
   // Псевдослучайное число по строке — чтобы демо-статистика была одинаковой при каждом открытии
   const hash = (s) => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967295; };
 
@@ -211,7 +211,7 @@
         if (db().balance < 800) { toast(t('ps.noMoney')); return; }
         db().balance -= 800;
         P.until = Math.max(P.until, Date.now()) + 30 * APP.DAY; P.period = 30; if (P.st === 'off' || P.st === 'demo') P.st = 'ok';
-        db().payments.unshift({ at: Date.now(), sum: -800, what: { ru: `Продление «${tx(P.name)}» на 30 дней`, en: `${tx(P.name)} renewed for 30 days`, kk: `«${tx(P.name)}» 30 күнге ұзартылды` } });
+        db().payments.unshift({ at: Date.now(), sum: -800, what: { ru: `Продление: ${tx(P.name)}, 30 дней`, en: `Renewal: ${tx(P.name)}, 30 days`, kk: `Ұзарту: ${tx(P.name)}, 30 күн` } });
         save(); setBalance(); render(); toast(t('ps.renewed', { date: I18N.date(P.until) }));
       } else {
         const name = tx(P.name);
@@ -238,6 +238,219 @@
      Разделы. Пока раздел не сделан — заглушка, как soon.html
      ========================================================================== */
   const SECTIONS = {};
+
+  /* ---------- Общее для разделов ---------- */
+  const head = (titleKey, subKey, right = '') => `<div class="page__head"><div><h1>${esc(t(titleKey))}</h1>${subKey ? `<p>${esc(t(subKey))}</p>` : ''}</div>${right}</div>`;
+  const csv = (name, rows) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.join(';')).join('\n')], { type: 'text/csv' }));
+    a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const copy = async (text, okKey) => { try { await navigator.clipboard.writeText(text); } catch (e) { /* без доступа к буферу — просто сообщаем */ } toast(t(okKey)); };
+  // Месячные списания: 800 ₽ за каждый свой оплаченный проект
+  const paidProjects = () => db().projects.filter((p) => p.own && (p.st === 'ok' || p.st === 'err') && p.until > Date.now());
+  const monthly = () => paidProjects().length * 800;
+
+  /* ---------- Баланс ---------- */
+  const BS = { amount: 800, method: 'card', filter: 'all' };
+  SECTIONS.balance = (main) => {
+    const methodName = (m) => t({ card: 'bal.card', sbp: 'bal.sbp', invoice: 'bal.invoice' }[m]);
+    function render(focus) {
+      const bal = db().balance, mon = monthly(), months = mon ? Math.floor(bal / mon) : 0;
+      const pays = db().payments.filter((p) => BS.filter === 'all' || (BS.filter === 'in' ? p.sum > 0 : p.sum < 0)).sort((a, b) => b.at - a.at);
+      const next = paidProjects().sort((a, b) => a.until - b.until);
+      const quick = [[800, 'bal.q1'], [1600, 'bal.q2'], [Math.max(800, mon * 3), 'bal.q3']];
+      main.innerHTML = `${head('bal.title', 'bal.sub')}
+      <div class="bgrid">
+        <section class="card card--pad bcard"><span class="lbl">${esc(t('bal.lbl'))}</span><b class="bcard__sum num" data-balance>${money(bal)}</b>
+          <span class="muted">${esc(mon ? (months ? plural(months, 'p.enough') : t('bal.enoughLess')) : '')}</span>
+          <div class="bcard__row"><span class="lbl">${esc(t('bal.spend'))}</span><b class="num">${money(mon)}</b><span class="muted">${esc(t('bal.spendHint', { n: plural(paidProjects().length, 'p.projects') }))}</span></div></section>
+        <form class="card card--pad btop" id="topup" novalidate><h2>${esc(t('bal.topupTitle'))}</h2>
+          <div class="field"><label for="bAmount">${esc(t('bal.amount'))}</label><input class="input bamount num" id="bAmount" type="number" inputmode="numeric" min="100" max="500000" step="100" value="${BS.amount}" aria-describedby="bAmErr"><span class="field__err" id="bAmErr" hidden>${esc(t('bal.amountErr'))}</span>
+            <div class="chips">${quick.map(([v, k]) => `<button type="button" class="chipf" data-amount="${v}" aria-pressed="${BS.amount === v}"><b class="num">${money(v)}</b> ${esc(t(k))}</button>`).join('')}</div></div>
+          <fieldset class="field"><legend class="field__lbl">${esc(t('bal.method'))}</legend><div class="seg">${['card', 'sbp', 'invoice'].map((m) => `<button type="button" data-method="${m}" aria-pressed="${BS.method === m}">${esc(methodName(m))}</button>`).join('')}</div>
+            <p class="field__hint">${esc(t({ card: 'bal.cardHint', sbp: 'bal.sbpHint', invoice: 'bal.invoiceHint' }[BS.method]))}</p></fieldset>
+          ${BS.method === 'invoice' ? `<div class="two"><div class="field"><label for="bInn">${esc(t('bal.inn'))}</label><input class="input num" id="bInn" inputmode="numeric" maxlength="12" aria-describedby="bInnErr"><span class="field__err" id="bInnErr" hidden>${esc(t('bal.innErr'))}</span></div>
+            <div class="field"><label for="bOrg">${esc(t('bal.org'))}</label><input class="input" id="bOrg"></div></div>` : ''}
+          <div class="bpromo"><div class="field"><label for="bPromo">${esc(t('bal.promo'))}</label><input class="input" id="bPromo" autocomplete="off"></div><button type="button" class="btn" data-promo>${esc(t('bal.promoApply'))}</button></div>
+          <button type="submit" class="btn btn--p btn--lg">${esc(t(BS.method === 'invoice' ? 'bal.getInvoice' : 'bal.pay', { sum: money(BS.amount) }))}</button></form>
+      </div>
+      <section class="card"><header class="post__h"><h2>${esc(t('bal.next'))}</h2></header>
+        ${next.length ? `<ul class="blist">${next.map((p) => `<li><a href="project.html?id=${p.id}"><b>${esc(tx(p.name))}</b></a><span class="muted">${esc(t('ps.paidUntil', { date: I18N.date(p.until) }))}</span><b class="num">−${money(800)}</b>
+          <a class="btn btn--sm" href="project.html?id=${p.id}&tab=settings">${esc(t('bal.renew'))}</a></li>`).join('')}</ul>` : `<p class="col__none">${esc(t('bal.nextEmpty'))}</p>`}</section>
+      <section class="card"><header class="post__h"><h2>${esc(t('bal.history'))}</h2>
+          <div class="post__h-r"><div class="seg" role="group">${['all', 'in', 'out'].map((k) => `<button type="button" data-filter="${k}" aria-pressed="${BS.filter === k}">${esc(t('bal.f' + { all: 'All', in: 'In', out: 'Out' }[k]))}</button>`).join('')}</div>
+          <button type="button" class="btn btn--sm btn--q" data-csv>${esc(t('bal.export'))}</button></div></header>
+        <table class="tbl"><thead><tr><th>${esc(t('bal.date'))}</th><th>${esc(t('bal.op'))}</th><th class="num">${esc(t('bal.sum'))}</th></tr></thead>
+          <tbody>${pays.map((p) => `<tr><td class="num">${esc(I18N.date(p.at))} ${esc(I18N.date(p.at, 'time'))}</td><td>${esc(tx(p.what))}</td><td class="num ${p.sum > 0 ? 'is-in' : 'is-out'}">${p.sum > 0 ? '+' : '−'}${money(Math.abs(p.sum))}</td></tr>`).join('')}</tbody></table></section>`;
+      if (focus) $(focus, main)?.focus();
+    }
+    main.onclick = (e) => {
+      const a = e.target.closest('[data-amount]'), m = e.target.closest('[data-method]'), f = e.target.closest('[data-filter]');
+      if (a) { BS.amount = +a.dataset.amount; render(`[data-amount="${BS.amount}"]`); }
+      else if (m) { BS.amount = +$('#bAmount', main).value || BS.amount; BS.method = m.dataset.method; render(`[data-method="${BS.method}"]`); }
+      else if (f) { BS.filter = f.dataset.filter; render(`[data-filter="${BS.filter}"]`); }
+      else if (e.target.closest('[data-promo]')) APP.demo('bal.promoToast');
+      else if (e.target.closest('[data-csv]')) { csv('seolit-balance.csv', [[t('bal.date'), t('bal.op'), t('bal.sum')], ...db().payments.map((p) => [isoDay(p.at), tx(p.what), p.sum])]); toast(t('bal.exported')); }
+    };
+    main.oninput = (e) => { if (e.target.id === 'bAmount') { BS.amount = +e.target.value || 0; $$('[data-amount]', main).forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.amount === BS.amount))); $('#topup [type=submit]', main).textContent = t(BS.method === 'invoice' ? 'bal.getInvoice' : 'bal.pay', { sum: money(BS.amount) }); } };
+    main.onsubmit = (e) => {
+      e.preventDefault();
+      const amt = +$('#bAmount', main).value, okA = amt >= 100 && amt <= 500000;
+      $('#bAmErr', main).hidden = okA; $('#bAmount', main).setAttribute('aria-invalid', String(!okA));
+      if (!okA) { $('#bAmount', main).focus(); return; }
+      if (BS.method === 'invoice') {
+        const inn = $('#bInn', main), okI = /^(\d{10}|\d{12})$/.test(inn.value.trim());
+        $('#bInnErr', main).hidden = okI; inn.setAttribute('aria-invalid', String(!okI));
+        if (!okI) { inn.focus(); return; }
+        toast(t('bal.invoiced', { sum: money(amt), email: DEMO.loggedIn() || DEMO.user.email })); return;
+      }
+      db().balance += amt;
+      db().payments.unshift({ at: Date.now(), sum: amt, what: { ru: `Пополнение: ${methodName(BS.method)}`, en: `Top-up: ${methodName(BS.method)}`, kk: `Толтыру: ${methodName(BS.method)}` } });
+      save(); setBalance(); render('#bAmount'); toast(t('bal.paid', { sum: money(amt) }));
+    };
+    render();
+  };
+
+  /* ---------- Рефералы ---------- */
+  SECTIONS.referrals = (main) => {
+    const R = db().ref || (db().ref = { code: 'ANNA4300', clicks: 48, available: 960, invited: [
+      { at: DEMO.at(-3), who: 'o***@mail.ru', st: 'paid', bonus: 160 }, { at: DEMO.at(-6), who: 'k***@yandex.ru', st: 'reg', bonus: 0 },
+      { at: DEMO.at(-15), who: 'shop***@gmail.com', st: 'paid', bonus: 480 }, { at: DEMO.at(-31), who: 'd***@bk.ru', st: 'paid', bonus: 320 }] });
+    const link = `https://seolit.ru/?ref=${R.code}`;
+    function render(focus) {
+      const paid = R.invited.filter((x) => x.st === 'paid');
+      main.innerHTML = `${head('ref.title', 'ref.sub', `<a class="btn" href="https://seolit.ru/реферальная-программа.html">${esc(t('ref.terms'))} →</a>`)}
+      <div class="kpis">${[['ref.clicks', R.clicks], ['ref.signups', R.invited.length], ['ref.payers', paid.length]].map(([k, v]) => `<div class="card kpi"><span class="lbl">${esc(t(k))}</span><b class="kpi__n num">${I18N.num(v)}</b><span class="kpi__s">${esc(t('ref.period'))}</span></div>`).join('')}
+        <div class="card kpi"><span class="lbl">${esc(t('ref.earned'))}</span><b class="kpi__n num">${money(R.available)}</b><button type="button" class="btn btn--sm btn--p" data-withdraw${R.available ? '' : ' disabled'}>${esc(t('ref.withdraw'))}</button></div></div>
+      <section class="card card--pad refl"><div class="field"><label for="refLink">${esc(t('ref.link'))}</label><div class="conn__row"><input class="input" id="refLink" readonly value="${esc(link)}"><button type="button" class="btn btn--p" data-copy="link">${ico('check', 'ico--sm')}${esc(t('ref.copy'))}</button></div></div>
+        <div class="field"><label for="refCode">${esc(t('ref.code'))}</label><div class="conn__row"><input class="input num" id="refCode" readonly value="${R.code}"><button type="button" class="btn" data-copy="code">${esc(t('ref.copy'))}</button></div></div>
+        <div class="field"><label for="refText">${esc(t('ref.banner'))}</label><textarea class="input" id="refText" rows="3" readonly>${esc(t('ref.bannerText', { link }))}</textarea>
+          <div class="refl__share"><button type="button" class="btn btn--sm" data-copy="text">${esc(t('ref.copy'))}</button>
+          <a class="btn btn--sm" href="https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t('ref.bannerText', { link: '' }))}">${net('tg', 22)} Telegram</a>
+          <a class="btn btn--sm" href="https://vk.com/share.php?url=${encodeURIComponent(link)}">${net('vk', 22)} ${esc(netName('vk'))}</a></div></div></section>
+      <section class="card"><header class="post__h"><h2>${esc(t('ref.list'))}</h2></header>
+        <table class="tbl"><thead><tr><th>${esc(t('ref.when'))}</th><th>${esc(t('ref.who'))}</th><th>${esc(t('ref.status'))}</th><th class="num">${esc(t('ref.bonus'))}</th></tr></thead>
+        <tbody>${R.invited.map((x) => `<tr><td class="num">${esc(I18N.date(x.at))}</td><td>${esc(x.who)}</td><td><span class="pill pill--${x.st === 'paid' ? 'ok' : 'off'}">${esc(t(x.st === 'paid' ? 'ref.stPaid' : 'ref.stReg'))}</span></td><td class="num">${x.bonus ? '+' + money(x.bonus) : '—'}</td></tr>`).join('')}</tbody></table></section>`;
+      if (focus) $(focus, main)?.focus();
+    }
+    main.onclick = (e) => {
+      const c = e.target.closest('[data-copy]');
+      if (c) { const k = c.dataset.copy; copy(k === 'link' ? link : k === 'code' ? R.code : t('ref.bannerText', { link }), 'ref.copied'); return; }
+      if (e.target.closest('[data-withdraw]')) {
+        if (!R.available) { toast(t('ref.nothing')); return; }
+        const sum = R.available; db().balance += sum; R.available = 0;
+        db().payments.unshift({ at: Date.now(), sum, what: { ru: 'Реферальные начисления', en: 'Referral earnings', kk: 'Рефералдық есептеулер' } });
+        save(); setBalance(); render('#refLink'); toast(t('ref.withdrawn', { sum: money(sum) }));
+      }
+    };
+    render();
+  };
+
+  /* ---------- API ---------- */
+  const shown = new Set();
+  SECTIONS.api = (main) => {
+    const mask = (k) => k.slice(0, 8) + '•'.repeat(12) + k.slice(-4);
+    function render(focus) {
+      const keys = db().apiKeys;
+      main.innerHTML = `${head('api.title', 'api.sub', `<button type="button" class="btn btn--p" data-new>${ico('plus', 'ico--sm')}${esc(t('api.new'))}</button>`)}
+      <p class="note-box">${ico('alert', 'ico--sm')}<span>${esc(t('api.safe'))}</span></p>
+      <section class="card"><header class="post__h"><h2>${esc(t('api.keys'))} · <span class="num">${keys.length}</span></h2><a href="https://seolit.ru/">${esc(t('api.docs'))} →</a></header>
+        ${keys.length ? `<ul class="keys">${keys.map((k) => `<li><div class="keys__txt"><b>${esc(tx(k.name))}</b><code class="num">${esc(shown.has(k.id) ? k.key : mask(k.key))}</code>
+            <span class="muted">${esc(t('api.created', { date: I18N.date(k.at) }))} · ${esc(k.used ? t('api.used', { date: `${I18N.date(k.used)} ${I18N.date(k.used, 'time')}` }) : t('api.never'))}</span></div>
+          <button type="button" class="ibtn ibtn--sm" data-show="${k.id}" aria-pressed="${shown.has(k.id)}" aria-label="${esc(t(shown.has(k.id) ? 'api.hide' : 'api.show'))}">${ico(shown.has(k.id) ? 'close' : 'search')}</button>
+          <button type="button" class="ibtn ibtn--sm" data-copy="${k.id}" aria-label="${esc(t('api.copy'))}">${ico('check')}</button>
+          <button type="button" class="btn btn--sm btn--danger" data-revoke="${k.id}">${esc(t('api.revoke'))}</button></li>`).join('')}</ul>`
+        : `<div class="empty empty--in"><span class="empty__ico">${ico('api')}</span><h3>${esc(t('api.empty'))}</h3><p>${esc(t('api.emptyHint'))}</p></div>`}</section>`;
+      if (focus) $(focus, main)?.focus();
+    }
+    main.onclick = async (e) => {
+      const b = e.target.closest('[data-new],[data-show],[data-copy],[data-revoke]');
+      if (!b) return;
+      if (b.dataset.show) { const id = b.dataset.show; shown.has(id) ? shown.delete(id) : shown.add(id); render(`[data-show="${id}"]`); }
+      else if (b.dataset.copy) copy(db().apiKeys.find((k) => k.id === b.dataset.copy).key, 'api.copied');
+      else if (b.dataset.revoke) {
+        const k = db().apiKeys.find((x) => x.id === b.dataset.revoke), name = tx(k.name);
+        if (!(await confirmBox({ titleKey: 'api.revokeTitle', text: t('api.revokeText', { name }), okKey: 'api.revoke' }))) return;
+        db().apiKeys = db().apiKeys.filter((x) => x !== k); save(); render('[data-new]'); toast(t('api.revoked', { name }));
+      } else {
+        const d = dialog({ titleKey: 'api.new', html: `<form class="modal__body" novalidate><div class="field"><label for="kName">${esc(t('api.name'))}</label><input class="input" id="kName" placeholder="${esc(t('api.namePh'))}" aria-describedby="kErr"><span class="field__err" id="kErr" hidden>${esc(t('api.nameErr'))}</span></div>
+          <div class="modal__foot modal__foot--in"><button type="button" class="btn" data-close>${esc(t('c.cancel'))}</button><button type="submit" class="btn btn--p">${esc(t('api.new'))}</button></div></form>` });
+        $('form', d.box).onsubmit = (ev) => {
+          ev.preventDefault();
+          const v = $('#kName', d.box).value.trim();
+          $('#kErr', d.box).hidden = !!v; if (!v) { $('#kName', d.box).focus(); return; }
+          const rnd = Array.from(crypto.getRandomValues(new Uint8Array(10)), (x) => x.toString(16).padStart(2, '0')).join('');
+          const k = { id: DEMO.uid('k'), name: L3(v), key: 'sl_live_' + rnd, at: Date.now(), used: 0 };
+          db().apiKeys.push(k); shown.add(k.id); save(); d.close(); render(`[data-copy="${k.id}"]`); toast(t('api.made', { name: v }));
+        };
+      }
+    };
+    render();
+  };
+
+  /* ---------- RSS-тест ---------- */
+  const RT = { url: 'https://example.ru/news/rss', xml: '', res: null, busy: false };
+  SECTIONS.rss = (main) => {
+    // Пример ответа сервера для любой ссылки (в демо ленту читать некому)
+    const demoItems = () => [
+      { title: tx(DEMO.sample.title), date: DEMO.at(0, 9, 10), img: true, link: true, len: tx(DEMO.sample.text).length },
+      { title: tx(db().posts[1].title), date: DEMO.at(-1, 18, 0), img: true, link: true, len: 412 },
+      { title: tx(db().posts[4].title), date: DEMO.at(-2, 12, 30), img: false, link: true, len: 1280 },
+      { title: tx(db().posts[8].title), date: 0, img: true, link: true, len: 640 },
+    ];
+    function parse(xml) {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      const err = doc.querySelector('parsererror');
+      if (err) throw new Error(err.textContent.split('\n')[0].slice(0, 120));
+      const atom = doc.documentElement.localName === 'feed';
+      const items = [...doc.querySelectorAll(atom ? 'entry' : 'item')];
+      if (!items.length && !['rss', 'feed', 'RDF'].includes(doc.documentElement.localName)) throw new Error(doc.documentElement.localName);
+      const txt = (el, s) => el.querySelector(s)?.textContent.trim() || '';
+      return { format: atom ? 'Atom' : 'RSS ' + (doc.documentElement.getAttribute('version') || '2.0'), items: items.map((it) => {
+        const body = txt(it, 'description') || txt(it, 'content') || txt(it, 'summary');
+        const d = Date.parse(txt(it, atom ? 'updated' : 'pubDate') || txt(it, 'published'));
+        return { title: txt(it, 'title') || '—', date: isNaN(d) ? 0 : d, img: !!(it.querySelector('enclosure[type^="image"], content[url], thumbnail') || /<img/i.test(body)), link: !!(txt(it, 'link') || it.querySelector('link[href]')), len: body.replace(/<[^>]+>/g, '').length };
+      }) };
+    }
+    function render(focus) {
+      const r = RT.res;
+      const checks = r && !r.error ? [['rss.cOk', true], ['rss.cFormat', true, { f: r.format }], ['rss.cDates', r.items.every((x) => x.date)], ['rss.cImages', r.items.every((x) => x.img)], ['rss.cLinks', r.items.every((x) => x.link)], ['rss.cText', r.items.every((x) => x.len > 0)]] : [];
+      const projs = db().projects.filter((p) => p.own);
+      main.innerHTML = `${head('rss.title', 'rss.sub')}
+      <section class="card card--pad rsst"><form class="rsst__form" data-f="url" novalidate><div class="field"><label for="rUrl">${esc(t('rss.url'))}</label><input class="input" id="rUrl" type="url" inputmode="url" value="${esc(RT.url)}" aria-describedby="rUrlErr"><span class="field__err" id="rUrlErr" hidden>${esc(t('rss.urlErr'))}</span></div>
+          <button type="submit" class="btn btn--p"${RT.busy ? ' disabled' : ''}>${RT.busy ? `<i class="mini__spin"></i>${esc(t('rss.checking'))}` : esc(t('rss.check'))}</button></form>
+        <details class="adv"${RT.xml ? ' open' : ''}><summary><b>${esc(t('rss.or'))}</b>${ico('down', 'ico--sm')}</summary><form class="adv__body" data-f="xml" novalidate>
+          <label class="vh" for="rXml">XML</label><textarea class="input rsst__xml" id="rXml" rows="6" spellcheck="false" placeholder="&lt;rss version=&quot;2.0&quot;&gt;…">${esc(RT.xml)}</textarea><button type="submit" class="btn">${esc(t('rss.parse'))}</button></form></details></section>
+      ${r ? `<section class="card card--pad rsst__res" aria-live="polite"><h2>${esc(t('rss.result'))}</h2>
+        ${r.error ? `<p class="field__err">${esc(t('rss.xmlErr', { err: r.error }))}</p>` : `${r.demo ? `<p class="muted">${esc(t('rss.demoNote'))}</p>` : ''}
+          <ul class="rsst__checks">${checks.map(([k, ok, v]) => `<li class="${ok ? 'is-ok' : 'is-warn'}">${ico(ok ? 'check' : 'alert', 'ico--sm')}${esc(t(k, v))}</li>`).join('')}</ul>
+          <h3>${esc(plural(r.items.length, 'rss.items'))}</h3>
+          <ul class="rsst__items">${r.items.map((x) => `<li><b>${esc(x.title)}</b><span class="muted">${esc(x.date ? `${I18N.date(x.date)} ${I18N.date(x.date, 'time')}` : t('rss.noDate'))} · ${esc(t(x.img ? 'rss.img' : 'rss.noImg'))} · ${esc(plural(x.len, 'rss.chars'))}</span></li>`).join('')}</ul>
+          ${r.url ? `<div class="rsst__add"><div class="field"><label for="rProj">${esc(t('rss.connectTo'))}</label>${sel('rProj', projs.map((p) => [p.id, tx(p.name)]), projs[0]?.id)}</div><button type="button" class="btn btn--p" data-connect>${ico('plus', 'ico--sm')}${esc(t('rss.connect'))}</button></div>` : ''}`}</section>` : ''}`;
+      if (focus) $(focus, main)?.focus();
+    }
+    main.onsubmit = (e) => {
+      e.preventDefault();
+      if (e.target.dataset.f === 'xml') {
+        RT.xml = $('#rXml', main).value;
+        try { RT.res = { ...parse(RT.xml), demo: false }; } catch (er) { RT.res = { error: er.message }; }
+        render('#rXml'); return;
+      }
+      const u = $('#rUrl', main).value.trim(), ok = /^https?:\/\/\S+\.\S+/.test(u);
+      $('#rUrlErr', main).hidden = ok; $('#rUrl', main).setAttribute('aria-invalid', String(!ok));
+      if (!ok) { $('#rUrl', main).focus(); return; }
+      RT.url = u; RT.busy = true; render();
+      setTimeout(() => { RT.busy = false; RT.res = { format: /atom/i.test(u) ? 'Atom' : 'RSS 2.0', items: demoItems(), demo: true, url: u }; render('#rUrl'); }, 900);
+    };
+    main.onclick = (e) => {
+      if (!e.target.closest('[data-connect]')) return;
+      const p = DEMO.project($('#rProj', main).value), name = RT.res.url.replace(/^https?:\/\//, '');
+      db().sources.push({ id: DEMO.uid('s'), p: p.id, net: 'rss', st: 'on', name: L3(name), meta: { ru: 'Только что', en: 'Just now', kk: 'Жаңа ғана' } });
+      save(); toast(t('rss.connected', { name: tx(p.name) }));
+    };
+    render();
+  };
 
   function soon(main) {
     main.innerHTML = `<section class="card empty soon"><span class="empty__ico">${ico(PAGE)}</span><h1>${esc(t('nav.' + PAGE))}</h1>
