@@ -240,6 +240,19 @@
     });
   });
 
+  /* ---------- Новый пост: пример по умолчанию и ответ ИИ-соавтора (из макета Post.dc.html) ---------- */
+  const sample = {
+    title: L('Новинки недели в каталоге', 'This week’s new arrivals', 'Каталогтағы апта жаңалықтары'),
+    text: L('Собрали 12 новых товаров недели: уютные пледы, керамика ручной работы и техника для кухни. Всё уже в каталоге, доставка от 1 дня. Успейте выбрать подарки заранее — самые популярные позиции заканчиваются за пару дней.',
+      'We’ve added 12 new products this week: cosy blankets, handmade ceramics and kitchen gadgets. Everything is in the catalogue now, with delivery from 1 day. Pick your gifts early — the most popular items sell out in a couple of days.',
+      'Осы аптада 12 жаңа тауар қостық: жылы пледтер, қолдан жасалған керамика және ас үй техникасы. Барлығы каталогта, жеткізу 1 күннен бастап. Сыйлықтарды ертерек таңдаңыз — ең танымал тауарлар бір-екі күнде таусылады.'),
+    link: 'https://example.ru/catalog/new',
+    tags: { ru: ['#новинки', '#каталог'], en: ['#newarrivals', '#catalogue'], kk: ['#жаңалар', '#каталог'] },
+    ai: L('Новинки недели уже в каталоге! Пледы, керамика ручной работы и техника для кухни — 12 товаров, доставка от 1 дня. Выбирайте подарки заранее, пока всё в наличии.',
+      'New this week: blankets, handmade ceramics and kitchen gadgets — 12 products, delivered from 1 day. Grab your gifts early while everything is in stock.',
+      'Апта жаңалықтары каталогта! Пледтер, қолдан жасалған керамика, ас үй техникасы — 12 тауар, жеткізу 1 күннен. Сыйлықтарды ертерек таңдаңыз.'),
+  };
+
   /* ---------- Новости сервиса ---------- */
   const news = [
     { at: at(-2), title: L('Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь', 'This year in SEOlit: AI co-author, templates, queue', 'Бір жылда не қосылды: ЖИ-серіктес, үлгілер, кезек') },
@@ -266,7 +279,7 @@
   const loggedIn = () => { try { return localStorage.getItem(USER_KEY); } catch (e) { return null; } };
 
   window.DEMO = {
-    L, at, D0, user, news,
+    L, at, D0, user, news, sample,
     get db() { return db; },
     save, reset, uid, login, logout, loggedIn,
     project: (id) => db.projects.find((p) => p.id === id),

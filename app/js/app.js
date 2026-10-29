@@ -47,6 +47,7 @@
     edit: '<path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/>',
     play: '<path d="M7 5l12 7-12 7z"/>',
     pause: '<path d="M8 5v14M16 5v14"/>',
+    spark: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     soon: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
   };
   const ico = (n, cls = '') => `<svg class="ico${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
@@ -923,7 +924,7 @@
     const main = $('#main');
     const P0 = DEMO.project(q.get('project'));
     const destR = q.get('dest') ? DEMO.db.receivers.find((r) => r.id === q.get('dest')) : null;
-    const S = { tab: 'plan', view: 'list', project: P0 ? P0.id : '', dest: destR ? destR.net : '', src: '', period: 'week', search: '', sel: new Set() };
+    const S = { tab: ['plan', 'paused', 'err', 'done'].includes(q.get('tab')) ? q.get('tab') : 'plan', view: 'list', project: P0 ? P0.id : '', dest: destR ? destR.net : '', src: '', period: 'week', search: '', sel: new Set() };
     const crumbs = () => setCrumbs(P0 ? [{ key: 'nav.projects', href: 'projects.html' }, { text: P0.name, href: `project.html?id=${P0.id}` }, { key: 'q.title' }]
       : [{ key: 'nav.projects', href: 'projects.html' }, { key: 'q.title' }]);
     crumbs();
@@ -945,7 +946,7 @@
     function row(x) {
       const title = tx(x.title), on = S.sel.has(x.id), pName = !S.project ? tx(DEMO.project(x.p)?.name) : '';
       const shown = x.dests.slice(0, 4), more = (x.more || 0) + Math.max(0, x.dests.length - 4);
-      const st = x.st === 'done' ? `<span class="q__st is-ok">${esc(t('q.publishedAt'))}</span>` : x.st === 'paused' ? `<span class="q__st is-warn">${esc(t('q.pausedSt'))}</span>`
+      const st = x.st === 'done' ? `<span class="q__st is-ok">${esc(t('q.publishedAt'))}</span>` : x.st === 'paused' ? `<span class="q__st is-warn">${esc(t(x.draft ? 'q.draftSt' : 'q.pausedSt'))}</span>`
         : x.st === 'err' ? `<span class="q__st is-err">${esc(tx(x.err) || t('q.err'))}</span>` : `<span class="q__st">${esc(t('q.inTime'))}</span>`;
       const canPub = x.st !== 'done';
       const thumb = x.img ? `<img class="q__thumb" src="${esc(x.img)}" alt="">` : `<span class="q__thumb" style="background:${THUMBS[(x.thumb || 0) % 6]}" aria-hidden="true"></span>`;
@@ -1084,6 +1085,292 @@
     render();
   };
 
+  /* ---------- Новый пост / редактирование ---------- */
+  const LIMITS = [['vk', 16384], ['tg', 4096], ['x', 280]];
+  const MODELS = ['Yandex GPT Lite', 'Yandex GPT Pro', 'Yandex Llama 8B', 'Yandex Llama 70B'];
+
+  PAGES.post = () => {
+    const main = $('#main');
+    const edit = DEMO.db.posts.find((x) => x.id === q.get('id'));
+    const L3 = (v) => ({ ru: v, en: v, kk: v });
+    const pad = (n) => String(n).padStart(2, '0');
+    // Время по умолчанию — завтра в 10:00, как в макете
+    const defAt = edit ? edit.at : DEMO.at(1, 10, 0);
+    const smp = DEMO.sample;
+    const F = {
+      project: edit ? edit.p : (DEMO.project(q.get('project')) || DEMO.project('shop')).id,
+      title: edit ? tx(edit.title) : tx(smp.title), text: edit ? tx(edit.text) : tx(smp.text),
+      link: edit ? edit.link || '' : smp.link, tags: edit ? [...(edit.tags || [])] : [...smp.tags[I18N.lang]],
+      media: edit ? [{ kind: 'grad', i: edit.thumb || 0 }] : [{ kind: 'grad', i: 0 }, { kind: 'grad', i: 1 }],
+      when: edit ? (edit.draft ? 'draft' : 'sched') : 'sched', at: defAt,
+      tpl: 'post.tplAnnounce', ai: false, model: 0, instr: 1, prompt: '', temp: 0.5, before: null, busy: false,
+      sel: new Set(), open: new Set(), find: '', pv: 'vk', errs: {}, touched: !!edit, tagsTouched: !!edit,
+    };
+    F.prompt = t('post.i' + F.instr);
+    const P = () => DEMO.project(F.project);
+    const recvs = () => DEMO.db.receivers.filter((r) => r.p === F.project);
+    const pickDefault = () => { F.sel = new Set(recvs().filter((r) => r.st === 'on' && (!edit || edit.dests.includes(r.net))).map((r) => r.id)); };
+    pickDefault();
+    const crumbs = () => setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P().name, href: `project.html?id=${F.project}` }, { key: edit ? 'post.editTitle' : 'post.title' }]);
+    crumbs();
+
+    const fullText = () => [F.title, F.text, F.tags.join(' ')].filter(Boolean).join('\n\n');
+    const whenLabel = () => {
+      const diff = Math.floor((new Date(F.at).setHours(0, 0, 0, 0) - DEMO.D0) / DAY);
+      const day = diff === 0 ? lcFirst(t('c.today')) : diff === 1 ? lcFirst(t('c.tomorrow')) : I18N.date(F.at, 'dm');
+      return t('post.pvAt', { day, time: I18N.date(F.at, 'time') });
+    };
+    const submitLabel = () => (F.when === 'draft' ? t('post.saveDraft')
+      : t(F.when === 'now' ? 'post.submitNow' : 'post.submitSched', { n: plural(F.sel.size, 'p.nets'), when: `${I18N.date(F.at, 'dmShort')} ${I18N.date(F.at, 'time')}` }));
+
+    function countersHtml() {
+      const len = fullText().length;
+      return LIMITS.map(([n, lim]) => `<span class="${len > lim ? 'is-over' : ''}">${esc(NETS.byId(n).s)} <span class="num">${I18N.num(len)} / ${I18N.num(lim)}</span>${len > lim ? ` · ${esc(t('post.shortened'))}` : ''}</span>`).join('');
+    }
+    function mediaHtml() {
+      return F.media.map((m, i) => `<div class="media__item">${m.kind === 'grad' ? `<span style="background:${THUMBS[m.i % 6]}"></span>`
+        : m.type.startsWith('video') ? `<video src="${m.url}" muted playsinline></video>` : `<img src="${m.url}" alt="${esc(m.name)}">`}
+        <button type="button" class="media__x" data-act="rm-media" data-id="${i}" aria-label="${esc(t('post.removeFile', { n: i + 1 }))}">${ico('close', 'ico--sm')}</button></div>`).join('');
+    }
+    function tagsHtml() {
+      return F.tags.map((tg, i) => `<span class="tag">${esc(tg)}<button type="button" data-act="rm-tag" data-id="${i}" aria-label="${esc(t('post.removeTag', { tag: tg }))}">${ico('close', 'ico--sm')}</button></span>`).join('');
+    }
+    function whereHtml() {
+      const all = recvs(), active = all.filter((r) => r.st === 'on');
+      const nets = [...new Set(all.map((r) => r.net))];
+      const match = (r) => !F.find || tx(r.name).toLowerCase().includes(F.find) || netName(r.net).toLowerCase().includes(F.find);
+      const allOn = active.length && active.every((r) => F.sel.has(r.id));
+      if (!active.length) return `<div class="empty empty--in"><p>${esc(t('post.noDests'))}</p><a class="btn btn--p" href="project.html?id=${F.project}#connect">${ico('plus', 'ico--sm')}${esc(t('post.connect'))}</a></div>`;
+      return `<label class="search where__find"><span class="vh">${esc(t('post.findDest'))}</span>${ico('search', 'ico--sm')}<input type="search" id="whereFind" autocomplete="off" placeholder="${esc(t('post.findDest'))}" value="${esc(F.find)}"></label>
+        <label class="check where__all"><input type="checkbox" data-act="all"${allOn ? ' checked' : ''}><span>${esc(t('post.allActive'))}</span><span class="where__n num">${I18N.num(active.length)}</span></label>
+        <ul class="where">${nets.map((n) => {
+          const g = all.filter((r) => r.net === n), ga = g.filter((r) => r.st === 'on'), gs = ga.filter((r) => F.sel.has(r.id)).length;
+          const shown = g.filter(match);
+          if (F.find && !shown.length) return '';
+          const open = F.open.has(n) || !!F.find;
+          return `<li class="where__g${open ? ' is-open' : ''}"><div class="where__row">
+            <label class="check"><input type="checkbox" data-act="grp" data-id="${n}"${ga.length && gs === ga.length ? ' checked' : ''}${ga.length ? '' : ' disabled'} data-mixed="${gs > 0 && gs < ga.length}">${net(n, 28)}<span>${esc(netName(n))}</span></label>
+            <span class="where__n num">${esc(t('post.of', { n: I18N.num(gs), m: I18N.num(g.length) }))}</span>
+            <button type="button" class="ibtn ibtn--sm" data-act="open" data-id="${n}" aria-expanded="${open}" aria-label="${esc(t('post.expand', { name: netName(n) }))}">${ico('down', 'grp__chev')}</button></div>
+            ${open ? `<ul class="where__accs">${shown.map((r) => `<li><label class="check"><input type="checkbox" data-act="acc" data-id="${r.id}"${F.sel.has(r.id) ? ' checked' : ''}${r.st === 'on' ? '' : ' disabled'}>
+              <span>${esc(tx(r.name))}${r.st !== 'on' ? ` <span class="muted">· ${esc(t(r.st === 'err' ? 'post.accErr' : 'post.accOff'))}</span>` : ''}</span></label></li>`).join('')}</ul>` : ''}</li>`;
+        }).join('')}</ul>`;
+    }
+    function previewHtml() {
+      const p = P(), img = F.media[0];
+      const pic = img ? (img.kind === 'grad' ? `<span class="pv__img" style="background:${THUMBS[img.i % 6]}"></span>` : img.type.startsWith('video') ? `<video class="pv__img" src="${img.url}" muted playsinline></video>` : `<img class="pv__img" src="${img.url}" alt="">`) : '';
+      const when = F.when === 'now' ? t('post.pvNow') : F.when === 'draft' ? t('post.pvDraft') : whenLabel();
+      const empty = !F.title && !F.text && !F.media.length;
+      const body = F.pv === 'tg' ? `${F.title ? `<b>${esc(F.title)}</b>` : ''}${F.text ? `<p>${esc(F.text)}</p>` : ''}${F.tags.length ? `<p class="pv__tags">${esc(F.tags.join(' '))}</p>` : ''}${pic}`
+        : `${F.title ? `<b>${esc(F.title)}</b>` : ''}${F.text ? `<p>${esc(F.pv === 'ok' && F.text.length > 220 ? F.text.slice(0, 220) + '…' : F.text)}</p>` : ''}${F.tags.length ? `<p class="pv__tags">${esc(F.tags.join(' '))}</p>` : ''}${pic}
+          ${F.link ? `<span class="pv__link"><span>${esc(F.link.replace(/^https?:\/\//, '').split('/')[0])}</span><b>${esc(F.title || F.link)}</b></span>` : ''}`;
+      return `<div class="pv pv--${F.pv}"><div class="pv__head"><span class="pv__ava" aria-hidden="true">${esc((tx(p.name) || 'S').replace(/[«"]/g, '').charAt(0).toUpperCase())}</span>
+        <div><b>${esc(tx(p.name))}</b><span>${esc(when)}</span></div>${net(F.pv, 22)}</div>
+        <div class="pv__body">${empty ? `<p class="muted">${esc(t('post.pvEmpty'))}</p>` : body}</div></div>`;
+    }
+
+    function render() {
+      const all = recvs();
+      const dt = new Date(F.at);
+      main.innerHTML = `<div class="page__head"><div><h1>${esc(t(edit ? 'post.editTitle' : 'post.title'))}</h1></div></div>
+      <form class="post" id="postForm" novalidate>
+        <div class="post__main">
+          <section class="card card--pad post__form">
+            <div class="field"><label for="pProject">${esc(t('post.project'))}</label>
+              <span class="sel sel--full"><select id="pProject">${DEMO.db.projects.map((p) => `<option value="${p.id}"${p.id === F.project ? ' selected' : ''}>${esc(tx(p.name))}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></div>
+            <div class="field"><label for="pTitle">${esc(t('post.headline'))}</label><input class="input" id="pTitle" value="${esc(F.title)}" autocomplete="off"></div>
+            <div class="field"><label for="pText">${esc(t('post.text'))}</label>
+              <div class="editor${F.errs.text ? ' is-invalid' : ''}"><textarea class="input editor__ta" id="pText" rows="6" aria-describedby="pTextErr pCnt" aria-invalid="${!!F.errs.text}">${esc(F.text)}</textarea>
+                <div class="editor__bar">
+                  <button type="button" class="btn btn--sm btn--ai" data-act="ai" aria-expanded="${F.ai}" aria-controls="aiBox">${ico('spark')}${esc(t('post.ai'))}</button>
+                  <div class="pop"><button type="button" class="btn btn--sm" data-pop aria-expanded="false">${esc(t('post.template', { name: t(F.tpl) }))}${ico('down', 'ico--sm')}</button>
+                    <div class="menu" hidden><button type="button" data-act="tpl" data-id="post.tplAnnounce">${esc(t('post.tplAnnounce'))}</button><button type="button" data-act="tpl" data-id="post.tplNone">${esc(t('post.tplNone'))}</button>
+                      <a href="soon.html?s=templates">${ico('templates')}${esc(t('post.tplAll'))}</a></div></div>
+                  <span class="editor__cnt" id="pCnt" aria-label="${esc(t('post.counters'))}">${countersHtml()}</span>
+                </div>
+                <div class="ai" id="aiBox"${F.ai ? '' : ' hidden'}>
+                  <div class="ai__grid">
+                    <div class="field"><label for="aiModel">${esc(t('post.model'))}</label><span class="sel sel--full"><select id="aiModel">${MODELS.map((m, i) => `<option value="${i}"${i === F.model ? ' selected' : ''}>${m}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></div>
+                    <div class="field"><label for="aiInstr">${esc(t('post.instr'))}</label><span class="sel sel--full"><select id="aiInstr">${[1, 2, 3].map((i) => `<option value="${i}"${i === F.instr ? ' selected' : ''}>${esc(t('post.i' + i))}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></div>
+                  </div>
+                  <div class="field"><label for="aiPrompt">${esc(t('post.prompt'))}</label><textarea class="input" id="aiPrompt" rows="2">${esc(F.prompt)}</textarea></div>
+                  <div class="ai__row"><label class="ai__temp" for="aiTemp">${esc(t('post.temp'))} <span class="num" id="aiTempV">${I18N.num(F.temp)}</span></label><input type="range" id="aiTemp" min="0" max="1" step="0.1" value="${F.temp}"></div>
+                  <div class="ai__foot"><span class="ai__meta"><span id="aiTok">${esc(t('post.tokens', { n: I18N.num(Math.ceil((F.prompt.length + F.text.length) / 4)) }))}</span> · <span>${esc(t('post.price'))}</span></span>
+                    ${F.before != null && !F.busy ? `<button type="button" class="btn btn--sm btn--q" data-act="undo">${ico('reset', 'ico--sm')}${esc(t('post.undo'))}</button>` : ''}
+                    <button type="button" class="btn btn--sm btn--p" data-act="rewrite"${F.busy ? ' disabled' : ''}>${F.busy ? `<i class="mini__spin"></i>${esc(t('post.writing'))}` : esc(t('post.rewrite'))}</button></div>
+                </div>
+              </div>
+              <span class="field__err" id="pTextErr"${F.errs.text ? '' : ' hidden'}>${esc(t('post.errText'))}</span></div>
+            <div class="field"><span class="field__lbl" id="mediaLbl">${esc(t('post.media'))} · <span class="num">${F.media.length} / 10</span></span>
+              <div class="media" role="group" aria-labelledby="mediaLbl">${mediaHtml()}
+                ${F.media.length < 10 ? `<label class="drop" id="drop"><input type="file" id="pFiles" accept="image/*,video/*" multiple class="vh">${ico('plus')}<span>${esc(t('post.drop'))}</span></label>` : ''}</div></div>
+            <div class="two">
+              <div class="field"><label for="pLink">${esc(t('post.link'))}</label><input class="input" id="pLink" type="url" inputmode="url" value="${esc(F.link)}" placeholder="https://"></div>
+              <div class="field"><label for="pTag">${esc(t('post.tags'))}</label><div class="tags">${tagsHtml()}<input id="pTag" autocomplete="off" placeholder="+ ${esc(t('post.addTag'))}" aria-describedby="pTagHint"></div>
+                <span class="field__hint" id="pTagHint">${esc(t('post.tagsHint'))}</span></div>
+            </div>
+            <fieldset class="field when"><legend class="field__lbl">${esc(t('post.when'))}</legend>
+              <div class="seg" role="group">${['now', 'sched', 'draft'].map((k) => `<button type="button" data-act="when" data-id="${k}" aria-pressed="${F.when === k}">${esc(t('post.' + k))}</button>`).join('')}</div>
+              ${F.when === 'sched' ? `<div class="two when__dt"><div class="field"><label for="pDate">${esc(t('post.date'))}</label><input class="input" type="date" id="pDate" value="${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}"></div>
+                <div class="field"><label for="pTime">${esc(t('post.time'))}</label><input class="input" type="time" id="pTime" value="${pad(dt.getHours())}:${pad(dt.getMinutes())}"></div></div>` : ''}
+              <p class="field__hint">${esc(t({ now: 'post.hNow', sched: 'post.hSched', draft: 'post.hDraft' }[F.when]))}</p></fieldset>
+            <details class="adv" id="adv"><summary><b>${esc(t('post.more'))}</b><span>${esc(t('post.moreHint'))}</span>${ico('down', 'ico--sm')}</summary>
+              <div class="adv__body">
+                <label class="check"><input type="checkbox" id="o1"><span>${esc(t('post.o1'))}</span></label>
+                <div class="adv__sub" data-for="o1" hidden><label class="field"><span class="field__lbl">${esc(t('post.o1after'))}</span><span class="sel sel--full"><select>${['d1', 'd7', 'd30'].map((k) => `<option>${esc(t('post.' + k))}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></label></div>
+                <label class="check"><input type="checkbox" id="o2"><span>${esc(t('post.o2'))}</span></label>
+                <div class="adv__sub two" data-for="o2" hidden><div class="field"><label for="pErid">${esc(t('post.erid'))}</label><input class="input" id="pErid" autocomplete="off"></div>
+                  <div class="field"><label for="pAdText">${esc(t('post.adText'))}</label><input class="input" id="pAdText" placeholder="${esc(t('post.adTextPh'))}"></div></div>
+                <label class="check"><input type="checkbox" id="o3"><span>${esc(t('post.o3'))}</span></label>
+                <div class="adv__sub" data-for="o3" hidden><label class="field"><span class="field__lbl">${esc(t('post.every'))}</span><span class="sel sel--full"><select><option>${esc(t('post.weekly'))}</option><option>${esc(t('post.monthly'))}</option></select>${ico('down', 'ico--sm')}</span></label></div>
+                <div class="two"><div class="field"><label for="pGeo">${esc(t('post.o4'))}</label><input class="input" id="pGeo" inputmode="decimal" placeholder="${esc(t('post.geoPh'))}"></div>
+                  <div class="field"><label for="pAuthor">${esc(t('post.o5'))}</label><input class="input" id="pAuthor" placeholder="${esc(t('post.authorPh'))}"></div></div>
+              </div></details>
+          </section>
+        </div>
+        <aside class="post__side">
+          <section class="card post__where${F.errs.dests ? ' is-invalid' : ''}" aria-labelledby="whereT"><header class="post__h"><h2 id="whereT">${esc(t('post.where'))}</h2>
+            <span class="muted num" id="whereN">${esc(t('post.whereN', { n: I18N.num(F.sel.size), m: I18N.num(all.length) }))}</span></header>
+            <span class="field__err where__err" id="destErr"${F.errs.dests ? '' : ' hidden'}>${esc(t('post.errDests'))}</span>
+            <div id="whereBox">${whereHtml()}</div></section>
+          <section class="card post__pv" aria-labelledby="pvT"><header class="post__h"><h2 id="pvT">${esc(t('post.preview'))}</h2>
+            <div class="seg" role="group">${['vk', 'tg', 'ok'].map((k) => `<button type="button" data-act="pv" data-id="${k}" aria-pressed="${F.pv === k}">${esc(k === 'ok' ? 'OK' : netName(k))}</button>`).join('')}</div></header>
+            <div id="pvBox" aria-live="polite">${previewHtml()}</div><p class="field__hint">${esc(t('post.pvNote'))}</p></section>
+        </aside>
+        <div class="post__bar"><a class="btn btn--q" href="queue.html?project=${F.project}">${esc(t('post.cancel'))}</a>
+          ${F.when !== 'draft' ? `<button type="button" class="btn" data-act="save-draft">${esc(t('post.saveDraft'))}</button>` : ''}
+          <button type="submit" class="btn btn--p" id="pSubmit">${esc(submitLabel())}</button></div>
+      </form>`;
+      const adv = $('#adv', main); if (advOpen) adv.open = true;
+      ['o1', 'o2', 'o3'].forEach((k) => { if (advChk[k]) { $('#' + k, main).checked = true; $(`[data-for="${k}"]`, main).hidden = false; } });
+      $$('[data-mixed="true"]', main).forEach((el) => { el.indeterminate = true; });
+      const allBox = $('[data-act="all"]', main);
+      if (allBox) { const act = recvs().filter((r) => r.st === 'on'); allBox.indeterminate = !allBox.checked && act.some((r) => F.sel.has(r.id)); }
+    }
+    let advOpen = false; const advChk = {};
+    // Частичные обновления, чтобы ввод не терял фокус
+    function live() {
+      $('#pCnt', main).innerHTML = countersHtml();
+      $('#pvBox', main).innerHTML = previewHtml();
+      $('#pSubmit', main).textContent = submitLabel();
+      const tok = $('#aiTok', main); if (tok) tok.textContent = t('post.tokens', { n: I18N.num(Math.ceil((F.prompt.length + F.text.length) / 4)) });
+    }
+    function rerender(focusSel) {
+      const a = document.activeElement;
+      const sel = focusSel || (a?.dataset?.act ? `[data-act="${a.dataset.act}"]${a.dataset.id ? `[data-id="${a.dataset.id}"]` : ''}` : a?.id ? '#' + a.id : '');
+      const caret = a && (a.id === 'whereFind' || a.id === 'pTag') ? a.selectionStart : null;
+      advOpen = $('#adv', main)?.open || advOpen;
+      render();
+      const el = sel && $(sel, main);
+      if (el) { el.focus(); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }
+    }
+
+    function addFiles(files) {
+      let over = false;
+      [...files].forEach((f) => {
+        if (!/^(image|video)\//.test(f.type)) return;
+        if (F.media.length >= 10) { over = true; return; }
+        F.media.push({ kind: 'file', url: URL.createObjectURL(f), type: f.type, name: f.name });
+      });
+      if (over) toast(t('post.limit'));
+      F.errs.text = false;
+      rerender('#pFiles');
+    }
+    function addTag(v) {
+      F.tagsTouched = true;
+      v = v.trim().replace(/^#+/, '').replace(/[\s,#]+/g, '_');
+      if (!v) return;
+      const tg = '#' + v;
+      if (!F.tags.includes(tg)) F.tags.push(tg);
+    }
+    // ИИ-соавтор: через 1,5 с текст заменяется ответом и печатается (при reduce — сразу)
+    function rewrite() {
+      F.before = F.text; F.busy = true; F.touched = true; rerender('[data-act="rewrite"]');
+      setTimeout(() => {
+        const target = tx(smp.ai);
+        const done = () => { F.busy = false; F.text = target; rerender('[data-act="undo"]'); toast(t('post.aiDone')); };
+        if (reduce.matches) { done(); return; }
+        const ta = $('#pText', main);
+        let i = 0;
+        const step = () => {
+          if (!ta.isConnected) { done(); return; }
+          i = Math.min(target.length, i + 3);
+          ta.value = target.slice(0, i); F.text = ta.value; live();
+          if (i < target.length) setTimeout(step, 16); else done();
+        };
+        step();
+      }, 1500);
+    }
+
+    function submit(mode) {
+      const when = mode || F.when;
+      F.errs = { text: !F.text.trim() && !F.media.length, dests: when !== 'draft' && !F.sel.size };
+      if (F.errs.text || F.errs.dests) { rerender(F.errs.text ? '#pText' : '#whereFind'); if (!$(F.errs.text ? '#pText' : '#whereFind', main)) $('[data-act="all"]', main)?.focus(); return; }
+      const dests = [...new Set(recvs().filter((r) => F.sel.has(r.id)).map((r) => r.net))];
+      const at = when === 'now' ? Date.now() : when === 'draft' ? (edit ? edit.at : F.at) : F.at;
+      const st = when === 'now' ? 'done' : when === 'draft' ? 'paused' : 'plan';
+      const thumb = F.media.find((m) => m.kind === 'grad')?.i ?? (edit ? edit.thumb : DEMO.db.posts.length % 6);
+      const data = { p: F.project, at, src: 'man', dests, more: 0, title: L3(F.title), text: L3(F.text), st, draft: when === 'draft', thumb, tags: [...F.tags], link: F.link };
+      if (edit) Object.assign(edit, data); else DEMO.db.posts.push({ id: DEMO.uid('q'), ...data });
+      DEMO.save();
+      try { sessionStorage.setItem('seolit-toast', t(edit ? 'post.toastSaved' : when === 'now' ? 'post.toastNow' : when === 'draft' ? 'post.toastDraft' : 'post.toastSched')); } catch (e) { /* ничего */ }
+      location.href = `queue.html?project=${F.project}&tab=${st}`;
+    }
+
+    main.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-act]');
+      if (!b || b.tagName === 'INPUT') return;
+      const { act, id } = b.dataset;
+      if (act === 'ai') { F.ai = !F.ai; rerender(); }
+      else if (act === 'tpl') { F.tpl = id; rerender(); }
+      else if (act === 'rewrite' && !F.busy) rewrite();
+      else if (act === 'undo') { F.text = F.before; F.before = null; rerender('#pText'); }
+      else if (act === 'rm-media') { const m = F.media.splice(+id, 1)[0]; if (m?.url) URL.revokeObjectURL(m.url); rerender('#pFiles'); }
+      else if (act === 'rm-tag') { F.tagsTouched = true; F.tags.splice(+id, 1); rerender('#pTag'); }
+      else if (act === 'when') { F.when = id; rerender(); }
+      else if (act === 'pv') { F.pv = id; rerender(); }
+      else if (act === 'open') { F.open.has(id) ? F.open.delete(id) : F.open.add(id); rerender(); }
+      else if (act === 'save-draft') submit('draft');
+    });
+    main.addEventListener('change', (e) => {
+      const el = e.target, act = el.dataset.act;
+      if (el.id === 'pProject') { F.project = el.value; F.open.clear(); F.find = ''; pickDefault(); crumbs(); rerender(); }
+      else if (el.id === 'pFiles') addFiles(el.files);
+      else if (el.id === 'aiModel') F.model = +el.value;
+      else if (el.id === 'aiInstr') { F.instr = +el.value; F.prompt = t('post.i' + F.instr); $('#aiPrompt', main).value = F.prompt; live(); }
+      else if (el.id === 'pDate' || el.id === 'pTime') {
+        const [y, m, d] = $('#pDate', main).value.split('-').map(Number), [h, mi] = $('#pTime', main).value.split(':').map(Number);
+        if (y && !isNaN(h)) { F.at = new Date(y, m - 1, d, h, mi).getTime(); live(); }
+      } else if (/^o[123]$/.test(el.id)) { advChk[el.id] = el.checked; $(`[data-for="${el.id}"]`, main).hidden = !el.checked; }
+      else if (act === 'all') { const act2 = recvs().filter((r) => r.st === 'on'); el.checked ? act2.forEach((r) => F.sel.add(r.id)) : act2.forEach((r) => F.sel.delete(r.id)); F.errs.dests = false; rerender(); }
+      else if (act === 'grp') { recvs().filter((r) => r.net === el.dataset.id && r.st === 'on').forEach((r) => (el.checked ? F.sel.add(r.id) : F.sel.delete(r.id))); F.errs.dests = false; rerender(); }
+      else if (act === 'acc') { el.checked ? F.sel.add(el.dataset.id) : F.sel.delete(el.dataset.id); F.errs.dests = false; rerender(); }
+    });
+    main.addEventListener('input', (e) => {
+      const el = e.target;
+      if (el.id === 'pTitle') { F.title = el.value; F.touched = true; live(); }
+      else if (el.id === 'pText') { F.text = el.value; F.touched = true; if (F.errs.text && el.value.trim()) { F.errs.text = false; $('#pTextErr', main).hidden = true; el.setAttribute('aria-invalid', 'false'); } live(); }
+      else if (el.id === 'pLink') { F.link = el.value.trim(); live(); }
+      else if (el.id === 'aiPrompt') { F.prompt = el.value; live(); }
+      else if (el.id === 'aiTemp') { F.temp = +el.value; $('#aiTempV', main).textContent = I18N.num(F.temp); }
+      else if (el.id === 'whereFind') { F.find = el.value.trim().toLowerCase(); rerender(); }
+    });
+    main.addEventListener('keydown', (e) => {
+      if (e.target.id !== 'pTag') return;
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(e.target.value); e.target.value = ''; rerender('#pTag'); }
+      else if (e.key === 'Backspace' && !e.target.value && F.tags.length) { F.tags.pop(); rerender('#pTag'); }
+    });
+    main.addEventListener('focusout', (e) => { if (e.target.id === 'pTag' && e.target.value.trim()) { addTag(e.target.value); e.target.value = ''; setTimeout(() => rerender(), 0); } });
+    // Перетаскивание файлов на зону
+    main.addEventListener('dragover', (e) => { const d = e.target.closest('#drop'); if (d) { e.preventDefault(); d.classList.add('is-over'); } });
+    main.addEventListener('dragleave', (e) => { e.target.closest('#drop')?.classList.remove('is-over'); });
+    main.addEventListener('drop', (e) => { if (e.target.closest('#drop')) { e.preventDefault(); addFiles(e.dataTransfer.files); } });
+    main.addEventListener('submit', (e) => { e.preventDefault(); submit(); });
+    // Пока пример не трогали — он переключается вместе с языком
+    I18N.onChange(() => { crumbs(); if (!F.touched) { F.title = tx(smp.title); F.text = tx(smp.text); } if (!F.tagsTouched) F.tags = [...smp.tags[I18N.lang]]; render(); });
+    render();
+  };
+
   PAGES.login = () => authPage('login');
   PAGES.register = () => authPage('register');
 
@@ -1094,6 +1381,7 @@
   }
   banner();
   PAGES[PAGE]?.();
+  try { const m = sessionStorage.getItem('seolit-toast'); if (m) { sessionStorage.removeItem('seolit-toast'); setTimeout(() => toast(m), 300); } } catch (e) { /* ничего */ }
   syncTheme();
   I18N.apply();
 
