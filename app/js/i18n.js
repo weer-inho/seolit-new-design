@@ -143,6 +143,28 @@
       'conn.rssLabel': 'Адрес RSS или Atom-ленты', 'conn.rssPh': 'https://example.ru/rss', 'conn.rssCheck': 'Проверить', 'conn.rssErr': 'Введите адрес ленты',
       'conn.rssToast': 'лента была бы прочитана и проверена', 'conn.done': 'Приёмник подключён', 'conn.doneSrc': 'Источник подключён',
       'net.vkGoods': 'ВК-товары', 'net.rssFeed': 'RSS/Atom-лента',
+      // Очередь
+      'q.title': 'Очередь публикаций', 'q.sub': 'Все посты проекта: что, куда и когда выйдет', 'q.subAll': 'Посты всех проектов: что, куда и когда выйдет',
+      'q.view': 'Вид', 'q.list': 'Список', 'q.calendar': 'Календарь', 'q.status': 'Статус',
+      'q.plan': 'Запланировано', 'q.paused': 'На паузе', 'q.err': 'Ошибки', 'q.done': 'Опубликовано',
+      'q.search': 'Найти пост по тексту', 'q.allProjects': 'Все проекты', 'q.allDests': 'Все приёмники', 'q.allSources': 'Все источники',
+      'q.week': 'Ближайшие 7 дней', 'q.weekPast': 'Последние 7 дней', 'q.anyDate': 'Все даты', 'q.filters': 'Фильтры',
+      'q.fProject': 'Проект', 'q.fDest': 'Приёмник', 'q.fSource': 'Источник', 'q.fPeriod': 'Период',
+      'q.publishNow': 'Опубликовать сейчас', 'q.retry': 'Повторить', 'q.edit': 'Изменить', 'q.more': 'Ещё действия: {title}',
+      'q.select': 'Выбрать пост «{title}»', 'q.selectDay': 'Выбрать все посты дня', 'q.bulk': 'Действия с выбранными', 'q.selected': 'Выбрано: {n}',
+      'q.reschedule': 'Перенести', 'q.pause': 'На паузу', 'q.resume': 'Вернуть в очередь', 'q.del': 'Удалить', 'q.clear': 'Снять выбор',
+      'q.noErrors': 'Ошибок нет', 'q.noErrorsHint': 'Все посты уходят по плану. Если что-то сломается, пришлём уведомление.',
+      'q.empty': 'Здесь пока пусто', 'q.emptyHint': 'Создайте пост или подключите источник — посты появятся в очереди.', 'q.none': 'Ничего не нашлось',
+      'q.noneHint': 'Попробуйте другой текст или сбросьте фильтры.', 'q.reset': 'Сбросить фильтры',
+      'q.inTime': 'по расписанию', 'q.manual': 'Вручную', 'q.publishedAt': 'опубликован', 'q.pausedSt': 'на паузе', 'q.route': 'Откуда и куда',
+      'q.pubToast': 'пост ушёл бы прямо сейчас', 'q.published': { one: 'Опубликован {n} пост', few: 'Опубликовано {n} поста', many: 'Опубликовано {n} постов', other: 'Опубликовано {n} поста' },
+      'q.pausedN': { one: '{n} пост на паузе', few: '{n} поста на паузе', many: '{n} постов на паузе', other: '{n} поста на паузе' },
+      'q.resumedN': { one: '{n} пост вернулся в очередь', few: '{n} поста вернулись в очередь', many: '{n} постов вернулись в очередь', other: '{n} поста вернулись в очередь' },
+      'q.deletedN': { one: 'Удалён {n} пост', few: 'Удалено {n} поста', many: 'Удалено {n} постов', other: 'Удалено {n} поста' },
+      'q.movedN': { one: 'Перенесён {n} пост', few: 'Перенесено {n} поста', many: 'Перенесено {n} постов', other: 'Перенесено {n} поста' },
+      'q.delTitle': 'Удалить посты?', 'q.delText': { one: '{n} пост будет удалён из очереди. В соцсетях ничего не изменится.', few: '{n} поста будут удалены из очереди. В соцсетях ничего не изменится.', many: '{n} постов будут удалены из очереди. В соцсетях ничего не изменится.', other: '{n} поста будут удалены из очереди.' },
+      'q.moveTitle': 'Перенести публикацию', 'q.moveDate': 'Дата', 'q.moveTime': 'Время', 'q.moveHint': 'Пост выйдет в это время во всех выбранных приёмниках.', 'q.move': 'Перенести',
+      'q.thumb': 'Картинка поста', 'q.calEmpty': 'Нет постов',
       'c.close': 'Закрыть', 'c.cancel': 'Отмена', 'c.save': 'Сохранить', 'c.open': 'Открыть', 'c.delete': 'Удалить',
       'c.more': 'Ещё действия', 'c.today': 'Сегодня', 'c.tomorrow': 'Завтра', 'c.yesterday': 'Вчера',
       'c.rub': '₽',
@@ -258,6 +280,27 @@
       'conn.rssLabel': 'RSS or Atom feed address', 'conn.rssPh': 'https://example.com/rss', 'conn.rssCheck': 'Check', 'conn.rssErr': 'Enter the feed address',
       'conn.rssToast': 'the feed would be read and checked', 'conn.done': 'Destination connected', 'conn.doneSrc': 'Source connected',
       'net.vkGoods': 'VK products', 'net.rssFeed': 'RSS/Atom feed',
+      'q.title': 'Publishing queue', 'q.sub': 'Every post in the project: what goes where, and when', 'q.subAll': 'Posts from all projects: what goes where, and when',
+      'q.view': 'View', 'q.list': 'List', 'q.calendar': 'Calendar', 'q.status': 'Status',
+      'q.plan': 'Scheduled', 'q.paused': 'Paused', 'q.err': 'Errors', 'q.done': 'Published',
+      'q.search': 'Search posts', 'q.allProjects': 'All projects', 'q.allDests': 'All destinations', 'q.allSources': 'All sources',
+      'q.week': 'Next 7 days', 'q.weekPast': 'Last 7 days', 'q.anyDate': 'Any date', 'q.filters': 'Filters',
+      'q.fProject': 'Project', 'q.fDest': 'Destination', 'q.fSource': 'Source', 'q.fPeriod': 'Period',
+      'q.publishNow': 'Publish now', 'q.retry': 'Retry', 'q.edit': 'Edit', 'q.more': 'More actions: {title}',
+      'q.select': 'Select “{title}”', 'q.selectDay': 'Select all posts of the day', 'q.bulk': 'Bulk actions', 'q.selected': 'Selected: {n}',
+      'q.reschedule': 'Reschedule', 'q.pause': 'Pause', 'q.resume': 'Back to queue', 'q.del': 'Delete', 'q.clear': 'Clear selection',
+      'q.noErrors': 'No errors', 'q.noErrorsHint': 'Everything goes out on schedule. We’ll notify you if something breaks.',
+      'q.empty': 'Nothing here yet', 'q.emptyHint': 'Create a post or connect a source — posts will show up in the queue.', 'q.none': 'Nothing found',
+      'q.noneHint': 'Try other words or reset the filters.', 'q.reset': 'Reset filters',
+      'q.inTime': 'on schedule', 'q.manual': 'Manual', 'q.publishedAt': 'published', 'q.pausedSt': 'paused', 'q.route': 'From and to',
+      'q.pubToast': 'the post would go out right now', 'q.published': { one: '{n} post published', other: '{n} posts published' },
+      'q.pausedN': { one: '{n} post paused', other: '{n} posts paused' },
+      'q.resumedN': { one: '{n} post back in the queue', other: '{n} posts back in the queue' },
+      'q.deletedN': { one: '{n} post deleted', other: '{n} posts deleted' },
+      'q.movedN': { one: '{n} post rescheduled', other: '{n} posts rescheduled' },
+      'q.delTitle': 'Delete posts?', 'q.delText': { one: '{n} post will be removed from the queue. Nothing changes in the networks.', other: '{n} posts will be removed from the queue. Nothing changes in the networks.' },
+      'q.moveTitle': 'Reschedule', 'q.moveDate': 'Date', 'q.moveTime': 'Time', 'q.moveHint': 'The post goes out at this time in every selected destination.', 'q.move': 'Reschedule',
+      'q.thumb': 'Post image', 'q.calEmpty': 'No posts',
       'c.close': 'Close', 'c.cancel': 'Cancel', 'c.save': 'Save', 'c.open': 'Open', 'c.delete': 'Delete',
       'c.more': 'More actions', 'c.today': 'Today', 'c.tomorrow': 'Tomorrow', 'c.yesterday': 'Yesterday',
       'c.rub': '₽',
@@ -374,6 +417,27 @@
       'conn.rssLabel': 'RSS немесе Atom-таспа мекенжайы', 'conn.rssPh': 'https://example.kz/rss', 'conn.rssCheck': 'Тексеру', 'conn.rssErr': 'Таспа мекенжайын енгізіңіз',
       'conn.rssToast': 'таспа оқылып, тексерілер еді', 'conn.done': 'Қабылдағыш қосылды', 'conn.doneSrc': 'Дереккөз қосылды',
       'net.vkGoods': 'ВК-тауарлар', 'net.rssFeed': 'RSS/Atom-таспа',
+      'q.title': 'Жариялау кезегі', 'q.sub': 'Жобаның барлық жазбалары: не, қайда және қашан шығады', 'q.subAll': 'Барлық жобалардың жазбалары: не, қайда және қашан шығады',
+      'q.view': 'Көрініс', 'q.list': 'Тізім', 'q.calendar': 'Күнтізбе', 'q.status': 'Күйі',
+      'q.plan': 'Жоспарланған', 'q.paused': 'Кідірісте', 'q.err': 'Қателер', 'q.done': 'Жарияланған',
+      'q.search': 'Жазбаны мәтін бойынша іздеу', 'q.allProjects': 'Барлық жобалар', 'q.allDests': 'Барлық қабылдағыштар', 'q.allSources': 'Барлық дереккөздер',
+      'q.week': 'Алдағы 7 күн', 'q.weekPast': 'Соңғы 7 күн', 'q.anyDate': 'Кез келген күн', 'q.filters': 'Сүзгілер',
+      'q.fProject': 'Жоба', 'q.fDest': 'Қабылдағыш', 'q.fSource': 'Дереккөз', 'q.fPeriod': 'Кезең',
+      'q.publishNow': 'Қазір жариялау', 'q.retry': 'Қайталау', 'q.edit': 'Өзгерту', 'q.more': 'Басқа әрекеттер: {title}',
+      'q.select': '«{title}» жазбасын таңдау', 'q.selectDay': 'Күннің барлық жазбасын таңдау', 'q.bulk': 'Таңдалғандармен әрекеттер', 'q.selected': 'Таңдалды: {n}',
+      'q.reschedule': 'Ауыстыру', 'q.pause': 'Кідірту', 'q.resume': 'Кезекке қайтару', 'q.del': 'Жою', 'q.clear': 'Таңдауды алу',
+      'q.noErrors': 'Қате жоқ', 'q.noErrorsHint': 'Барлық жазба жоспар бойынша шығады. Ақау болса, хабарлаймыз.',
+      'q.empty': 'Әзірге бос', 'q.emptyHint': 'Жазба жасаңыз немесе дереккөз қосыңыз — жазбалар кезекте пайда болады.', 'q.none': 'Ештеңе табылмады',
+      'q.noneHint': 'Басқа мәтінмен іздеңіз немесе сүзгілерді тазартыңыз.', 'q.reset': 'Сүзгілерді тазарту',
+      'q.inTime': 'кесте бойынша', 'q.manual': 'Қолмен', 'q.publishedAt': 'жарияланды', 'q.pausedSt': 'кідірісте', 'q.route': 'Қайдан және қайда',
+      'q.pubToast': 'жазба дәл қазір шығар еді', 'q.published': { one: '{n} жазба жарияланды', other: '{n} жазба жарияланды' },
+      'q.pausedN': { one: '{n} жазба кідіртілді', other: '{n} жазба кідіртілді' },
+      'q.resumedN': { one: '{n} жазба кезекке қайтты', other: '{n} жазба кезекке қайтты' },
+      'q.deletedN': { one: '{n} жазба жойылды', other: '{n} жазба жойылды' },
+      'q.movedN': { one: '{n} жазба ауыстырылды', other: '{n} жазба ауыстырылды' },
+      'q.delTitle': 'Жазбаларды жою керек пе?', 'q.delText': { one: '{n} жазба кезектен жойылады. Желілерде ештеңе өзгермейді.', other: '{n} жазба кезектен жойылады. Желілерде ештеңе өзгермейді.' },
+      'q.moveTitle': 'Жариялауды ауыстыру', 'q.moveDate': 'Күні', 'q.moveTime': 'Уақыты', 'q.moveHint': 'Жазба таңдалған барлық қабылдағышта осы уақытта шығады.', 'q.move': 'Ауыстыру',
+      'q.thumb': 'Жазба суреті', 'q.calEmpty': 'Жазба жоқ',
       'c.close': 'Жабу', 'c.cancel': 'Болдырмау', 'c.save': 'Сақтау', 'c.open': 'Ашу', 'c.delete': 'Жою',
       'c.more': 'Басқа әрекеттер', 'c.today': 'Бүгін', 'c.tomorrow': 'Ертең', 'c.yesterday': 'Кеше',
       'c.rub': '₽',
@@ -394,6 +458,7 @@
   const num = (n) => new Intl.NumberFormat(nloc()).format(n);
   const money = (n) => num(n) + ' ₽';
   const KK_M = ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан'];
+  const KK_WDL = ['жексенбі', 'дүйсенбі', 'сейсенбі', 'сәрсенбі', 'бейсенбі', 'жұма', 'сенбі'];
   const KK_WD = ['жс', 'дс', 'сс', 'ср', 'бс', 'жм', 'сб'];
   // date(d, 'num') → 18.11.2026 / Nov 18, 2026; 'dm' → 29 октября; 'dmShort' → 29.10; 'wd' → пн, 29; 'time' → 15:30
   const DF = {
@@ -401,11 +466,13 @@
     dm: () => ({ day: 'numeric', month: 'long' }),
     dmShort: () => ({ day: '2-digit', month: '2-digit' }),
     wd: () => ({ weekday: 'short', day: 'numeric' }),
+    wdl: () => ({ weekday: 'long' }),
     time: () => ({ hour: '2-digit', minute: '2-digit', hour12: false }),
   };
   function date(d, f = 'num') {
     d = d instanceof Date ? d : new Date(d);
     if (lang === 'kk' && f === 'dm') return d.getDate() + ' ' + KK_M[d.getMonth()];
+    if (lang === 'kk' && f === 'wdl') return KK_WDL[d.getDay()];
     if (lang === 'kk' && f === 'wd') return KK_WD[d.getDay()] + ', ' + d.getDate();
     return new Intl.DateTimeFormat(nloc(), DF[f](lang)).format(d);
   }

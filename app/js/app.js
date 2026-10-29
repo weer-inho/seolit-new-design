@@ -44,6 +44,9 @@
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     alert: '<path d="M12 3l9.5 17h-19zM12 10v4M12 17.5v.01"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/>',
+    play: '<path d="M7 5l12 7-12 7z"/>',
+    pause: '<path d="M8 5v14M16 5v14"/>',
     soon: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
   };
   const ico = (n, cls = '') => `<svg class="ico${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
@@ -900,6 +903,185 @@
     render();
     if (location.hash === '#connect') openConnect('dest');
     else if (location.hash === '#connect-source') openConnect('source');
+  };
+
+  /* ---------- Очередь публикаций ---------- */
+  const THUMBS = ['linear-gradient(135deg,#2563EB,#38BDF8)', 'linear-gradient(135deg,#F59E0B,#EF4444)', 'linear-gradient(135deg,#10B981,#0EA5E9)',
+    'linear-gradient(135deg,#8B5CF6,#EC4899)', 'linear-gradient(135deg,#0EA5E9,#22C55E)', 'linear-gradient(135deg,#334155,#64748B)'];
+  // Плашка источника поста: соцсеть или «вручную» (карандаш)
+  const srcPlate = (src, size = 22) => (src === 'man'
+    ? `<span class="net${size === 28 ? '' : ' net--' + size}" style="--c:#566176" title="${esc(t('q.manual'))}" aria-hidden="true">${ico('edit')}</span>`
+    : net(src, size));
+  const dayStart = (ts) => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  function dayTitle(ts) {
+    const diff = Math.round((dayStart(ts) - DEMO.D0) / DAY);
+    const word = diff === 0 ? t('c.today') : diff === 1 ? t('c.tomorrow') : diff === -1 ? t('c.yesterday') : I18N.date(ts, 'wdl');
+    return `${word.charAt(0).toUpperCase() + word.slice(1)}, ${I18N.date(ts, 'dm')}`;
+  }
+
+  PAGES.queue = () => {
+    const main = $('#main');
+    const P0 = DEMO.project(q.get('project'));
+    const destR = q.get('dest') ? DEMO.db.receivers.find((r) => r.id === q.get('dest')) : null;
+    const S = { tab: 'plan', view: 'list', project: P0 ? P0.id : '', dest: destR ? destR.net : '', src: '', period: 'week', search: '', sel: new Set() };
+    const crumbs = () => setCrumbs(P0 ? [{ key: 'nav.projects', href: 'projects.html' }, { text: P0.name, href: `project.html?id=${P0.id}` }, { key: 'q.title' }]
+      : [{ key: 'nav.projects', href: 'projects.html' }, { key: 'q.title' }]);
+    crumbs();
+
+    const inScope = (x) => !S.project || x.p === S.project;
+    const statusOf = (k) => DEMO.db.posts.filter((x) => inScope(x) && x.st === k);
+    function counts() {
+      if (S.project) return DEMO.stats(S.project);
+      return DEMO.stats();
+    }
+    function filtered() {
+      const now = +DEMO.D0, wk = 7 * DAY;
+      return statusOf(S.tab).filter((x) => (!S.dest || x.dests.includes(S.dest)) && (!S.src || x.src === S.src)
+        && (S.period === 'any' || S.tab === 'err' || (S.tab === 'done' ? x.at >= now - wk : x.at < now + wk))
+        && (!S.search || (tx(x.title) + ' ' + tx(x.text)).toLowerCase().includes(S.search)))
+        .sort((a, b) => (S.tab === 'done' ? b.at - a.at : a.at - b.at));
+    }
+
+    function row(x) {
+      const title = tx(x.title), on = S.sel.has(x.id), pName = !S.project ? tx(DEMO.project(x.p)?.name) : '';
+      const shown = x.dests.slice(0, 4), more = (x.more || 0) + Math.max(0, x.dests.length - 4);
+      const st = x.st === 'done' ? `<span class="q__st is-ok">${esc(t('q.publishedAt'))}</span>` : x.st === 'paused' ? `<span class="q__st is-warn">${esc(t('q.pausedSt'))}</span>`
+        : x.st === 'err' ? `<span class="q__st is-err">${esc(tx(x.err) || t('q.err'))}</span>` : `<span class="q__st">${esc(t('q.inTime'))}</span>`;
+      const canPub = x.st !== 'done';
+      const thumb = x.img ? `<img class="q__thumb" src="${esc(x.img)}" alt="">` : `<span class="q__thumb" style="background:${THUMBS[(x.thumb || 0) % 6]}" aria-hidden="true"></span>`;
+      return `<li class="q${on ? ' is-sel' : ''}${x.st === 'err' ? ' is-err' : ''}">
+        <label class="check q__chk"><input type="checkbox" data-sel="${x.id}"${on ? ' checked' : ''}><span class="vh">${esc(t('q.select', { title }))}</span></label>
+        ${thumb}
+        <div class="q__txt"><b>${esc(title)}</b><span>${esc(tx(x.text))}</span>${pName ? `<a class="q__proj" href="project.html?id=${x.p}">${esc(pName)}</a>` : ''}</div>
+        <div class="q__route" aria-label="${esc(t('q.route'))}">${srcPlate(x.src)}<span class="q__arrow" aria-hidden="true">→</span>${shown.map((n) => net(n, 22, false)).join('')}${more ? `<span class="nets__more">+${more}</span>` : ''}</div>
+        <div class="q__time"><b class="num">${esc(I18N.date(x.at, 'time'))}</b>${st}</div>
+        <div class="q__acts">
+          ${canPub ? `<button type="button" class="ibtn ibtn--sm d-only" data-act="pub" data-id="${x.id}" aria-label="${esc(t(x.st === 'err' ? 'q.retry' : 'q.publishNow'))}: ${esc(title)}" title="${esc(t(x.st === 'err' ? 'q.retry' : 'q.publishNow'))}">${ico('play')}</button>
+          <a class="ibtn ibtn--sm d-only" href="post.html?id=${x.id}" aria-label="${esc(t('q.edit'))}: ${esc(title)}" title="${esc(t('q.edit'))}">${ico('edit')}</a>` : ''}
+          <div class="pop"><button type="button" class="ibtn ibtn--sm" data-pop aria-expanded="false" aria-label="${esc(t('q.more', { title }))}">${ico('dots')}</button>
+            <div class="menu" hidden>
+              ${canPub ? `<button type="button" class="m-only" data-act="pub" data-id="${x.id}">${ico('play')}${esc(t(x.st === 'err' ? 'q.retry' : 'q.publishNow'))}</button>
+              <a class="m-only" href="post.html?id=${x.id}">${ico('edit')}${esc(t('q.edit'))}</a>
+              <button type="button" data-act="move" data-id="${x.id}">${ico('clock')}${esc(t('q.reschedule'))}</button>` : ''}
+              ${x.st === 'plan' || x.st === 'err' ? `<button type="button" data-act="pause" data-id="${x.id}">${ico('pause')}${esc(t('q.pause'))}</button>` : ''}
+              ${x.st === 'paused' ? `<button type="button" data-act="resume" data-id="${x.id}">${ico('play')}${esc(t('q.resume'))}</button>` : ''}
+              <button type="button" class="danger" data-act="del" data-id="${x.id}">${ico('close')}${esc(t('q.del'))}</button></div></div>
+        </div></li>`;
+    }
+
+    function listHtml(list) {
+      if (!list.length) {
+        if (S.tab === 'err' && !S.search && !S.dest && !S.src) return `<section class="card empty"><span class="empty__ico auth__ok">${ico('check')}</span><h3>${esc(t('q.noErrors'))}</h3><p>${esc(t('q.noErrorsHint'))}</p></section>`;
+        const narrowed = S.search || S.dest || S.src;
+        return `<section class="card empty"><span class="empty__ico">${ico(narrowed ? 'search' : 'queue')}</span><h3>${esc(t(narrowed ? 'q.none' : 'q.empty'))}</h3>
+          <p>${esc(t(narrowed ? 'q.noneHint' : 'q.emptyHint'))}</p>${narrowed ? `<button type="button" class="btn" data-act="reset">${esc(t('q.reset'))}</button>` : `<a class="btn btn--p" href="post.html">${ico('plus', 'ico--sm')}${esc(t('top.newPost'))}</a>`}</section>`;
+      }
+      const days = [];
+      list.forEach((x) => { const d = dayStart(x.at); let g = days.find((y) => y.d === d); if (!g) days.push(g = { d, items: [] }); g.items.push(x); });
+      return days.map((g) => `<section class="card qday" aria-label="${esc(dayTitle(g.d))}"><header class="qday__head"><h2>${esc(dayTitle(g.d))}</h2><span class="muted">${esc(plural(g.items.length, 'p.posts'))}</span></header>
+        <ul class="qlist">${g.items.map(row).join('')}</ul></section>`).join('');
+    }
+
+    // Календарь: 7 колонок по дням, начиная с сегодня (для «Опубликовано» — последние 7 дней)
+    function calHtml(list) {
+      const start = S.tab === 'done' ? DEMO.D0 - 6 * DAY : +DEMO.D0;
+      const cols = Array.from({ length: 7 }, (_, i) => start + i * DAY);
+      return `<div class="cal">${cols.map((d) => {
+        const items = list.filter((x) => dayStart(x.at) === new Date(d).setHours(0, 0, 0, 0)).sort((a, b) => a.at - b.at);
+        return `<section class="cal__day"><h2><span>${esc(I18N.date(d, 'wd'))}</span>${Math.round((d - DEMO.D0) / DAY) === 0 ? `<b>${esc(t('c.today'))}</b>` : ''}</h2>
+          ${items.length ? items.map((x) => `<a class="cal__post" href="post.html?id=${x.id}"><span class="num">${esc(I18N.date(x.at, 'time'))}</span><b>${esc(tx(x.title))}</b>
+            <span class="nets">${srcPlate(x.src)}${x.dests.slice(0, 3).map((n) => net(n, 22)).join('')}</span></a>`).join('') : `<p class="muted">${esc(t('q.calEmpty'))}</p>`}</section>`;
+      }).join('')}</div>`;
+    }
+
+    function render() {
+      const c = counts(), list = filtered();
+      const opt = (v, label, cur) => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(label)}</option>`;
+      const scopePosts = DEMO.db.posts.filter(inScope);
+      const dNets = [...new Set(scopePosts.flatMap((x) => x.dests))], sNets = [...new Set(scopePosts.map((x) => x.src))];
+      const seg = (k) => `<button type="button" data-act="tab" data-id="${k}" aria-pressed="${S.tab === k}">${esc(t('q.' + k))} <span class="num">${I18N.num(c[k])}</span></button>`;
+      main.innerHTML = `<div class="page__head"><div><h1>${esc(t('q.title'))}</h1><p>${esc(t(S.project ? 'q.sub' : 'q.subAll'))}</p></div>
+          <div class="seg" role="group" aria-label="${esc(t('q.view'))}"><button type="button" data-act="view" data-id="list" aria-pressed="${S.view === 'list'}">${esc(t('q.list'))}</button>
+          <button type="button" data-act="view" data-id="cal" aria-pressed="${S.view === 'cal'}">${esc(t('q.calendar'))}</button></div></div>
+        <div class="seg seg--tabs" role="group" aria-label="${esc(t('q.status'))}">${['plan', 'paused', 'err', 'done'].map(seg).join('')}</div>
+        <div class="qfil" role="group" aria-label="${esc(t('q.filters'))}">
+          <label class="search qfil__search"><span class="vh">${esc(t('q.search'))}</span>${ico('search', 'ico--sm')}<input type="search" id="qSearch" autocomplete="off" placeholder="${esc(t('q.search'))}" value="${esc(S.search)}"></label>
+          <label class="sel"><span class="vh">${esc(t('q.fProject'))}</span><select data-f="project">${opt('', t('q.allProjects'), S.project)}${DEMO.db.projects.map((p) => opt(p.id, tx(p.name), S.project)).join('')}</select>${ico('down', 'ico--sm')}</label>
+          <label class="sel"><span class="vh">${esc(t('q.fDest'))}</span><select data-f="dest">${opt('', t('q.allDests'), S.dest)}${dNets.map((n) => opt(n, netName(n), S.dest)).join('')}</select>${ico('down', 'ico--sm')}</label>
+          <label class="sel"><span class="vh">${esc(t('q.fSource'))}</span><select data-f="src">${opt('', t('q.allSources'), S.src)}${sNets.map((n) => opt(n, n === 'man' ? t('q.manual') : netName(n), S.src)).join('')}</select>${ico('down', 'ico--sm')}</label>
+          <label class="sel"><span class="vh">${esc(t('q.fPeriod'))}</span><select data-f="period">${opt('week', t(S.tab === 'done' ? 'q.weekPast' : 'q.week'), S.period)}${opt('any', t('q.anyDate'), S.period)}</select>${ico('down', 'ico--sm')}</label>
+        </div>
+        <div class="qbody">${S.view === 'cal' ? calHtml(list) : listHtml(list)}</div>
+        ${S.sel.size ? `<div class="bulk" role="region" aria-label="${esc(t('q.bulk'))}"><b aria-live="polite">${esc(t('q.selected', { n: S.sel.size }))}</b>
+          <div class="bulk__acts">${S.tab !== 'done' ? `<button type="button" class="btn btn--p btn--sm" data-act="pub">${esc(t('q.publishNow'))}</button>
+          <button type="button" class="btn btn--q btn--sm" data-act="move">${esc(t('q.reschedule'))}</button>` : ''}
+          ${S.tab === 'paused' ? `<button type="button" class="btn btn--q btn--sm" data-act="resume">${esc(t('q.resume'))}</button>` : S.tab !== 'done' ? `<button type="button" class="btn btn--q btn--sm" data-act="pause">${esc(t('q.pause'))}</button>` : ''}
+          <button type="button" class="btn btn--q btn--sm bulk__del" data-act="del">${esc(t('q.del'))}</button></div>
+          <button type="button" class="x-btn" data-act="clear" aria-label="${esc(t('q.clear'))}">${ico('close')}</button></div>` : ''}`;
+      main.classList.toggle('has-bulk', S.sel.size > 0);
+    }
+    function rerender() {
+      const a = document.activeElement;
+      const sel = a?.dataset?.act ? `[data-act="${a.dataset.act}"][data-id="${a.dataset.id || ''}"]` : a?.dataset?.sel ? `[data-sel="${a.dataset.sel}"]` : a?.dataset?.f ? `[data-f="${a.dataset.f}"]` : a?.id ? '#' + a.id : '';
+      const caret = a && a.id === 'qSearch' ? a.selectionStart : null;
+      render();
+      const el = sel && $$(sel, main).find((x) => x.offsetParent !== null);
+      if (el) { el.focus(); if (caret != null) el.setSelectionRange(caret, caret); }
+      else if (a && !a.isConnected) $('#qSearch', main)?.focus();
+    }
+    const post = (id) => DEMO.db.posts.find((x) => x.id === id);
+    const done = (key, n) => { DEMO.save(); S.sel.clear(); rerender(); toast(plural(n, key)); refreshCount(); };
+    const refreshCount = () => $$('[data-queue-count]').forEach((el) => { el.textContent = I18N.num(DEMO.stats().plan); });
+
+    function move(ids) {
+      const first = post(ids[0]);
+      const d0 = new Date(first.at), pad = (n) => String(n).padStart(2, '0');
+      const dlg = dialog({ titleKey: 'q.moveTitle', html: `<form class="modal__body" novalidate>
+        <p class="muted">${esc(t('q.moveHint'))}</p>
+        <div class="two"><div class="field"><label for="mvDate">${esc(t('q.moveDate'))}</label><input class="input" type="date" id="mvDate" value="${d0.getFullYear()}-${pad(d0.getMonth() + 1)}-${pad(d0.getDate())}" required></div>
+        <div class="field"><label for="mvTime">${esc(t('q.moveTime'))}</label><input class="input" type="time" id="mvTime" value="${pad(d0.getHours())}:${pad(d0.getMinutes())}" required></div></div>
+        <div class="modal__foot modal__foot--in"><button type="button" class="btn" data-close>${esc(t('c.cancel'))}</button><button type="submit" class="btn btn--p">${esc(t('q.move'))}</button></div></form>` });
+      $('form', dlg.box).addEventListener('submit', (e) => {
+        e.preventDefault();
+        const [y, m, d] = $('#mvDate', dlg.box).value.split('-').map(Number), [h, mi] = $('#mvTime', dlg.box).value.split(':').map(Number);
+        if (!y || isNaN(h)) return;
+        ids.forEach((id) => { const x = post(id); if (x) { x.at = new Date(y, m - 1, d, h, mi).getTime(); if (x.st === 'err') x.st = 'plan'; } });
+        dlg.close(); S.period = 'any'; done('q.movedN', ids.length);
+      });
+    }
+
+    main.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-act]');
+      if (!b) return;
+      const { act, id } = b.dataset;
+      const ids = id ? [id] : [...S.sel];
+      if (act === 'tab') { S.tab = id; S.sel.clear(); rerender(); }
+      else if (act === 'view') { S.view = id; rerender(); }
+      else if (act === 'clear') { S.sel.clear(); render(); $('#qSearch', main)?.focus(); }
+      else if (act === 'reset') { S.search = ''; S.dest = ''; S.src = ''; S.period = 'any'; $('#topSearch') && ($('#topSearch').value = ''); rerender(); }
+      else if (act === 'pub') {
+        demo('q.pubToast');
+        ids.forEach((i) => { const x = post(i); if (x) { x.st = 'done'; x.at = Date.now(); } });
+        DEMO.save(); S.sel.clear(); rerender(); refreshCount();
+      } else if (act === 'pause') { ids.forEach((i) => { const x = post(i); if (x) x.st = 'paused'; }); done('q.pausedN', ids.length); }
+      else if (act === 'resume') { ids.forEach((i) => { const x = post(i); if (x) x.st = 'plan'; }); done('q.resumedN', ids.length); }
+      else if (act === 'move') move(ids);
+      else if (act === 'del') {
+        const ok = await confirmBox({ titleKey: 'q.delTitle', text: plural(ids.length, 'q.delText') });
+        if (!ok) return;
+        DEMO.db.posts = DEMO.db.posts.filter((x) => !ids.includes(x.id));
+        done('q.deletedN', ids.length);
+      }
+    });
+    main.addEventListener('change', (e) => {
+      const s = e.target.dataset.sel, f = e.target.dataset.f;
+      if (s) { e.target.checked ? S.sel.add(s) : S.sel.delete(s); rerender(); }
+      else if (f) { S[f] = e.target.value; if (f === 'project') S.sel.clear(); rerender(); }
+    });
+    main.addEventListener('input', (e) => { if (e.target.id === 'qSearch') { S.search = e.target.value.trim().toLowerCase(); rerender(); } });
+    searchSubs.push((v) => { S.search = v; rerender(); });
+    I18N.onChange(() => { crumbs(); render(); });
+    render();
   };
 
   PAGES.login = () => authPage('login');
