@@ -1208,3 +1208,4 @@ textarea.input { padding: 12px 14px; min-height: 120px; resize: vertical; }
 @media (max-width: 899.98px) { .blist a, .post__h > a { display: inline-flex; align-items: center; min-height: 44px; } input[type="range"] { min-height: 44px; } }
 @media (max-width: 899.98px) { .wmed__side input[type="range"] { min-height: 44px; } }
 .check > span > .field__hint { display: block; font-weight: 500; margin-top: 2px; }
+@media (max-width: 899.98px) { .accset__grp > a, .accset__body > a, .psettings > a { display: inline-flex; align-items: center; min-height: 44px; } }
