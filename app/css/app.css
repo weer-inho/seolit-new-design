@@ -991,3 +991,53 @@ textarea.input { padding: 12px 14px; min-height: 120px; resize: vertical; }
   .side__logo, .crumbs a { min-height: 44px; }
 }
 @media (max-width: 899.98px) { .tag { padding-right: 0; } .tag button { width: 44px; height: 44px; } }
+
+/* ==========================================================================
+   Этап 2: настройки аккаунта, вкладки проекта (статистика, доступ, настройки)
+   ========================================================================== */
+.is-hidden { display: none !important; }
+.accset .modal__head { padding-bottom: 4px; }
+.accset__tabs { margin: 8px 20px 0; }
+.accset__body { max-height: min(62vh, 640px); overflow: auto; }
+.accset__sw { font-weight: 700; }
+.accset__grp { border: 1px solid var(--line); border-radius: 12px; margin: 0; padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+.accset__grp legend { padding: 0 6px; font-size: 13px; font-weight: 800; color: var(--muted); }
+.tplpv { margin: 0; padding: 14px; border-radius: 12px; background: var(--soft); font: 500 14px/1.55 var(--font); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ptab-body { display: flex; flex-direction: column; gap: 16px; }
+.stats { display: flex; flex-direction: column; gap: 16px; }
+.stats__bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.stats__bar .field { min-width: 170px; }
+.stats__legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.stats__legend .chipf i { width: 10px; height: 10px; border-radius: 3px; }
+.stats__legend .chipf[aria-pressed="false"] { opacity: .6; }
+.stats__chart { width: 100%; height: auto; overflow: visible; }
+.stats__chart line { stroke: var(--line); stroke-width: 1; }
+.stats__chart polyline { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.stats__chart text { fill: var(--muted); font: 700 11px var(--font); text-anchor: middle; }
+.stats__nets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.stats__nets li { display: grid; grid-template-columns: 28px 140px 1fr 70px; align-items: center; gap: 12px; }
+.stats__nets .num { text-align: right; font-weight: 800; }
+.access { display: flex; flex-direction: column; gap: 14px; }
+.access__form { display: grid; grid-template-columns: minmax(0, 1fr) 200px auto; align-items: end; gap: 12px; }
+.access__list { list-style: none; margin: 0; padding: 0; }
+.access__list li { display: flex; align-items: center; gap: 12px; min-height: 60px; border-top: 1px solid var(--line); }
+.access__who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.access__list .sel select { min-width: 170px; }
+.psettings { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+.psettings__mode { border: 0; margin: 0; padding: 0; gap: 8px; }
+.psettings__mode .seg { align-self: flex-start; }
+.psettings__row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.psettings--danger { border-color: var(--err); }
+.btn--danger { color: var(--err); }
+@media (max-width: 899.98px) {
+  .ptabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: -4px -16px 0; padding: 0 16px; gap: 18px; }
+  .ptabs::-webkit-scrollbar { display: none; }
+  .ptabs > span.m-only { display: inline-flex !important; }
+  .accset__tabs { margin: 8px 16px 0; }
+  .accset__body { max-height: none; }
+  .access__form { grid-template-columns: 1fr; }
+  .stats__nets li { grid-template-columns: 28px 1fr 60px; }
+  .stats__nets .bar { grid-column: 2 / 4; grid-row: 2; }
+}
+.stats__chart text { font-size: 9px; }
+@media (max-width: 899.98px) { .access__list li { flex-wrap: wrap; padding: 10px 0; } .access__who { flex: 1 1 calc(100% - 50px); } .access__list .sel { flex: 1; } .access__list .sel select { min-width: 0; } }

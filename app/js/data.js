@@ -253,6 +253,43 @@
       'Апта жаңалықтары каталогта! Пледтер, қолдан жасалған керамика, ас үй техникасы — 12 тауар, жеткізу 1 күннен. Сыйлықтарды ертерек таңдаңыз.'),
   };
 
+  /* ---------- Этап 2: шаблоны, расписания, водяные знаки, автокартинки, команда, платежи, ключи API ---------- */
+  // Шаблон поста: переменные #TITLE#, #TEXT#, #URL#, #TAGS# подставляются при публикации
+  const templates = [
+    { id: 't1', name: L('Анонс', 'Announcement', 'Хабарландыру'), body: '#TITLE#\n\n#TEXT#\n\n#URL#\n#TAGS#', nets: [], max: 0 },
+    { id: 't2', name: L('Только текст', 'Text only', 'Тек мәтін'), body: '#TEXT#', nets: ['x'], max: 280 },
+    { id: 't3', name: L('Заголовок и ссылка', 'Headline and link', 'Тақырып және сілтеме'), body: '#TITLE#\n#URL#', nets: ['tg', 'vk'], max: 0 },
+  ];
+  // Расписание: 7 дней × 24 часа, 1 — публиковать можно. Пн — первый.
+  const grid = (days, from, to) => Array.from({ length: 7 }, (_, d) => Array.from({ length: 24 }, (_, h) => (days.includes(d) && h >= from && h < to ? 1 : 0)));
+  const schedules = [
+    { id: 'sc1', name: L('Рабочие дни 9–18', 'Weekdays 9–18', 'Жұмыс күндері 9–18'), grid: grid([0, 1, 2, 3, 4], 9, 18), limit: 5, interval: 60 },
+    { id: 'sc2', name: L('Вечер 18–23', 'Evenings 18–23', 'Кеш 18–23'), grid: grid([0, 1, 2, 3, 4, 5, 6], 18, 23), limit: 3, interval: 90 },
+    { id: 'sc3', name: L('Круглосуточно', 'Around the clock', 'Тәулік бойы'), grid: grid([0, 1, 2, 3, 4, 5, 6], 0, 24), limit: 0, interval: 15 },
+  ];
+  const watermarks = [
+    { id: 'w1', name: L('Сайт в углу', 'Site in the corner', 'Бұрыштағы сайт'), kind: 'text', text: 'example.ru', x: 0.92, y: 0.9, size: 0.06, opacity: 0.8, color: '#FFFFFF' },
+    { id: 'w2', name: L('Логотип по центру', 'Centered logo', 'Ортадағы логотип'), kind: 'logo', text: 'SEOlit', x: 0.5, y: 0.5, size: 0.14, opacity: 0.35, color: '#FFFFFF' },
+  ];
+  const autoimg = [
+    { id: 'a1', name: L('Синяя карточка', 'Blue card', 'Көк карточка'), bg: 0, align: 'left', font: 1, logo: true },
+    { id: 'a2', name: L('Тёмная цитата', 'Dark quote', 'Қараңғы дәйексөз'), bg: 5, align: 'center', font: 1.2, logo: false },
+  ];
+  const team = {
+    shop: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'oleg@example.ru', role: 'editor' }, { email: 'smm@example.ru', role: 'viewer' }],
+    srt: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'dev@seolit.ru', role: 'editor' }, { email: 'qa@seolit.ru', role: 'editor' }, { email: 'support@seolit.ru', role: 'viewer' }],
+    tgs: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'support@seolit.ru', role: 'editor' }],
+  };
+  // История баланса: + пополнение, − списание за проект или дополнительный аккаунт
+  const payments = [
+    { at: at(-2, 14, 5), sum: -800, what: L('Продление «Магазин «Пример»» на 30 дней', 'Example Store renewed for 30 days', '«Мысал» дүкені 30 күнге ұзартылды') },
+    { at: at(-5, 11, 30), sum: 3000, what: L('Пополнение картой', 'Top-up by card', 'Картамен толтыру') },
+    { at: at(-9, 9, 0), sum: -100, what: L('Дополнительный аккаунт Telegram, 30 дней', 'Extra Telegram account, 30 days', 'Қосымша Telegram аккаунты, 30 күн') },
+    { at: at(-12, 18, 40), sum: -800, what: L('Продление «seolit_ru test» на 30 дней', 'seolit_ru test renewed for 30 days', '«seolit_ru test» 30 күнге ұзартылды') },
+    { at: at(-20, 10, 15), sum: 5000, what: L('Пополнение по счёту', 'Top-up by invoice', 'Шот бойынша толтыру') },
+  ];
+  const apiKeys = [{ id: 'k1', name: L('Сайт example.ru', 'example.ru website', 'example.ru сайты'), key: 'sl_live_4f9c2a7e1b8d4c03a6e5', at: at(-40), used: at(0, 9, 12) }];
+
   /* ---------- Новости сервиса ---------- */
   const news = [
     { at: at(-2), title: L('Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь', 'This year in SEOlit: AI co-author, templates, queue', 'Бір жылда не қосылды: ЖИ-серіктес, үлгілер, кезек') },
@@ -262,11 +299,11 @@
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 4, projects, sources, receivers, posts, nextId: 1000 });
+  const seed = () => ({ v: 5, projects, sources, receivers, posts, templates, schedules, watermarks, autoimg, team, payments, apiKeys, balance: user.balance, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 4) db = clone(seed());
+  if (!db || db.v !== 5) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };

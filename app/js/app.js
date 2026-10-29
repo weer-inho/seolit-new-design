@@ -47,6 +47,7 @@
     edit: '<path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/>',
     play: '<path d="M7 5l12 7-12 7z"/>',
     pause: '<path d="M8 5v14M16 5v14"/>',
+    news: '<path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5"/>',
     spark: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     soon: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
   };
@@ -212,7 +213,9 @@
   const SOON = ['templates', 'schedules', 'watermarks', 'autoimg', 'balance', 'referrals', 'api', 'rss', 'help', 'settings', 'stats', 'access', 'projectSettings'];
   const q = new URLSearchParams(location.search);
   const soonKey = PAGE === 'soon' ? (SOON.includes(q.get('s')) ? q.get('s') : 'help') : '';
-  const href = (k) => ({ projects: 'projects.html', queue: 'queue.html', post: 'post.html' })[k] || `soon.html?s=${k}`;
+  // Разделы со своей страницей (этап 2); остальное — заглушка soon.html
+  const OWN = ['projects', 'queue', 'post', 'balance', 'templates', 'schedules', 'watermarks', 'autoimg', 'referrals', 'api', 'rss', 'help', 'settings', 'news'];
+  const href = (k) => (OWN.includes(k) ? `${k}.html` : `soon.html?s=${k}`);
   const active = soonKey || PAGE;
   const NAV = [
     ['nav.gWork', ['projects', 'queue', 'templates', 'schedules']],
@@ -258,10 +261,10 @@
       <a class="side__logo" href="projects.html"><svg aria-hidden="true"><use href="#logo"></use></svg><span>SEOlit</span></a>
       ${NAV.map(([g, items]) => `<div class="side__grp"><span class="side__ttl" data-i18n="${g}">${esc(t(g))}</span>${items.map((k) => navLink(k)).join('')}</div>`).join('')}
       <div class="side__foot">
-        <div class="bal"><span class="lbl" data-i18n="bal.lbl">${esc(t('bal.lbl'))}</span><b>${money(DEMO.user.balance)}</b>
+        <div class="bal"><span class="lbl" data-i18n="bal.lbl">${esc(t('bal.lbl'))}</span><b data-balance>${money(DEMO.db.balance)}</b>
           <span data-i18n="bal.enough">${esc(t('bal.enough'))}</span>
-          <a class="btn btn--p" href="soon.html?s=balance" data-i18n="bal.topup">${esc(t('bal.topup'))}</a></div>
-        ${navLink('help')}
+          <a class="btn btn--p" href="balance.html" data-i18n="bal.topup">${esc(t('bal.topup'))}</a></div>
+        ${navLink('help')}${navLink('news')}
       </div></nav>`;
 
     const notes = [1, 2, 3].map((i) => `<div class="note${i === 1 ? ' is-new' : ''}"><div><b data-i18n="note.${i}t">${esc(t(`note.${i}t`))}</b><span data-i18n="note.${i}">${esc(t('note.' + i))}</span></div></div>`).join('');
@@ -281,7 +284,7 @@
         <a class="btn btn--p top__new" href="post.html">${ico('plus', 'ico--sm')}<span data-i18n="top.newPost">${esc(t('top.newPost'))}</span></a>
         <div class="pop top__ava"><button type="button" class="ava-btn" data-pop aria-expanded="false" data-profile aria-label="${esc(t('top.profile', { email }))}"><span class="ava" aria-hidden="true">${esc(email[0].toUpperCase())}</span></button>
           <div class="menu" hidden><div class="menu__note">${esc(email)}</div>
-            <a href="soon.html?s=settings">${ico('settings')}<span data-i18n="nav.settings">${esc(t('nav.settings'))}</span></a>
+            <a href="settings.html">${ico('settings')}<span data-i18n="nav.settings">${esc(t('nav.settings'))}</span></a>
             <button type="button" data-reset>${ico('reset')}<span data-i18n="top.reset">${esc(t('top.reset'))}</span></button>
             <a href="login.html" data-logout>${ico('logout')}<span data-i18n="top.logout">${esc(t('top.logout'))}</span></a></div></div>
       </div></header>`;
@@ -291,7 +294,7 @@
       ${tab('projects', 'nav.projects', 'projects', 'projects.html')}
       ${tab('queue', 'nav.queue', 'queue', 'queue.html')}
       <a class="tab tab--plus" href="post.html"${PAGE === 'post' ? ' aria-current="page"' : ''} data-i18n-attr="aria-label:top.newPost" aria-label="${esc(t('top.newPost'))}">${ico('plus')}</a>
-      ${tab('balance', 'nav.balance', 'balance', 'soon.html?s=balance')}
+      ${tab('balance', 'nav.balance', 'balance', 'balance.html')}
       <button type="button" class="tab" data-more>${ico('dots')}<span data-i18n="tabs.more">${esc(t('tabs.more'))}</span></button></nav>`;
 
     main.insertAdjacentHTML('beforebegin', top);
@@ -314,7 +317,7 @@
       return list.length ? `<span class="side__ttl" data-i18n="${g}">${esc(t(g))}</span>${list.map((k) => navLink(k)).join('')}` : '';
     }).join('');
     const d = dialog({ titleKey: 'tabs.moreTitle', sheet: true, html: `<div class="modal__body more-list">
-      ${rest}${navLink('help')}${navLink('settings')}
+      ${rest}${navLink('help')}${navLink('news')}${navLink('settings')}
       <div class="more-row"><span data-i18n="tabs.lang">${esc(t('tabs.lang'))}</span>${langSeg()}</div>
       <div class="more-row"><span data-i18n="tabs.theme">${esc(t('tabs.theme'))}</span><button type="button" class="ibtn" data-theme-btn></button></div>
       <div class="more-row"><button type="button" class="btn btn--q" data-reset>${ico('reset')}<span data-i18n="top.reset">${esc(t('top.reset'))}</span></button>
@@ -562,8 +565,8 @@
         <div class="page__head d-only"><div><h1>${esc(t('prj.title'))}</h1>
           <p>${esc(plural(own.length, 'p.own'))} · ${esc(plural(shared.length, 'p.sharedYou'))}</p></div>
           <button type="button" class="btn" data-new>${ico('plus', 'ico--sm')}${esc(t('prj.newProject'))}</button></div>
-        <section class="card mbal m-only"><div><span class="lbl">${esc(t('bal.lbl'))}</span><b class="num">${money(DEMO.user.balance)}</b><span class="muted">${esc(t('bal.enough'))}</span></div>
-          <a class="btn btn--p" href="soon.html?s=balance">${esc(t('bal.topup'))}</a></section>
+        <section class="card mbal m-only"><div><span class="lbl">${esc(t('bal.lbl'))}</span><b class="num" data-balance>${money(DEMO.db.balance)}</b><span class="muted">${esc(t('bal.enough'))}</span></div>
+          <a class="btn btn--p" href="balance.html">${esc(t('bal.topup'))}</a></section>
         ${al.length && !query ? `<section class="attn" aria-labelledby="attnT">
           <h2 class="attn__t d-only" id="attnT">${ico('alert', 'ico--sm')}${esc(t('prj.attention'))} · ${al.length}</h2>
           <button type="button" class="attn__sum m-only" aria-expanded="false" aria-controls="attnList"><span class="attn__ico">${ico('alert')}</span>
@@ -583,7 +586,7 @@
             <a class="btn btn--sm btn--line" href="project.html?id=${p.id}">${esc(t('prj.open'))}</a></article>`; }).join('')}</section>` : ''}
         ${query ? '' : `<section class="card news d-only"><span class="pill pill--info">${esc(t('prj.newsLbl'))}</span>
           <div class="news__list">${DEMO.news.map((n) => `<span><b>${esc(tx(n.title))}</b> <time class="muted">${esc(I18N.date(n.at))}</time></span>`).join('')}</div>
-          <a class="news__all" href="https://seolit.ru/blog.html">${esc(t('prj.allNews'))} →</a></section>
+          <a class="news__all" href="news.html">${esc(t('prj.allNews'))} →</a></section>
         <p class="tip d-only">${esc(t('prj.tip'))}</p>`}`;
     }
 
@@ -637,7 +640,7 @@
   PAGES.project = () => {
     const main = $('#main');
     const P = DEMO.project(q.get('id')) || DEMO.project('shop');
-    const S = { view: ['sources', 'dests'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
+    const S = { view: ['sources', 'dests', 'stats', 'access', 'settings'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
       search: '', open: new Set(), allGroups: false, allSrc: false, m: 'dests' };
     const recvs = () => DEMO.db.receivers.filter((r) => r.p === P.id);
     const srcs = () => DEMO.db.sources.filter((r) => r.p === P.id);
@@ -657,7 +660,7 @@
         ${err ? `<button type="button" class="btn btn--sm" data-act="fix" data-id="${r.id}">${esc(tx(r.fix))}</button>`
           : `<button type="button" class="tog" role="switch" aria-checked="${r.st === 'on'}" data-act="tog" data-id="${r.id}" aria-label="${esc(t('proj.toggle', { name }))}"></button>`}
         <div class="pop"><button type="button" class="ibtn ibtn--sm" data-pop aria-expanded="false" aria-label="${esc(t('proj.rowMenu', { name }))}">${ico('dots')}</button>
-          <div class="menu" hidden><a href="soon.html?s=projectSettings">${ico('settings')}${esc(t('proj.rowSettings'))}</a>
+          <div class="menu" hidden><button type="button" data-act="settings" data-kind="${kind}" data-id="${r.id}">${ico('settings')}${esc(t('proj.rowSettings'))}</button>
             ${kind === 'dest' ? `<a href="queue.html?project=${P.id}&dest=${r.id}">${ico('queue')}${esc(t('proj.rowQueue'))}</a>` : ''}
             <button type="button" class="danger" data-act="del" data-kind="${kind}" data-id="${r.id}">${ico('close')}${esc(t('proj.rowDelete'))}</button></div></div></li>`;
     }
@@ -728,24 +731,29 @@
           <button type="button" class="btn btn--sm btn--p" data-act="connect" data-mode="dest">${ico('plus', 'ico--sm')}${esc(t('proj.connect'))}</button></header>${body}</section>`;
     }
 
-    function render() {
+    let render = function () {
       const st = DEMO.stats(P.id), nS = srcs().length, nR = recvs().length;
       const tab = (k, label, n) => `<button type="button" class="ptab" data-act="view" data-id="${k}"${S.view === k ? ' aria-current="page"' : ''}>${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</button>`;
       const link = (h, label, n) => `<a class="ptab" href="${h}">${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</a>`;
-      const cols = S.view === 'sources' ? sourcesCol() : S.view === 'dests' ? destsCol() : sourcesCol() + destsCol();
+      const extra = ['stats', 'access', 'settings'].includes(S.view);
+      const cols = S.view === 'sources' ? sourcesCol() : S.view === 'dests' ? destsCol() : extra ? '' : sourcesCol() + destsCol();
       main.innerHTML = `<div class="page__head"><div><div class="proj__title"><h1 class="d-only">${esc(tx(P.name))}</h1>${projPill(P)}</div>
           <p class="proj__site">${esc(t('proj.site', { site: P.site || '—', paid: lcFirst(projPaid(P)) }))}</p></div>
-          <a class="btn d-only" href="soon.html?s=projectSettings">${ico('settings', 'ico--sm')}${esc(t('proj.settings'))}</a></div>
-        <nav class="ptabs d-only" aria-label="${esc(t('proj.sections'))}">${tab('overview', 'proj.overview')}${tab('sources', 'proj.sources', nS)}${tab('dests', 'proj.dests', nR)}
-          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${link('soon.html?s=stats', 'proj.stats')}${link('soon.html?s=access', 'proj.access', P.team || 1)}</nav>
+          <button type="button" class="btn d-only" data-act="view" data-id="settings"${S.view === 'settings' ? ' aria-current="page"' : ''}>${ico('settings', 'ico--sm')}${esc(t('proj.settings'))}</button></div>
+        <nav class="ptabs" aria-label="${esc(t('proj.sections'))}">${tab('overview', 'proj.overview')}${tab('sources', 'proj.sources', nS)}${tab('dests', 'proj.dests', nR)}
+          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${tab('stats', 'proj.stats')}${tab('access', 'proj.access', (DEMO.db.team && DEMO.db.team[P.id] || []).length || P.team || 1)}<span class="m-only">${tab('settings', 'proj.settings')}</span></nav>
         ${S.view === 'overview' ? kpis() : ''}
-        <div class="seg seg--m m-only" role="group" aria-label="${esc(t('proj.view'))}">
+        ${extra ? '<div class="ptab-body" id="ptab"></div>' : ''}
+        <div class="seg seg--m m-only${extra ? ' is-hidden' : ''}" role="group" aria-label="${esc(t('proj.view'))}">
           <button type="button" data-act="m" data-id="dests" aria-pressed="${S.m === 'dests'}">${esc(t('proj.dests'))} <span class="num">${I18N.num(nR)}</span></button>
           <button type="button" data-act="m" data-id="sources" aria-pressed="${S.m === 'sources'}">${esc(t('proj.sources'))} <span class="num">${I18N.num(nS)}</span></button></div>
-        <div class="pcols pcols--${S.view}" data-m="${S.m}">${cols}</div>
-        <button type="button" class="pnew m-only" data-act="connect" data-mode="${S.m === 'sources' ? 'source' : 'dest'}">${ico('plus', 'ico--sm')}<b>${esc(t('proj.connect'))}</b></button>`;
+        <div class="pcols pcols--${S.view}${extra ? ' is-hidden' : ''}" data-m="${S.m}">${cols}</div>
+        <button type="button" class="pnew m-only${extra ? ' is-hidden' : ''}" data-act="connect" data-mode="${S.m === 'sources' ? 'source' : 'dest'}">${ico('plus', 'ico--sm')}<b>${esc(t('proj.connect'))}</b></button>`;
     }
 
+    // Вкладки этапа 2 рисует sections.js
+    const baseRender = render;
+    render = function () { baseRender(); const box = $('#ptab', main); if (box && window.SECTIONS) window.SECTIONS.projectTab(S.view, P, box, () => { setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]); rerender(); }); };
     // Перерисовать и вернуть фокус на тот же элемент (по data-act + data-id)
     function rerender(focusSel) {
       const a = document.activeElement;
@@ -772,6 +780,7 @@
         rerender('[data-act="filter"][data-id="err"]');
         $('.pcol--dst', main)?.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth', block: 'start' });
       } else if (act === 'connect') openConnect(b.dataset.mode);
+      else if (act === 'settings') { const r = find(b.dataset.kind, id); if (r && window.SECTIONS) window.SECTIONS.accSettings(b.dataset.kind, r, P, () => render()); }
       else if (act === 'tog' || act === 'fix') {
         const kind = b.closest('.pcol--src') ? 'source' : 'dest', r = find(kind, id);
         if (!r) return;
@@ -902,6 +911,8 @@
 
     I18N.onChange(() => { setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]); render(); });
     render();
+    // sections.js подключается после app.js — когда он готов, дорисовать вкладку этапа 2
+    document.addEventListener('sections-ready', () => { if (['stats', 'access', 'settings'].includes(S.view)) render(); });
     if (location.hash === '#connect') openConnect('dest');
     else if (location.hash === '#connect-source') openConnect('source');
   };
@@ -1185,7 +1196,7 @@
                   <button type="button" class="btn btn--sm btn--ai" data-act="ai" aria-expanded="${F.ai}" aria-controls="aiBox">${ico('spark')}${esc(t('post.ai'))}</button>
                   <div class="pop"><button type="button" class="btn btn--sm" data-pop aria-expanded="false">${esc(t('post.template', { name: t(F.tpl) }))}${ico('down', 'ico--sm')}</button>
                     <div class="menu" hidden><button type="button" data-act="tpl" data-id="post.tplAnnounce">${esc(t('post.tplAnnounce'))}</button><button type="button" data-act="tpl" data-id="post.tplNone">${esc(t('post.tplNone'))}</button>
-                      <a href="soon.html?s=templates">${ico('templates')}${esc(t('post.tplAll'))}</a></div></div>
+                      <a href="templates.html">${ico('templates')}${esc(t('post.tplAll'))}</a></div></div>
                   <span class="editor__cnt" id="pCnt" aria-label="${esc(t('post.counters'))}">${countersHtml()}</span>
                 </div>
                 <div class="ai" id="aiBox"${F.ai ? '' : ' hidden'}>
@@ -1385,5 +1396,5 @@
   syncTheme();
   I18N.apply();
 
-  window.APP = { $, $$, esc, tx, ico, net, netName, toast, demo, dialog, confirmBox, setCrumbs, onSearch: (fn) => searchSubs.push(fn), reduce };
+  window.APP = { $, $$, esc, tx, ico, IC, net, netName, toast, demo, dialog, confirmBox, setCrumbs, onSearch: (fn) => searchSubs.push(fn), reduce, lcFirst, PAGE, DAY, THUMBS, srcPlate };
 })();
