@@ -15,18 +15,19 @@
   /* ---------- Проекты: 4 своих + 1 чужой ---------- */
   // st: ok — работает, err — есть ошибки, demo — пробный период, off — отключён. until — оплачен до, period — дней в периоде,
   // published — сколько постов вышло раньше (к ним добавляются опубликованные из очереди). Очередь, пауза и ошибки считаются по постам.
+  // week — опубликовано по дням за последние 7 дней (спарклайн), weekPrev — за неделю до этого, team — людей с доступом.
   const projects = [
     { id: 'shop', name: L('Магазин «Пример»', 'Example Store', '«Мысал» дүкені'), site: 'example.ru', st: 'ok',
-      nets: ['vk', 'tg', 'ok', 'mm', 'pi', 'in', 'x', 'tu', 'lj', 'tt', 'bl', 're', 'max', 'ig'], published: 1201,
+      nets: ['vk', 'tg', 'ok', 'mm', 'pi', 'in', 'x', 'tu', 'lj', 'tt', 'bl', 're', 'max', 'ig'], published: 1201, week: [16, 18, 21, 19, 22, 23, 23], weekPrev: 124, team: 3,
       until: at(20), period: 30, own: true },
     { id: 'news', name: L('Новости района', 'Neighborhood News', 'Аудан жаңалықтары'), site: 'news-rayon.ru', st: 'err',
-      nets: ['vk', 'tg', 'x'], published: 640, until: at(86), period: 93, own: true },
+      nets: ['vk', 'tg', 'x'], published: 640, week: [9, 10, 8, 11, 9, 10, 8], weekPrev: 61, team: 2, until: at(86), period: 93, own: true },
     { id: 'travel', name: L('Блог о путешествиях', 'Travel Blog', 'Саяхат блогы'), site: 'travel-blog.ru', st: 'demo',
-      nets: ['tg', 'pi'], published: 0, until: at(1), period: 3, own: true },
+      nets: ['tg', 'pi'], published: 0, week: [0, 0, 0, 0, 1, 2, 1], weekPrev: 0, team: 1, until: at(1), period: 3, own: true },
     { id: 'cook', name: L('Кулинарный канал', 'Cooking Channel', 'Аспаздық арна'), site: 'cook.ru', st: 'off',
-      nets: ['vk', 'ok'], published: 312, until: at(-14), period: 30, own: true },
+      nets: ['vk', 'ok'], published: 312, week: [0, 0, 0, 0, 0, 0, 0], weekPrev: 6, team: 1, until: at(-14), period: 30, own: true },
     { id: 'signal', name: L('Агентство «Сигнал»', 'Signal Agency', '«Сигнал» агенттігі'), site: 'signal-agency.ru', st: 'err',
-      nets: ['vk', 'tg', 'ok', 'in'], published: 2210, until: at(41), period: 30, own: false,
+      nets: ['vk', 'tg', 'ok', 'in'], published: 2210, week: [30, 28, 35, 31, 33, 29, 34], weekPrev: 215, team: 5, until: at(41), period: 30, own: false,
       role: 'editor', owner: 'ivan@example.ru' },
   ];
 
@@ -161,11 +162,11 @@
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 2, projects, sources, receivers, posts, nextId: 1000 });
+  const seed = () => ({ v: 3, projects, sources, receivers, posts, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 2) db = clone(seed());
+  if (!db || db.v !== 3) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };
