@@ -484,11 +484,11 @@
   }
   /* ---------- Проекты ---------- */
   const DAY = 864e5;
-  const daysLeft = (p) => Math.ceil((p.until - DEMO.D0) / DAY);
+  const daysLeft = (p) => Math.floor((p.until - DEMO.D0) / DAY);
   // Статус-пилюля проекта: ok / err (N ошибок) / demo / off
   function projPill(p) {
-    const st = DEMO.stats(p.id);
-    if (p.st === 'err' && st.err) return `<span class="pill pill--err"><i></i>${esc(plural(st.err, 'p.errors'))}</span>`;
+    const ce = DEMO.conn(p.id).all;
+    if (p.st !== 'off' && ce) return `<span class="pill pill--err"><i></i>${esc(plural(ce, 'p.errors'))}</span>`;
     const cls = { ok: 'ok', err: 'ok', demo: 'info', off: 'off' }[p.st];
     return `<span class="pill pill--${cls}"><i></i>${esc(t('prj.st.' + (p.st === 'err' ? 'ok' : p.st)))}</span>`;
   }
@@ -510,9 +510,8 @@
     function alerts() {
       const list = [];
       DEMO.db.projects.filter((p) => p.own).forEach((p) => {
-        const st = DEMO.stats(p.id);
-        if (st.err) {
-          const r = DEMO.db.receivers.find((x) => x.p === p.id && x.st === 'err');
+        if (p.st !== 'off' && DEMO.conn(p.id).all) {
+          const r = DEMO.db.receivers.find((x) => x.p === p.id && x.st === 'err') || DEMO.db.sources.find((x) => x.p === p.id && x.st === 'err');
           list.push({ net: r ? r.net : p.nets[0], text: t('prj.errAlert', { name: tx(p.name), net: netName(r ? r.net : p.nets[0]), text: lcFirst(tx(r ? r.meta : '')) }),
             btn: `<a class="btn btn--sm btn--line" href="project.html?id=${p.id}&filter=err">${esc(t('prj.reconnect'))}</a>` });
         }
@@ -526,7 +525,7 @@
     }
 
     function card(p) {
-      const st = DEMO.stats(p.id), left = daysLeft(p);
+      const st = { ...DEMO.stats(p.id), err: DEMO.conn(p.id).all }, left = daysLeft(p);
       const pct = Math.max(0, Math.min(100, Math.round((left / p.period) * 100)));
       const cta = p.st === 'demo' ? 'prj.pay' : p.st === 'off' ? 'prj.renew' : '';
       const leftTxt = left > 0 ? plural(left, 'p.days') : '';
@@ -572,7 +571,7 @@
           <div class="pgrid">${ownF.map(card).join('')}
           ${query ? '' : `<button type="button" class="pnew" data-new><span class="pnew__plus">${ico('plus')}</span><b>${esc(t('prj.newProject'))}</b><span class="d-only">${esc(t('prj.newHint'))}</span></button>`}</div></section>` : ''}
         ${sharedF.length ? `<section class="d-only" aria-labelledby="sharedT"><h2 class="sec-t" id="sharedT">${esc(t('prj.shared'))}<span class="sec-t__n">${sharedF.length}</span></h2>
-          ${sharedF.map((p) => { const st = DEMO.stats(p.id); return `<article class="card prow">
+          ${sharedF.map((p) => { const st = { ...DEMO.stats(p.id), err: DEMO.conn(p.id).all }; return `<article class="card prow">
             <div class="prow__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pill pill--info">${esc(t('prj.role.' + p.role))}</span>
               <span class="prow__owner">${esc(t('prj.owner', { email: p.owner }))}</span></div>
             <div class="prow__nums"><span><b class="num">${I18N.num(st.plan)}</b> ${esc(t('prj.inQueue'))}</span><span><b class="num">${I18N.num(st.paused)}</b> ${esc(t('prj.paused'))}</span>

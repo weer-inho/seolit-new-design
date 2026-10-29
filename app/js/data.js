@@ -22,14 +22,96 @@
       until: at(20), period: 30, own: true },
     { id: 'news', name: L('Новости района', 'Neighborhood News', 'Аудан жаңалықтары'), site: 'news-rayon.ru', st: 'err',
       nets: ['vk', 'tg', 'x'], published: 640, week: [9, 10, 8, 11, 9, 10, 8], weekPrev: 61, team: 2, until: at(86), period: 93, own: true },
-    { id: 'travel', name: L('Блог о путешествиях', 'Travel Blog', 'Саяхат блогы'), site: 'travel-blog.ru', st: 'demo',
-      nets: ['tg', 'pi'], published: 0, week: [0, 0, 0, 0, 1, 2, 1], weekPrev: 0, team: 1, until: at(1), period: 3, own: true },
+    { id: 'travel', name: L('test 2', 'test 2', 'test 2'), site: 'seolit.ru', st: 'demo', real: true,
+      nets: ['tg'], published: 0, week: [0, 0, 0, 0, 1, 2, 1], weekPrev: 0, team: 1, until: at(1, 10, 4), period: 3, own: true },
     { id: 'cook', name: L('Кулинарный канал', 'Cooking Channel', 'Аспаздық арна'), site: 'cook.ru', st: 'off',
       nets: ['vk', 'ok'], published: 312, week: [0, 0, 0, 0, 0, 0, 0], weekPrev: 6, team: 1, until: at(-14), period: 30, own: true },
-    { id: 'signal', name: L('Агентство «Сигнал»', 'Signal Agency', '«Сигнал» агенттігі'), site: 'signal-agency.ru', st: 'err',
-      nets: ['vk', 'tg', 'ok', 'in'], published: 2210, week: [30, 28, 35, 31, 33, 29, 34], weekPrev: 215, team: 5, until: at(41), period: 30, own: false,
+    { id: 'signal', name: L('test123', 'test123', 'test123'), site: 'seolit.ru', st: 'ok', real: true,
+      nets: ['vk'], published: 2210, week: [30, 28, 35, 31, 33, 29, 34], weekPrev: 215, team: 5, until: at(41), period: 30, own: false,
       role: 'editor', owner: 'ivan@example.ru' },
   ];
+
+  // Реальные проекты со скриншотов кабинета seolit.ru (docs/real_projects): названия, аккаунты и состояния — как там
+  projects.splice(1, 0,
+    { id: 'srt', name: L('seolit_ru test', 'seolit_ru test', 'seolit_ru test'), site: 'seolit.ru', st: 'ok', real: true,
+      nets: [], published: 5120, week: [21, 17, 24, 19, 26, 22, 25], weekPrev: 141, team: 4, pausedExtra: 2558,
+      until: at(20, 9, 55), period: 30, own: true },
+    { id: 'tgs', name: L('Телеграм Сеолит', 'Телеграм Сеолит', 'Телеграм Сеолит'), site: 'seolit.ru', st: 'ok', real: true,
+      nets: ['tg'], published: 860, week: [3, 2, 4, 3, 2, 3, 4], weekPrev: 19, team: 2, until: at(20, 12, 0), period: 30, own: true });
+  projects.splice(projects.findIndex((p) => p.id === 'cook') + 1, 0,
+    { id: 'fbsrc', name: L('фб источник', 'фб источник', 'фб источник'), site: 'seolit.ru', st: 'off', real: true,
+      nets: ['tg'], published: 54, week: [0, 0, 0, 0, 0, 0, 0], weekPrev: 0, team: 1, until: at(-279, 10, 44), period: 30, own: true });
+
+  // Подпись строки аккаунта из частей, как в кабинете seolit.ru: дата, «чтение отключено», «в паузе: N»…
+  const W = {
+    off: L('чтение отключено', 'reading off', 'оқу өшірулі'), empty: L('очередь пуста', 'queue empty', 'кезек бос'),
+    never: L('не было публикаций', 'no posts yet', 'жарияланым болмаған'), noread: L('не было обращений', 'never read', 'оқылмаған'),
+    now: L('только что', 'just now', 'жаңа ғана'), pubOff: L('публикация отключена', 'posting off', 'жариялау өшірулі'),
+    seen: L('замечены ошибки', 'errors spotted', 'қателер байқалды'), err: L('серьёзная ошибка', 'serious error', 'елеулі қате'),
+  };
+  const RM = (...parts) => {
+    const one = (p, l) => {
+      if (typeof p === 'string') return W[p] ? W[p][l] : p;
+      const [k, n] = p;
+      return { p: { ru: `в паузе: ${n}`, en: `paused: ${n}`, kk: `кідірісте: ${n}` }, q: { ru: `в очереди: ${n}`, en: `queued: ${n}`, kk: `кезекте: ${n}` },
+        m: { ru: `${n} мин назад`, en: `${n} min ago`, kk: `${n} мин бұрын` }, h: { ru: `${n} ч назад`, en: `${n} h ago`, kk: `${n} сағ бұрын` },
+        d: { ru: `${n} дн. назад`, en: `${n} days ago`, kk: `${n} күн бұрын` }, r: { ru: `чтение через ${n} мин`, en: `next read in ${n} min`, kk: `${n} мин кейін оқу` } }[k][l];
+    };
+    const o = {};
+    ['ru', 'en', 'kk'].forEach((l) => { const t = parts.map((p) => one(p, l)).join(', '); o[l] = t.charAt(0).toUpperCase() + t.slice(1); });
+    return o;
+  };
+  const FIX = L('Переподключить', 'Reconnect', 'Қайта қосу');
+  // [проект, соцсеть, название, состояние, ...части подписи]
+  const REAL_SRC = [
+    ['tgs', 'rss', 'Новости проекта', 'on', ['m', 27], ['r', 2], 'empty'], ['tgs', 'rss', 'HowTo rss', 'on', ['m', 28], ['r', 2], 'empty'],
+    ['signal', 'tu', 'Мой Tumblr', 'on', ['m', 27], ['r', 2], ['p', 76]], ['signal', 'vk', 'Мой VK (товары)', 'err', 'err', 'off', 'empty', 'seen'], ['signal', 'vk', '123', 'off', '12.07.2017', 'off', 'empty'],
+    ['fbsrc', 'fb', 'Facebook Seolit', 'err', 'err', 'off', ['p', 111]],
+    ['srt', 'rss', 'Мой RSS/ATOM Youtube', 'off', '27.05.2022', 'off', 'empty'], ['srt', 'fb', 'Facebook Seolit', 'err', 'err', 'off', ['p', 111]],
+    ['srt', 'fb', 'Мой Facebook', 'off', '28.01.2020', 'off', 'empty'], ['srt', 'ig', 'InstaFeed2', 'off', '19.10.2017', 'off', 'empty'],
+    ['srt', 'ig', 'fitstarstv', 'off', '27.05.2022', 'off', ['p', 10], 'seen'], ['srt', 'ig', 'shop_odegda_genskaya', 'off', '02.04.2021', 'off', ['p', 20], 'seen'],
+    ['srt', 'ig', 'video.prikol', 'off', '20.04.2021', 'off', ['p', 125]], ['srt', 'rss', 'Seolit News', 'off', '16.02.2022', 'off', ['p', 9]],
+    ['srt', 'rss', 'https://newspik.ru/feed/rss2/', 'off', '12.11.2020', 'off', 'empty'], ['srt', 'rss', 'rss 1 new1', 'off', '15.03.2018', 'off', 'empty'],
+    ['srt', 'rss', 'rss domguru 2', 'off', 'noread', 'off', 'empty'], ['srt', 'rss', 'Брянск', 'off', '15.03.2018', 'off', 'empty'],
+    ['srt', 'tg', 'Мой Telegram. Test123', 'on', 'now', ['r', 29], ['p', 2]], ['srt', 'tt', 'Мой TikTok', 'off', 'noread', 'off', 'empty'],
+    ['srt', 'vk', 'КВН', 'off', '04.04.2022', 'off', 'empty'], ['srt', 'yt', 'Мой Youtube', 'off', '02.04.2021', 'off', ['p', 17]],
+    ['srt', 'yt', 'Мой Youtube 2', 'off', '28.02.2020', 'off', ['p', 10]], ['srt', 'vk', 'Калинина Мария', 'off', '21.05.2019', 'off', 'empty'],
+    ['srt', 'vk', 'Мой VK (товары)', 'off', '02.04.2021', 'off', ['p', 226]], ['srt', 'vk', 'SMM MEDIA Test', 'off', '17.12.2021', 'off', 'empty'],
+    ['srt', 'vk', 'SMM-тусовочка', 'err', 'err', 'off', 'empty', 'seen'], ['srt', 'vk', 'Видео-приколы', 'off', '29.04.2019', 'off', ['p', 99]],
+    ['srt', 'vk', 'ВК исходник', 'off', '24.11.2018', 'off', ['p', 4]], ['srt', 'vk', 'Из тестовой группы', 'off', '20.12.2018', 'off', 'empty'],
+    ['srt', 'vk', 'Мой Вконтакте альбом', 'err', 'err', 'off', ['p', 1]], ['srt', 'vk', 'право-на-руль', 'off', '24.04.2019', 'off', ['p', 377]],
+    ['srt', 'vk', 'Свой акк', 'off', 'noread', 'off', 'empty'], ['srt', 'vk', 'Сланди', 'off', '20.06.2019', 'off', ['p', 1]],
+    ['srt', 'vk', 'Тёркин (товары)', 'off', '25.09.2019', 'off', 'empty'], ['srt', 'vk', 'Удачные гифки', 'err', 'err', 'off', ['p', 1471], 'seen'],
+    ['srt', 'vk', 'Чей-то ЛК', 'off', '06.05.2019', 'off', 'empty'], ['srt', 'vk', 'Эксперименты', 'on', ['m', 2], ['r', 12], 'empty'],
+    ['srt', 'vk', 'Эксперименты 2', 'err', 'err', 'off', 'empty', 'seen'], ['srt', 'ok', 'Мой Одноклассники', 'err', 'err', 'off', 'empty', 'seen'],
+  ];
+  const REAL_DST = [
+    ['tgs', 'tg', 'Мой Telegram', 'on', ['h', 8], 'empty'], ['travel', 'tg', 'Мой Telegram', 'on', ['h', 8], 'empty'], ['fbsrc', 'tg', 'Мой Telegram', 'off', 'never', 'empty'],
+    ['signal', 'vk', '123', 'err', 'err', ['q', 36], ['p', 76], 'pubOff', 'seen'],
+    ['srt', 'fb', 'Facebook TestСтраница', 'err', 'err', ['q', 2], 'pubOff'], ['srt', 'fb', 'Facebook Группа, просто группа', 'off', '13.03.2019', 'empty'],
+    ['srt', 'fb', 'Мой Facebook (test user, test group)', 'off', 'never', ['p', 12]], ['srt', 'ig', 'academia_sporta10', 'off', 'never', 'empty'],
+    ['srt', 'ig', 'safhome', 'err', 'err', ['q', 1], ['p', 308], 'pubOff', 'seen'], ['srt', 'ig', 'safwork1', 'off', 'never', 'empty'],
+    ['srt', 'ig', 'Мой Instagram', 'off', 'never', 'empty'], ['srt', 'in', 'LiTest4', 'off', '18.02.2019', ['p', 230]],
+    ['srt', 'in', 'safhome v2', 'off', '22.02.2019', ['p', 100]], ['srt', 'lj', 'LJ 1', 'off', '25.01.2019', ['p', 2]],
+    ['srt', 'lj', 'Мой Livejournal saf_test', 'off', 'never', 'empty'], ['srt', 'max', 'Мой Max.ru', 'off', 'never', 'empty'],
+    ['srt', 'max', 'Мой Max.ru тест 3', 'off', 'never', 'empty'], ['srt', 'pi', 'Pinterest-Tests', 'off', '05.03.2021', ['p', 18]],
+    ['srt', 'pi', 'TestPi 2', 'off', '13.03.2017', 'empty'], ['srt', 'pi', 'Мой Pinterest', 'off', 'never', 'empty'],
+    ['srt', 're', 'Мой Reddit', 'off', 'never', 'empty'], ['srt', 'tg', 'TeleTest', 'off', '04.04.2023', ['p', 209]],
+    ['srt', 'tg', 'Группа Telegram', 'off', '27.12.2022', 'empty', 'seen'], ['srt', 'tt', 'Мой TikTok', 'off', 'never', 'empty'],
+    ['srt', 'tt', 'Мой TikTok 2', 'off', 'never', 'empty'], ['srt', 'tu', 'Мой Tumblr', 'off', 'never', ['p', 215]],
+    ['srt', 'x', '2915113595', 'off', 'never', 'empty'], ['srt', 'x', 'Seolit Publisher', 'off', 'never', 'empty'],
+    ['srt', 'x', 'Twitter Safhome new', 'off', '06.05.2021', 'empty'], ['srt', 'x', 'Twitter Seolit', 'off', '21.06.2018', 'empty'],
+    ['srt', 'x', 'Twitter saf', 'off', '14.01.2020', ['p', 109]], ['srt', 'x', 'Мой Twitter 2', 'off', 'never', 'empty'],
+    ['srt', 'vk', 'Test123', 'on', '30.01.2021', ['q', 19], ['p', 143]], ['srt', 'vk', 'safhome', 'off', '06.05.2019', ['p', 99], 'seen'],
+    ['srt', 'vk', 'ВК страница', 'off', 'never', 'empty'], ['srt', 'vk', 'Мой Вконтакте', 'on', '03.04.2019', ['q', 3], ['p', 2]],
+    ['srt', 'vk', 'Мой Вконтакте 2', 'off', 'never', 'empty'], ['srt', 'vk', 'Мой Вконтакте test', 'on', ['d', 24], 'empty', 'seen'],
+    ['srt', 'vk', 'Мой Вконтакте альбом', 'off', '01.03.2019', 'empty'], ['srt', 'vk', 'тест-группа', 'on', '25.09.2019', ['q', 1], ['p', 690]],
+    ['srt', 'vk', 'Эксперименты', 'on', ['d', 24], 'empty'], ['srt', 'mm', '123', 'off', 'never', 'empty'],
+    ['srt', 'mm', 'Мой Мой мир', 'off', 'never', 'empty'], ['srt', 'ok', 'Мой Одноклассники', 'off', '02.11.2017', 'empty'],
+    ['srt', 'ok', 'Мой Одноклассники 2', 'off', '01.11.2017', ['p', 1], 'seen'], ['srt', 'ok', 'Мой Одноклассники (альбом)', 'off', '31.01.2020', ['p', 359]],
+    ['srt', 'ok', 'Мой Одноклассники (тестовая группа)', 'on', '08.09.2020', ['q', 2]],
+  ];
+  const realRow = ([p, net, name, st, ...parts]) => ({ p, net, st, name: L(name, name, name), meta: RM(...parts), ...(st === 'err' ? { fix: FIX } : {}) });
 
   /* ---------- Источники (откуда брать) ---------- */
   const ago = (m) => L(`${m} мин назад`, `${m} min ago`, `${m} мин бұрын`);
@@ -50,7 +132,6 @@
     { id: 's14', p: 'shop', net: 'tg', name: L('Канал «Скидки»', 'Deals channel', '«Жеңілдіктер» арнасы'), st: 'on', meta: ago(8) },
     { id: 's15', p: 'news', net: 'rss', name: L('news-rayon.ru/rss', 'news-rayon.ru/rss', 'news-rayon.ru/rss'), st: 'on', meta: ago(6) },
     { id: 's16', p: 'cook', net: 'rss', name: L('cook.ru/feed', 'cook.ru/feed', 'cook.ru/feed'), st: 'off', meta: L('Проект отключён', 'Project is disabled', 'Жоба өшірулі') },
-    { id: 's17', p: 'signal', net: 'rss', name: L('signal-agency.ru/blog', 'signal-agency.ru/blog', 'signal-agency.ru/blog'), st: 'on', meta: ago(21) },
   ];
 
   /* ---------- Приёмники (куда публиковать) ---------- */
@@ -85,16 +166,14 @@
     { p: 'news', net: 'vk', st: 'err', name: L('Новости района', 'Neighborhood News', 'Аудан жаңалықтары'), meta: L('Нужна повторная авторизация', 'Sign in again to keep posting', 'Қайта авторизация қажет'), fix: L('Переподключить', 'Reconnect', 'Қайта қосу') },
     { p: 'news', net: 'tg', st: 'on', name: L('Канал района', 'District channel', 'Аудан арнасы'), meta: ago(9) },
     { p: 'news', net: 'x', st: 'err', name: L('@news_rayon', '@news_rayon', '@news_rayon'), meta: L('Превышен дневной лимит соцсети', 'Daily network limit reached', 'Желінің күндік лимиті асты'), fix: L('Настроить лимит', 'Set a limit', 'Лимитті баптау') },
-    { p: 'travel', net: 'tg', st: 'on', name: L('Канал «В дорогу»', 'On the Road channel', '«Жолға» арнасы'), meta: ago(55) },
-    { p: 'travel', net: 'pi', st: 'on', name: L('Доска «Маршруты»', 'Routes board', '«Бағыттар» тақтасы'), meta: L('Вчера', 'Yesterday', 'Кеше') },
     { p: 'cook', net: 'vk', st: 'off', name: L('Кулинарный канал', 'Cooking Channel', 'Аспаздық арна'), meta: L('Проект отключён', 'Project is disabled', 'Жоба өшірулі') },
     { p: 'cook', net: 'ok', st: 'off', name: L('Рецепты на каждый день', 'Everyday recipes', 'Күнделікті рецепттер'), meta: L('Проект отключён', 'Project is disabled', 'Жоба өшірулі') },
-    { p: 'signal', net: 'vk', st: 'on', name: L('Сигнал · ВКонтакте', 'Signal · VK', 'Сигнал · ВКонтакте'), meta: ago(4) },
-    { p: 'signal', net: 'tg', st: 'on', name: L('Сигнал · канал', 'Signal · channel', 'Сигнал · арна'), meta: ago(11) },
-    { p: 'signal', net: 'ok', st: 'off', name: L('Сигнал · ОК', 'Signal · OK', 'Сигнал · ОК'), meta: OFF },
-    { p: 'signal', net: 'in', st: 'on', name: L('Signal Agency', 'Signal Agency', 'Signal Agency'), meta: ago(26) },
   );
+  REAL_SRC.forEach((x, i) => sources.push({ id: 'sr' + (i + 1), ...realRow(x) }));
+  REAL_DST.forEach((x) => receivers.push(realRow(x)));
   receivers.forEach((r, i) => { r.id = 'r' + (i + 1); });
+  // Соцсети проекта без списка — по его приёмникам
+  projects.forEach((p) => { if (!p.nets.length) p.nets = [...new Set(receivers.filter((r) => r.p === p.id).map((r) => r.net))]; });
 
   /* ---------- Очередь ---------- */
   // st: plan — запланирован, paused — на паузе, err — ошибка, done — опубликован. src: соцсеть-источник или man — вручную.
@@ -129,14 +208,20 @@
       [L('Что приготовить на ужин', 'What to cook for dinner', 'Кешкі асқа не дайындау керек'), L('Пять быстрых блюд из того, что есть дома', 'Five quick dishes from what you have at home', 'Үйдегі азық-түліктен бес жылдам тағам')],
       [L('Секреты пышных блинов', 'Secrets of fluffy pancakes', 'Үлпілдек құймақтың құпиялары'), L('Тесто, сковорода и температура', 'Batter, pan and heat', 'Қамыр, таба және температура')],
     ],
+    srt: [
+      [L('Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь', 'This year in SEOlit: AI co-author, templates, queue', 'Бір жылда не қосылды: ЖИ-серіктес, үлгілер, кезек'), L('Новости сервиса SEOlit', 'SEOlit service news', 'SEOlit сервисінің жаңалықтары')],
+      [L('Истории ВКонтакте: читаем и публикуем', 'VK Stories: we read and publish them', 'ВКонтакте стористері: оқимыз және жариялаймыз'), L('Новости сервиса SEOlit', 'SEOlit service news', 'SEOlit сервисінің жаңалықтары')],
+      [L('MAX.RU: новая площадка — каналы, чаты и собственный бот', 'MAX.RU: a new platform — channels, chats and your own bot', 'MAX.RU: жаңа алаң — арналар, чаттар және жеке бот'), L('Новости сервиса SEOlit', 'SEOlit service news', 'SEOlit сервисінің жаңалықтары')],
+      [L('Год без новостей: что мы сделали в SEOlit', 'A year without news: what we built in SEOlit', 'Жаңалықсыз бір жыл: SEOlit-те не істедік'), L('Новости сервиса SEOlit', 'SEOlit service news', 'SEOlit сервисінің жаңалықтары')],
+    ],
     signal: [
       [L('Как вести соцсети клиента без хаоса', 'Running client social media without chaos', 'Клиенттің әлеуметтік желілерін ретімен жүргізу'), L('Наш чек-лист для запуска', 'Our launch checklist', 'Іске қосуға арналған чек-парағымыз')],
       [L('Дайджест агентства за неделю', 'Agency weekly digest', 'Агенттіктің апталық дайджесті'), L('Главное из блога и кейсов', 'Highlights from the blog and case studies', 'Блог пен кейстердің ең маңыздысы')],
       [L('Вакансия: SMM-менеджер', 'Job opening: SMM manager', 'Бос орын: SMM-менеджер'), L('Ищем в команду человека с опытом от года', 'Looking for someone with a year of experience', 'Бір жылдан астам тәжірибесі бар маман іздейміз')],
     ],
   };
-  const NEED = { shop: [28, 3, 0], news: [14, 0, 2], cook: [0, 12, 0], signal: [36, 76, 6] };
-  const DESTS = { shop: [['vk', 'tg', 'ok'], ['vk', 'tg'], ['tg', 'pi', 'mm']], news: [['tg', 'vk'], ['tg', 'vk', 'x']], cook: [['vk', 'ok']], signal: [['vk', 'tg', 'in'], ['vk', 'tg']] };
+  const NEED = { shop: [28, 3, 0], srt: [28, 0, 0], news: [14, 0, 2], cook: [0, 12, 0], signal: [36, 76, 6] };
+  const DESTS = { srt: [['vk', 'ok'], ['vk'], ['fb', 'vk']], shop: [['vk', 'tg', 'ok'], ['vk', 'tg'], ['tg', 'pi', 'mm']], news: [['tg', 'vk'], ['tg', 'vk', 'x']], cook: [['vk', 'ok']], signal: [['vk', 'tg', 'in'], ['vk', 'tg']] };
   const ERR = {
     news: L('ВКонтакте: нужна повторная авторизация', 'VK: sign in again to keep posting', 'ВКонтакте: қайта авторизация қажет'),
     signal: L('Telegram: бота удалили из канала', 'Telegram: the bot was removed from the channel', 'Telegram: бот арнадан шығарылды'),
@@ -158,15 +243,17 @@
   /* ---------- Новости сервиса ---------- */
   const news = [
     { at: at(-2), title: L('Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь', 'This year in SEOlit: AI co-author, templates, queue', 'Бір жылда не қосылды: ЖИ-серіктес, үлгілер, кезек') },
-    { at: at(-6), title: L('MAX.RU: каналы, чаты и собственный бот', 'MAX.RU: channels, chats and your own bot', 'MAX.RU: арналар, чаттар және жеке бот') },
+    { at: at(-2), title: L('Истории ВКонтакте: читаем и публикуем', 'VK Stories: we read and publish them', 'ВКонтакте стористері: оқимыз және жариялаймыз') },
+    { at: at(-6), title: L('MAX.RU: новая площадка — каналы, чаты и собственный бот', 'MAX.RU: a new platform — channels, chats and your own bot', 'MAX.RU: жаңа алаң — арналар, чаттар және жеке бот') },
+    { at: at(-6), title: L('Год без новостей: что мы сделали в SEOlit', 'A year without news: what we built in SEOlit', 'Жаңалықсыз бір жыл: SEOlit-те не істедік') },
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 3, projects, sources, receivers, posts, nextId: 1000 });
+  const seed = () => ({ v: 4, projects, sources, receivers, posts, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 3) db = clone(seed());
+  if (!db || db.v !== 4) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };
@@ -183,11 +270,16 @@
     get db() { return db; },
     save, reset, uid, login, logout, loggedIn,
     project: (id) => db.projects.find((p) => p.id === id),
+    // Ошибки подключений проекта: приёмники и источники с ошибкой
+    conn(id) {
+      const r = db.receivers.filter((x) => x.p === id && x.st === 'err').length, s2 = db.sources.filter((x) => x.p === id && x.st === 'err').length;
+      return { r, s: s2, all: r + s2 };
+    },
     // Счётчики постов проекта (или всех, если id не задан): plan, paused, err, done (вместе с вышедшими раньше)
     stats(id) {
       const c = { plan: 0, paused: 0, err: 0, done: 0 };
       db.posts.forEach((x) => { if (!id || x.p === id) c[x.st]++; });
-      db.projects.forEach((p) => { if (!id || p.id === id) c.done += p.published || 0; });
+      db.projects.forEach((p) => { if (!id || p.id === id) { c.done += p.published || 0; c.paused += p.pausedExtra || 0; } });
       return c;
     },
   };
