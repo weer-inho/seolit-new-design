@@ -72,5 +72,5 @@ Settings → Pages → Build and deployment → Source: «Deploy from a branch»
 кроме Битрикс24 (`target="_blank" rel="noopener"`). Новую кнопку «Попробовать» веди туда же, а не на `#start`.
 
 ## Что ещё не подключено (TODO)
-- Кабинет: шаги 01–07 готовы (docs/cabinet/PROGRESS.md, проверка — docs/cabinet/QA.md). Новые разделы — по docs/cabinet/prompts/08, когда будут макеты; казахский — на вычитку.
+- Кабинет: шаги 01–07 и все разделы этапа 2 готовы (docs/cabinet/PROGRESS.md, проверка — docs/cabinet/QA.md). Разделы без макетов — в `app/js/sections.js`; когда появятся макеты, сверить по prompts/08. Казахский — на вычитку.
 - Пока ничего. Следующий шаг — проверка телефона, тем, скорости и доступности (`docs/prompts/04`).
