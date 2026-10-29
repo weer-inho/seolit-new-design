@@ -296,7 +296,7 @@
 
     // Крошки по умолчанию: раздел; на заглушке — раздел из ?s=
     const k = soonKey || PAGE;
-    setCrumbs(k === 'projects' ? [{ key: 'nav.projects' }] : [{ key: 'nav.projects', href: 'projects.html' }, { key: 'nav.' + k }]);
+    if (k !== 'project') setCrumbs(k === 'projects' ? [{ key: 'nav.projects' }] : [{ key: 'nav.projects', href: 'projects.html' }, { key: 'nav.' + k }]);
   }
 
   // Шторка «Ещё» на телефоне: все разделы, язык, тема, сброс и выход
@@ -615,6 +615,288 @@
     render();
     // ?new=1 — сразу окно «Новый проект» (после регистрации); из адреса убираем, чтобы не открылось снова
     if (q.get('new')) { const u = new URL(location.href); u.searchParams.delete('new'); history.replaceState(null, '', u); newProject(); }
+  };
+
+  /* ---------- Проект: обзор, источники, приёмники ---------- */
+  // Что можно подключить: приёмники (15 соцсетей) и источники (SPEC 4.5). plate — какая плашка, cat — категория в окне.
+  const DEST_LIST = [['vk', 'social'], ['ok', 'social'], ['mm', 'social'], ['tg', 'msg'], ['max', 'msg'], ['x', 'social'], ['pi', 'social'], ['in', 'social'],
+    ['tt', 'video'], ['lj', 'blogs'], ['tu', 'blogs'], ['bl', 'blogs'], ['re', 'blogs'], ['fb', 'social'], ['ig', 'social']].map(([id, cat]) => ({ id, plate: id, cat }));
+  const SRC_LIST = [['rss', 'rss', 'feeds', 'net.rssFeed'], ['vk', 'vk', 'social'], ['vkg', 'vk', 'social', 'net.vkGoods'], ['yt', 'yt', 'video'], ['tg', 'tg', 'msg'],
+    ['tt', 'tt', 'video'], ['tu', 'tu', 'blogs'], ['bl', 'bl', 'blogs'], ['ok', 'ok', 'social'], ['fb', 'fb', 'social'], ['ig', 'ig', 'social']].map(([id, plate, cat, key]) => ({ id, plate, cat, key }));
+  const itemName = (it) => (it.key ? t(it.key) : netName(it.plate));
+  const JUST = () => ({ ru: 'Только что', en: 'Just now', kk: 'Жаңа ғана' });
+  const OFFTXT = () => ({ ru: 'Выключен', en: 'Off', kk: 'Өшірулі' });
+
+  PAGES.project = () => {
+    const main = $('#main');
+    const P = DEMO.project(q.get('id')) || DEMO.project('shop');
+    const S = { view: ['sources', 'dests'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
+      search: '', open: new Set(), allGroups: false, allSrc: false, m: 'dests' };
+    const recvs = () => DEMO.db.receivers.filter((r) => r.p === P.id);
+    const srcs = () => DEMO.db.sources.filter((r) => r.p === P.id);
+    // Группы по соцсетям — в порядке появления; первые две раскрыты, как в макете
+    [...new Set(recvs().map((r) => r.net))].slice(0, 2).forEach((n) => S.open.add(n));
+    setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]);
+
+    const byState = (r) => S.filter === 'all' || r.st === S.filter;
+    const bySearch = (r) => !S.search || tx(r.name).toLowerCase().includes(S.search);
+    const counts = () => { const c = { all: 0, err: 0, on: 0, off: 0 }; recvs().forEach((r) => { c.all++; c[r.st]++; }); return c; };
+
+    // Строка аккаунта: имя, мета, переключатель или кнопка исправления, меню «⋯»
+    function row(r, kind, plate) {
+      const name = tx(r.name), err = r.st === 'err';
+      return `<li class="acc${err ? ' is-err' : ''}">${plate ? net(r.net, 28, false) : ''}
+        <div class="acc__txt"><b>${esc(name)}</b><span>${esc(tx(r.meta))}</span></div>
+        ${err ? `<button type="button" class="btn btn--sm" data-act="fix" data-id="${r.id}">${esc(tx(r.fix))}</button>`
+          : `<button type="button" class="tog" role="switch" aria-checked="${r.st === 'on'}" data-act="tog" data-id="${r.id}" aria-label="${esc(t('proj.toggle', { name }))}"></button>`}
+        <div class="pop"><button type="button" class="ibtn ibtn--sm" data-pop aria-expanded="false" aria-label="${esc(t('proj.rowMenu', { name }))}">${ico('dots')}</button>
+          <div class="menu" hidden><a href="soon.html?s=projectSettings">${ico('settings')}${esc(t('proj.rowSettings'))}</a>
+            ${kind === 'dest' ? `<a href="queue.html?project=${P.id}&dest=${r.id}">${ico('queue')}${esc(t('proj.rowQueue'))}</a>` : ''}
+            <button type="button" class="danger" data-act="del" data-kind="${kind}" data-id="${r.id}">${ico('close')}${esc(t('proj.rowDelete'))}</button></div></div></li>`;
+    }
+
+    function kpis() {
+      const st = DEMO.stats(P.id);
+      const week = P.week || [0, 0, 0, 0, 0, 0, 0], sum = week.reduce((a, b) => a + b, 0), delta = sum - (P.weekPrev || 0);
+      const mx = Math.max(...week, 1);
+      const pts = week.map((v, i) => `${(i * 96) / 6 + 2},${30 - (v / mx) * 26}`).join(' ');
+      const next = DEMO.db.posts.filter((x) => x.p === P.id && x.st === 'plan').sort((a, b) => a.at - b.at)[0];
+      const dayDiff = next ? Math.floor((next.at - DEMO.D0) / DAY) : 0;
+      const when = next ? `${dayDiff === 0 ? lcFirst(t('c.today')) : dayDiff === 1 ? lcFirst(t('c.tomorrow')) : I18N.date(next.at, 'dm')}, ${I18N.date(next.at, 'time')}` : '';
+      const eR = recvs().filter((r) => r.st === 'err').length, eS = srcs().filter((r) => r.st === 'err').length, eAll = eR + eS;
+      const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
+      return `<div class="kpis">
+        <div class="card kpi"><span class="lbl"><span class="d-only">${esc(t('proj.k1'))}</span><span class="m-only">${esc(t('proj.k1m'))}</span></span>
+          <b class="kpi__n num">${I18N.num(sum)}</b><svg class="spark d-only" viewBox="0 0 100 32" aria-hidden="true"><polyline points="${pts}"/></svg>
+          <span class="kpi__s kpi__s--${delta >= 0 ? 'ok' : 'err'}">${esc(t('proj.k1s', { d: sign + I18N.num(Math.abs(delta)) }))}</span></div>
+        <div class="card kpi"><span class="lbl">${esc(t('proj.k2'))}</span><b class="kpi__n num">${I18N.num(st.plan)}</b>
+          <span class="kpi__s">${esc(next ? t('proj.k2s', { when }) : t('proj.k2none'))}</span></div>
+        <div class="card kpi"><span class="lbl">${esc(t('proj.k3'))}</span><b class="kpi__n num">${I18N.num(st.paused)}</b>
+          <span class="kpi__s">${esc(t(st.paused ? 'proj.k3s' : 'proj.k3none'))}</span></div>
+        <div class="card kpi${eAll ? ' kpi--err' : ''}"><span class="lbl">${esc(t('proj.k4'))}</span><b class="kpi__n num">${I18N.num(eAll)}</b>
+          <span class="kpi__s">${esc(eAll ? [eR && plural(eR, 'p.recvs'), eS && plural(eS, 'p.srcs')].filter(Boolean).join(' · ') : t('proj.k4none'))}</span>
+          ${eAll ? `<button type="button" class="btn btn--sm kpi__btn" data-act="review">${esc(t('proj.review'))}</button>` : ''}</div></div>`;
+    }
+
+    function sourcesCol() {
+      const all = srcs(), list = all.filter(bySearch);
+      const lim = S.view === 'overview' && !S.allSrc && !S.search ? 6 : Infinity;
+      const body = !all.length ? `<div class="empty empty--in"><span class="empty__ico">${ico('rss')}</span><h3>${esc(t('proj.noSources'))}</h3>
+          <p>${esc(t('proj.noSourcesText'))}</p><button type="button" class="btn btn--p" data-act="connect" data-mode="source">${ico('plus', 'ico--sm')}${esc(t('proj.connectSource'))}</button></div>`
+        : !list.length ? `<p class="col__none">${esc(t('proj.nothing'))}</p>`
+        : `<ul class="accs">${list.slice(0, lim).map((r) => row(r, 'source', true)).join('')}</ul>
+          ${list.length > lim ? `<button type="button" class="col__more" data-act="more-src">${esc(t('proj.moreSources', { n: list.length - lim }))}</button>` : ''}
+          ${S.allSrc && S.view === 'overview' ? `<button type="button" class="col__more" data-act="more-src">${esc(t('proj.less'))}</button>` : ''}`;
+      return `<section class="card pcol pcol--src" aria-labelledby="srcT">
+        <header class="pcol__head"><div><h2 id="srcT">${esc(t('proj.sources'))} · <span class="num">${all.length}</span></h2><p>${esc(t('proj.sourcesHint'))}</p></div>
+          <button type="button" class="btn btn--sm" data-act="connect" data-mode="source">${ico('plus', 'ico--sm')}${esc(t('proj.connect'))}</button></header>${body}</section>`;
+    }
+
+    function destsCol() {
+      const all = recvs(), c = counts();
+      const nets = [...new Set(all.map((r) => r.net))];
+      const narrowed = S.filter !== 'all' || !!S.search;
+      const groups = nets.map((n) => ({ n, rows: all.filter((r) => r.net === n), shown: all.filter((r) => r.net === n && byState(r) && bySearch(r)) }))
+        .filter((g) => !narrowed || g.shown.length);
+      const lim = S.view === 'overview' && !S.allGroups && !narrowed ? 6 : Infinity;
+      const grp = (g) => {
+        const open = narrowed || S.open.has(g.n), nOn = g.rows.filter((r) => r.st === 'on').length, nErr = g.rows.filter((r) => r.st === 'err').length;
+        return `<li class="grp${open ? ' is-open' : ''}"><button type="button" class="grp__head" data-act="grp" data-id="${g.n}" aria-expanded="${open}" aria-label="${esc(t('proj.groupToggle', { name: netName(g.n) }))}">
+          ${net(g.n, 28)}<b>${esc(netName(g.n))}</b><span class="grp__meta">${I18N.num(g.rows.length)} · ${esc(plural(nOn, 'p.works'))}</span>
+          ${nErr ? `<span class="pill pill--err">${esc(plural(nErr, 'p.errors'))}</span>` : ''}${ico('down', 'grp__chev')}</button>
+          ${open ? `<ul class="accs accs--in">${g.shown.map((r) => row(r, 'dest', false)).join('')}</ul>` : ''}</li>`;
+      };
+      const flat = all.filter((r) => byState(r) && bySearch(r)).sort((a, b) => (b.st === 'err') - (a.st === 'err'));
+      const chip = (k) => `<button type="button" class="chipf" data-act="filter" data-id="${k}" aria-pressed="${S.filter === k}">${esc(t('proj.f' + { all: 'All', err: 'Err', on: 'On', off: 'Off' }[k]))} <b class="num">${I18N.num(c[k])}</b></button>`;
+      const body = !all.length ? `<div class="empty empty--in"><span class="empty__ico">${ico('plus')}</span><h3>${esc(t('proj.noDests'))}</h3>
+          <p>${esc(t('proj.noDestsText'))}</p><button type="button" class="btn btn--p" data-act="connect" data-mode="dest">${ico('plus', 'ico--sm')}${esc(t('proj.connectDest'))}</button></div>`
+        : `<div class="pcol__tools"><label class="search"><span class="vh">${esc(t('proj.find'))}</span>${ico('search', 'ico--sm')}<input type="search" id="accSearch" autocomplete="off" placeholder="${esc(t('proj.find'))}" value="${esc(S.search)}"></label>
+          <div class="chips chips--scroll" role="group" aria-label="${esc(t('proj.filter'))}">${['all', 'err', 'on', 'off'].map(chip).join('')}</div></div>
+          ${groups.length ? `<ul class="grps d-only">${groups.slice(0, lim).map(grp).join('')}</ul>
+          ${groups.length > lim ? `<button type="button" class="col__more d-only" data-act="more-grp">${esc(t('proj.moreNets', { n: plural(groups.length - lim, 'p.nets') }))}</button>` : ''}
+          ${S.allGroups && S.view === 'overview' && !narrowed ? `<button type="button" class="col__more d-only" data-act="more-grp">${esc(t('proj.less'))}</button>` : ''}
+          <ul class="accs m-only">${flat.map((r) => row(r, 'dest', true)).join('')}</ul>` : `<p class="col__none">${esc(t('proj.nothing'))}</p>`}`;
+      return `<section class="card pcol pcol--dst" aria-labelledby="dstT">
+        <header class="pcol__head"><div><h2 id="dstT">${esc(t('proj.dests'))} · <span class="num">${all.length}</span></h2><p>${esc(t('proj.destsHint'))}</p></div>
+          <button type="button" class="btn btn--sm btn--p" data-act="connect" data-mode="dest">${ico('plus', 'ico--sm')}${esc(t('proj.connect'))}</button></header>${body}</section>`;
+    }
+
+    function render() {
+      const st = DEMO.stats(P.id), nS = srcs().length, nR = recvs().length;
+      const tab = (k, label, n) => `<button type="button" class="ptab" data-act="view" data-id="${k}"${S.view === k ? ' aria-current="page"' : ''}>${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</button>`;
+      const link = (h, label, n) => `<a class="ptab" href="${h}">${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</a>`;
+      const cols = S.view === 'sources' ? sourcesCol() : S.view === 'dests' ? destsCol() : sourcesCol() + destsCol();
+      main.innerHTML = `<div class="page__head"><div><div class="proj__title"><h1 class="d-only">${esc(tx(P.name))}</h1>${projPill(P)}</div>
+          <p class="proj__site">${esc(t('proj.site', { site: P.site || '—', paid: lcFirst(projPaid(P)) }))}</p></div>
+          <a class="btn d-only" href="soon.html?s=projectSettings">${ico('settings', 'ico--sm')}${esc(t('proj.settings'))}</a></div>
+        <nav class="ptabs d-only" aria-label="${esc(t('proj.sections'))}">${tab('overview', 'proj.overview')}${tab('sources', 'proj.sources', nS)}${tab('dests', 'proj.dests', nR)}
+          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${link('soon.html?s=stats', 'proj.stats')}${link('soon.html?s=access', 'proj.access', P.team || 1)}</nav>
+        ${S.view === 'overview' ? kpis() : ''}
+        <div class="seg seg--m m-only" role="group" aria-label="${esc(t('proj.view'))}">
+          <button type="button" data-act="m" data-id="dests" aria-pressed="${S.m === 'dests'}">${esc(t('proj.dests'))} <span class="num">${I18N.num(nR)}</span></button>
+          <button type="button" data-act="m" data-id="sources" aria-pressed="${S.m === 'sources'}">${esc(t('proj.sources'))} <span class="num">${I18N.num(nS)}</span></button></div>
+        <div class="pcols pcols--${S.view}" data-m="${S.m}">${cols}</div>
+        <button type="button" class="pnew m-only" data-act="connect" data-mode="${S.m === 'sources' ? 'source' : 'dest'}">${ico('plus', 'ico--sm')}<b>${esc(t('proj.connect'))}</b></button>`;
+    }
+
+    // Перерисовать и вернуть фокус на тот же элемент (по data-act + data-id)
+    function rerender(focusSel) {
+      const a = document.activeElement;
+      const sel = focusSel || (a && a.dataset && a.dataset.act ? `[data-act="${a.dataset.act}"][data-id="${a.dataset.id}"]` : a && a.id ? '#' + a.id : '');
+      const caret = a && a.id === 'accSearch' ? a.selectionStart : null;
+      render();
+      const el = sel && $$(sel, main).find((x) => x.offsetParent !== null);
+      if (el) { el.focus(); if (caret != null) el.setSelectionRange(caret, caret); }
+    }
+    const find = (kind, id) => (kind === 'source' ? DEMO.db.sources : DEMO.db.receivers).find((r) => r.id === id);
+
+    main.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-act]');
+      if (!b) return;
+      const { act, id } = b.dataset;
+      if (act === 'view') { S.view = id; rerender(); }
+      else if (act === 'm') { S.m = id; rerender(); }
+      else if (act === 'filter') { S.filter = id; rerender(); }
+      else if (act === 'grp') { S.open.has(id) ? S.open.delete(id) : S.open.add(id); rerender(); }
+      else if (act === 'more-src') { S.allSrc = !S.allSrc; rerender('[data-act="more-src"]'); }
+      else if (act === 'more-grp') { S.allGroups = !S.allGroups; rerender('[data-act="more-grp"]'); }
+      else if (act === 'review') {
+        S.filter = 'err'; S.m = 'dests'; if (S.view === 'sources') S.view = 'overview';
+        rerender('[data-act="filter"][data-id="err"]');
+        $('.pcol--dst', main)?.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth', block: 'start' });
+      } else if (act === 'connect') openConnect(b.dataset.mode);
+      else if (act === 'tog' || act === 'fix') {
+        const kind = b.closest('.pcol--src') ? 'source' : 'dest', r = find(kind, id);
+        if (!r) return;
+        if (act === 'fix') {
+          demo('proj.fixToast', { action: tx(r.fix), net: netName(r.net) });
+          r.st = 'on'; r.meta = JUST(); delete r.fix;
+          DEMO.save(); rerender(`[data-act="tog"][data-id="${id}"]`);
+        } else {
+          r.st = r.st === 'on' ? 'off' : 'on'; r.meta = r.st === 'on' ? JUST() : OFFTXT();
+          DEMO.save(); rerender();
+        }
+      } else if (act === 'del') {
+        const kind = b.dataset.kind, r = find(kind, id);
+        if (!r) return;
+        const name = tx(r.name);
+        const ok = await confirmBox({ titleKey: kind === 'source' ? 'proj.delSrcTitle' : 'proj.delTitle', text: t(kind === 'source' ? 'proj.delSrcText' : 'proj.delText', { name }) });
+        if (!ok) return;
+        const arr = kind === 'source' ? DEMO.db.sources : DEMO.db.receivers;
+        arr.splice(arr.indexOf(r), 1);
+        DEMO.save(); render(); toast(t('proj.deleted', { name }));
+      }
+    });
+    main.addEventListener('input', (e) => { if (e.target.id === 'accSearch') { S.search = e.target.value.trim().toLowerCase(); rerender(); } });
+    searchSubs.push((v) => { S.search = v; rerender(); });
+
+    /* Окно «Подключить приёмник / источник»: 1 — выбор, 2 — вход (или адрес ленты), 3 — страница или группа */
+    function openConnect(mode) {
+      const src = mode === 'source', LIST = src ? SRC_LIST : DEST_LIST;
+      const mobile = matchMedia('(max-width: 899.98px)').matches;
+      const C = { cat: 'all', q: '', sel: null, step: 1, page: 0, busy: false };
+      const d = dialog({ titleKey: src ? 'conn.titleSrc' : 'conn.title', sheet: mobile, wide: !mobile, cls: 'conn',
+        html: `<p class="conn__sub">${esc(t(src ? 'conn.subSrc' : 'conn.sub'))}</p><ol class="steps"></ol><div class="conn__body"></div><div class="conn__foot"></div>` });
+      const box = d.box, body = $('.conn__body', box), foot = $('.conn__foot', box), stepsEl = $('.steps', box);
+      const selItem = () => LIST.find((x) => x.id === C.sel);
+      const isRss = () => C.sel === 'rss';
+      const have = (it) => recvs().filter((r) => r.net === it.plate).length;
+
+      function drawSteps() {
+        const names = [src ? 'conn.step1Src' : 'conn.step1', isRss() ? 'conn.step2Rss' : 'conn.step2', 'conn.step3'].slice(0, isRss() ? 2 : 3);
+        stepsEl.innerHTML = names.map((k, i) => `<li class="${i + 1 === C.step ? 'is-cur' : i + 1 < C.step ? 'is-done' : ''}"${i + 1 === C.step ? ' aria-current="step"' : ''}><span>${i + 1 < C.step ? ico('check', 'ico--sm') : i + 1}</span>${esc(t(k))}</li>`).join('');
+      }
+      function drawTiles() {
+        const cats = ['all', ...new Set(LIST.map((x) => x.cat))];
+        $('.chips', body).innerHTML = cats.map((k) => `<button type="button" class="chipf" data-cat="${k}" aria-pressed="${C.cat === k}">${esc(t('conn.' + k))} <b class="num">${k === 'all' ? LIST.length : LIST.filter((x) => x.cat === k).length}</b></button>`).join('');
+        const list = LIST.filter((x) => (C.cat === 'all' || x.cat === C.cat) && (!C.q || itemName(x).toLowerCase().includes(C.q) || x.id.includes(C.q)));
+        $('.tiles-wrap', body).innerHTML = list.length ? `<div class="tiles">${list.map((x) => {
+          const n = src ? 0 : have(x);
+          return `<button type="button" class="tile" data-pick="${x.id}" aria-pressed="${C.sel === x.id}">${net(x.plate, 40)}<b>${esc(itemName(x))}</b>
+            <span class="tile__sub${n ? '' : ' is-ok'}"><span class="d-txt">${esc(n ? t('conn.extra', { n }) : t('conn.included'))}</span><span class="m-txt">${esc(t(n ? 'conn.extraShort' : 'conn.includedShort'))}</span></span></button>`;
+        }).join('')}</div>` : `<p class="conn__none">${esc(t('conn.nothing'))}</p>`;
+      }
+      function draw() {
+        drawSteps();
+        const it = selItem(), name = it ? itemName(it) : '';
+        if (C.step === 1) {
+          body.innerHTML = `<label class="search search--lg"><span class="vh">${esc(t('conn.search'))}</span>${ico('search', 'ico--sm')}<input type="search" data-q autocomplete="off" placeholder="${esc(t('conn.search'))}" value="${esc(C.q)}"></label>
+            <div class="chips chips--scroll" role="group" aria-label="${esc(t('conn.cats'))}"></div><div class="tiles-wrap"></div>`;
+          drawTiles();
+          foot.innerHTML = `<div class="conn__note"><p>${esc(t(src ? 'conn.noteSrc' : 'conn.note'))}</p><p>${esc(t('conn.meta'))}</p></div>
+            <button type="button" class="btn btn--p btn--lg" data-next${it ? '' : ' disabled'}>${esc(it ? t('conn.go', { net: name }) : t('conn.pick'))}</button>`;
+        } else if (C.step === 2 && isRss()) {
+          body.innerHTML = `<div class="conn__step"><div class="field"><label for="rssUrl">${esc(t('conn.rssLabel'))}</label>
+            <div class="conn__row"><input class="input" id="rssUrl" type="url" inputmode="url" placeholder="${esc(t('conn.rssPh'))}" aria-describedby="rssErr"><button type="button" class="btn" data-rss-check>${esc(t('conn.rssCheck'))}</button></div>
+            <span class="field__err" id="rssErr" hidden>${esc(t('conn.rssErr'))}</span></div></div>`;
+          foot.innerHTML = `<button type="button" class="btn" data-back>${esc(t('conn.back'))}</button><button type="button" class="btn btn--p btn--lg" data-add>${esc(t('conn.add'))}</button>`;
+          $('#rssUrl', body).focus();
+        } else if (C.step === 2) {
+          body.innerHTML = `<div class="conn__step conn__login">${net(it.plate, 40)}<p>${esc(t('conn.loginText', { net: name }))}</p>
+            <button type="button" class="btn btn--p btn--lg" data-login${C.busy ? ' disabled' : ''}>${C.busy ? `<i class="mini__spin"></i>${esc(t('conn.waiting'))}` : esc(t('conn.loginBtn', { net: name }))}</button></div>`;
+          foot.innerHTML = `<button type="button" class="btn" data-back>${esc(t('conn.back'))}</button>`;
+          $('[data-login]', body).focus();
+        } else {
+          const pn = tx(P.name);
+          const pages = [t('conn.page1', { name: pn }), t('conn.page2', { name: pn }), t('conn.page3')];
+          body.innerHTML = `<fieldset class="conn__step conn__pages"><legend>${esc(t(src ? 'conn.pageTextSrc' : 'conn.pageText'))}</legend>
+            ${pages.map((p, i) => `<label class="check conn__page">${net(it.plate, 28)}<span>${esc(p)}</span><input type="radio" name="cpage" value="${i}"${C.page === i ? ' checked' : ''}></label>`).join('')}</fieldset>`;
+          foot.innerHTML = `<button type="button" class="btn" data-back>${esc(t('conn.back'))}</button><button type="button" class="btn btn--p btn--lg" data-add>${esc(t('conn.add'))}</button>`;
+          $('input[type="radio"]:checked', body)?.focus();
+        }
+      }
+      function add() {
+        const it = selItem();
+        let name;
+        if (isRss()) {
+          const inp = $('#rssUrl', body), v = inp.value.trim();
+          inp.setAttribute('aria-invalid', String(!v)); $('#rssErr', body).hidden = !!v;
+          if (!v) { inp.focus(); return; }
+          name = v.replace(/^https?:\/\//, '');
+        } else {
+          const pn = tx(P.name);
+          name = [t('conn.page1', { name: pn }), t('conn.page2', { name: pn }), t('conn.page3')][C.page];
+        }
+        const rec = { id: DEMO.uid(src ? 's' : 'r'), p: P.id, net: it.plate, st: 'on', name: { ru: name, en: name, kk: name }, meta: JUST() };
+        (src ? DEMO.db.sources : DEMO.db.receivers).push(rec);
+        if (!src && !P.nets.includes(it.plate)) P.nets.push(it.plate);
+        DEMO.save();
+        S.filter = 'all'; S.search = ''; S.open.add(it.plate); S.m = src ? 'sources' : 'dests';
+        d.close();
+        render();
+        $('[data-act="connect"]', main).find((x) => x.offsetParent !== null)?.focus();
+        toast(t(src ? 'conn.doneSrc' : 'conn.done'));
+      }
+      box.addEventListener('click', (e) => {
+        const tile = e.target.closest('[data-pick]');
+        if (tile) { C.sel = tile.dataset.pick; drawTiles(); const it = selItem(); const go = $('[data-next]', foot); go.disabled = false; go.textContent = t('conn.go', { net: itemName(it) }); $(`[data-pick="${C.sel}"]`, body)?.focus(); return; }
+        const cat = e.target.closest('[data-cat]');
+        if (cat) { C.cat = cat.dataset.cat; drawTiles(); $(`[data-cat="${C.cat}"]`, body)?.focus(); return; }
+        if (e.target.closest('[data-next]') && C.sel) { C.step = 2; draw(); return; }
+        if (e.target.closest('[data-back]')) { C.step = C.step === 3 ? 2 : 1; C.busy = false; draw(); if (C.step === 1) $(`[data-pick="${C.sel}"]`, body)?.focus(); return; }
+        if (e.target.closest('[data-login]') && !C.busy) {
+          C.busy = true; draw();
+          setTimeout(() => { if (!box.isConnected) return; C.busy = false; C.step = 3; draw(); }, 1000);
+          return;
+        }
+        if (e.target.closest('[data-rss-check]')) {
+          const inp = $('#rssUrl', body), v = inp.value.trim();
+          inp.setAttribute('aria-invalid', String(!v)); $('#rssErr', body).hidden = !!v;
+          if (v) demo('conn.rssToast'); else inp.focus();
+          return;
+        }
+        if (e.target.closest('[data-add]')) add();
+      });
+      box.addEventListener('input', (e) => { if (e.target.matches('[data-q]')) { C.q = e.target.value.trim().toLowerCase(); drawTiles(); } });
+      box.addEventListener('change', (e) => { if (e.target.name === 'cpage') C.page = +e.target.value; });
+      draw();
+      $('[data-q]', body)?.focus();
+    }
+
+    I18N.onChange(() => { setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]); render(); });
+    render();
+    if (location.hash === '#connect') openConnect('dest');
+    else if (location.hash === '#connect-source') openConnect('source');
   };
 
   PAGES.login = () => authPage('login');
