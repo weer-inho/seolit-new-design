@@ -1148,3 +1148,35 @@ textarea.input { padding: 12px 14px; min-height: 120px; resize: vertical; }
   .schgrid__h { font-size: 9px; }
   .split__foot .btn { flex: 1 1 auto; }
 }
+
+/* ---------- Водяные знаки и автокартинки ---------- */
+.wmed { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr); gap: 20px; align-items: start; }
+.wmed__side { display: flex; flex-direction: column; gap: 16px; }
+.wmed__side fieldset { border: 0; margin: 0; padding: 0; }
+.wmed__side input[type="range"] { width: 100%; min-height: 32px; accent-color: var(--accent); }
+.wmstage { position: relative; aspect-ratio: 3 / 2; border-radius: 14px; overflow: hidden; background-size: cover; background-position: center; container-type: inline-size; }
+.wmmark {
+  position: absolute; display: inline-flex; align-items: center; gap: .3em; padding: .1em .2em; border: 0; border-radius: 6px; background: transparent;
+  font: 800 calc(var(--s, .06) * 100cqw) / 1 var(--font); white-space: nowrap; transform: translate(-50%, -50%); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+.wmmark:active { cursor: grabbing; }
+.wmmark:focus-visible { outline: 2px dashed var(--on-accent); outline-offset: 4px; }
+.wmmark svg { width: 1.3em; height: 1.3em; }
+.wmmark img { height: 2.2em; width: auto; display: block; }
+.pos9 { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
+.pos9 button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.pos9 button i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.pos9 button[aria-pressed="true"] { border-color: var(--accent); }
+.pos9 button[aria-pressed="true"] i { background: var(--accent); }
+.swatch { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line); }
+.swatchbtn { width: 44px; height: 44px; border: 2px solid transparent; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
+.swatchbtn[aria-pressed="true"] { border-color: var(--fg); }
+.chips label.chipf { cursor: pointer; }
+.chips label.chipf:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drop--sm { min-height: 56px; flex: none; }
+.aistage { display: grid; place-items: center; background: var(--soft); border-radius: 14px; padding: 12px; }
+.aistage canvas { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); }
+.aistage--r3 canvas { width: auto; max-width: 100%; max-height: 520px; }
+@media (max-width: 1080px) { .wmed { grid-template-columns: 1fr; } }
+.wmed__side .seg { flex-wrap: wrap; align-self: flex-start; }

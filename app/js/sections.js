@@ -635,6 +635,199 @@
     render();
   };
 
+  /* ---------- Общее для редакторов картинок ---------- */
+  const gradStops = (i) => (APP.THUMBS[i % APP.THUMBS.length].match(/#[0-9A-Fa-f]{6}/g) || ['#2563EB', '#38BDF8']);
+  function paintBg(ctx, w, h, i, img) {
+    if (img) { const r = Math.max(w / img.width, h / img.height); ctx.drawImage(img, (w - img.width * r) / 2, (h - img.height * r) / 2, img.width * r, img.height * r); return; }
+    const [a, b] = gradStops(i), g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, a); g.addColorStop(1, b);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  }
+  // Знак SEOlit (узел «один → много») на canvas
+  function paintLogo(ctx, cx, cy, r, color) {
+    ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = r * 0.12; ctx.lineCap = 'round';
+    const pts = [[0, -0.55], [0.48, 0.28], [-0.48, 0.28]];
+    pts.forEach(([x, y]) => { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + x * r, cy + y * r); ctx.stroke(); ctx.beginPath(); ctx.arc(cx + x * r, cy + y * r, r * 0.16, 0, Math.PI * 2); ctx.fill(); });
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+  const download = (canvas, name, okKey) => canvas.toBlob((b) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast(t(okKey)); });
+  const loadImg = (url) => new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = url; });
+  // Список + редактор: общий каркас для водяных знаков и автокартинок
+  function listEditor(main, cfg) {
+    const st = cfg.state;
+    const list = () => db()[cfg.key];
+    const pick = (id) => { const s = list().find((x) => x.id === id) || list()[0]; st.cur = s ? s.id : null; st.draft = s ? JSON.parse(JSON.stringify(s)) : null; };
+    if (!st.draft || !list().some((x) => x.id === st.cur)) pick(st.cur);
+    function render(focus) {
+      main.innerHTML = `${head(cfg.p + '.title', cfg.p + '.sub', `<button type="button" class="btn btn--p" data-le="new">${ico('plus', 'ico--sm')}${esc(t(cfg.p + '.new'))}</button>`)}
+      <div class="split"><nav class="card split__list" aria-label="${esc(t(cfg.p + '.list'))}"><ul>${list().map((s) => `<li><button type="button" class="split__item" data-le-pick="${s.id}" aria-current="${s.id === st.cur}">
+        <span class="split__ico" style="background:${APP.THUMBS[(s.bg ?? 0) % 6]}">${ico(cfg.icon)}</span><span><b>${esc(tx(s.name))}</b><span class="muted">${esc(cfg.meta(s))}</span></span></button></li>`).join('')}</ul></nav>
+        ${st.draft ? `<form class="card card--pad split__edit ${cfg.p}-ed" novalidate><div class="field"><label for="leName">${esc(t(cfg.p + '.name'))}</label><input class="input" id="leName" value="${esc(tx(st.draft.name))}"></div>
+          ${cfg.body(st.draft)}
+          <div class="split__foot"><button type="button" class="btn btn--danger" data-le="del">${esc(t(cfg.p + '.del'))}</button>${cfg.extraFoot || ''}<button type="submit" class="btn btn--p">${esc(t(cfg.p + '.save'))}</button></div></form>` : ''}</div>`;
+      if (st.draft) cfg.after(st.draft, main);
+      if (focus) $(focus, main)?.focus();
+    }
+    main.addEventListener('click', async (e) => {
+      const p = e.target.closest('[data-le-pick]'); if (p) { pick(p.dataset.lePick); render(`[data-le-pick="${st.cur}"]`); return; }
+      const b = e.target.closest('[data-le]'); if (!b) return;
+      if (b.dataset.le === 'new') { const s = { id: DEMO.uid(cfg.p), ...cfg.blank(), name: L3(t(cfg.p + '.newName')) }; list().push(s); save(); pick(s.id); render('#leName'); }
+      else if (b.dataset.le === 'del') {
+        const name = tx(st.draft.name);
+        if (!(await confirmBox({ titleKey: cfg.p + '.delTitle', text: t(cfg.p + '.delText', { name }) }))) return;
+        db()[cfg.key] = list().filter((x) => x.id !== st.cur); cfg.onDelete?.(st.cur); save(); pick(null); render('[data-le="new"]'); toast(t(cfg.p + '.deleted', { name }));
+      }
+    });
+    main.addEventListener('input', (e) => { if (e.target.id === 'leName' && st.draft) st.draft.name = L3(e.target.value); });
+    main.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const i = list().findIndex((x) => x.id === st.cur); const { _img, ...clean } = st.draft; list()[i] = JSON.parse(JSON.stringify(clean)); save();
+      render('[type=submit]'); toast(t(cfg.p + '.saved', { name: tx(st.draft.name) }));
+    });
+    render();
+    return render;
+  }
+
+  /* ---------- Водяные знаки: знак перетаскивается по примеру ---------- */
+  const WM = { cur: null, draft: null, sample: 0, sampleUrl: '' };
+  const WM_COLORS = [['#FFFFFF', 'wm.white'], ['#0D1526', 'wm.black'], ['#2563EB', 'wm.blue']];
+  const POS9 = [['tl', 0.08, 0.1], ['tc', 0.5, 0.1], ['tr', 0.92, 0.1], ['ml', 0.08, 0.5], ['mc', 0.5, 0.5], ['mr', 0.92, 0.5], ['bl', 0.08, 0.9], ['bc', 0.5, 0.9], ['br', 0.92, 0.9]];
+  SECTIONS.watermarks = (main) => {
+    main.replaceWith(main = main.cloneNode(false)); // сбросить слушатели прошлой отрисовки (смена языка)
+    const markHtml = (D) => D.kind === 'logo' ? `<svg viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"></use></svg><span>SEOlit</span>`
+      : D.kind === 'image' && D._img ? `<img src="${D._img}" alt="">` : `<span>${esc(D.text || 'example.ru')}</span>`;
+    function place(D) {
+      const m = $('.wmmark', main); if (!m) return;
+      m.style.left = D.x * 100 + '%'; m.style.top = D.y * 100 + '%'; m.style.opacity = D.opacity; m.style.color = D.color; m.style.setProperty('--s', D.size);
+      m.setAttribute('aria-label', t('wm.mark', { x: Math.round(D.x * 100), y: Math.round(D.y * 100) }));
+    }
+    const render = listEditor(main, {
+      key: 'watermarks', p: 'wm', icon: 'watermarks', state: WM, blank: () => ({ kind: 'text', text: 'example.ru', x: 0.92, y: 0.9, size: 0.06, opacity: 0.8, color: '#FFFFFF' }),
+      meta: (s) => `${t({ text: 'wm.kText', logo: 'wm.kLogo', image: 'wm.kImage' }[s.kind])} · ${Math.round(s.opacity * 100)}%`,
+      onDelete: (id) => db().receivers.forEach((r) => { if (r.settings?.wm === id) r.settings.wm = ''; }),
+      extraFoot: `<button type="button" class="btn" data-wm="download">${ico('down', 'ico--sm')}${esc(t('wm.download'))}</button>`,
+      body: (D) => `<div class="wmed"><div class="wmstage" style="${WM.sampleUrl ? `background-image:url(${WM.sampleUrl})` : `background:${APP.THUMBS[WM.sample]}`}">
+            <button type="button" class="wmmark wmmark--${D.kind}">${markHtml(D)}</button></div>
+          <div class="wmed__side">
+            <fieldset class="field"><legend class="field__lbl">${esc(t('wm.kind'))}</legend><div class="seg">${['text', 'logo', 'image'].map((k) => `<button type="button" data-kind="${k}" aria-pressed="${D.kind === k}">${esc(t({ text: 'wm.kText', logo: 'wm.kLogo', image: 'wm.kImage' }[k]))}</button>`).join('')}</div></fieldset>
+            ${D.kind === 'text' ? `<div class="field"><label for="wmText">${esc(t('wm.text'))}</label><input class="input" id="wmText" value="${esc(D.text)}" maxlength="40"></div>` : ''}
+            ${D.kind === 'image' ? `<label class="drop drop--sm"><input type="file" id="wmFile" accept="image/png,image/svg+xml,image/webp" class="vh">${ico('plus')}<span>${esc(t('wm.upload'))}</span></label>` : ''}
+            <div class="field"><label for="wmSize">${esc(t('wm.size'))} <span class="num muted" id="wmSizeV">${Math.round(D.size * 100)}%</span></label><input type="range" id="wmSize" min="0.03" max="0.3" step="0.01" value="${D.size}"></div>
+            <div class="field"><label for="wmOp">${esc(t('wm.opacity'))} <span class="num muted" id="wmOpV">${Math.round(D.opacity * 100)}%</span></label><input type="range" id="wmOp" min="0.1" max="1" step="0.05" value="${D.opacity}"></div>
+            ${D.kind !== 'image' ? `<fieldset class="field"><legend class="field__lbl">${esc(t('wm.color'))}</legend><div class="chips">${WM_COLORS.map(([c, k]) => `<button type="button" class="chipf" data-color="${c}" aria-pressed="${D.color === c}"><i class="swatch" style="background:${c}"></i>${esc(t(k))}</button>`).join('')}</div></fieldset>` : ''}
+            <fieldset class="field"><legend class="field__lbl">${esc(t('wm.pos'))}</legend><div class="pos9">${POS9.map(([k, x, y]) => `<button type="button" data-pos="${k}" aria-label="${esc(t('wm.p_' + k))}" aria-pressed="${Math.abs(D.x - x) < 0.02 && Math.abs(D.y - y) < 0.02}"><i></i></button>`).join('')}</div>
+              <p class="field__hint">${esc(t('wm.posHint'))}</p></fieldset>
+            <fieldset class="field"><legend class="field__lbl">${esc(t('wm.sample'))}</legend><div class="chips">${[0, 1, 2, 3, 5].map((i) => `<button type="button" class="swatchbtn" data-sample="${i}" aria-pressed="${!WM.sampleUrl && WM.sample === i}" aria-label="${esc(t('wm.sample'))} ${i + 1}" style="background:${APP.THUMBS[i]}"></button>`).join('')}
+              <label class="chipf"><input type="file" id="wmSample" accept="image/*" class="vh">${ico('plus', 'ico--sm')}${esc(t('wm.sampleOwn'))}</label></div></fieldset>
+          </div></div>`,
+      after: (D) => place(D),
+    });
+    const D = () => WM.draft;
+    let drag = null;
+    main.addEventListener('pointerdown', (e) => {
+      const m = e.target.closest('.wmmark'); if (!m) return;
+      e.preventDefault(); m.setPointerCapture(e.pointerId); drag = $('.wmstage', main).getBoundingClientRect(); m.focus();
+    });
+    main.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      D().x = clampN((e.clientX - drag.left) / drag.width); D().y = clampN((e.clientY - drag.top) / drag.height); place(D());
+    });
+    const clampN = (v) => Math.min(0.98, Math.max(0.02, Math.round(v * 100) / 100));
+    main.addEventListener('pointerup', () => { if (drag) { drag = null; $$('[data-pos]', main).forEach((b) => b.setAttribute('aria-pressed', 'false')); } });
+    main.addEventListener('keydown', (e) => {
+      if (!e.target.classList?.contains('wmmark')) return;
+      const st = e.shiftKey ? 0.1 : 0.01, k = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
+      if (!k) return; e.preventDefault(); D().x = clampN(D().x + k[0]); D().y = clampN(D().y + k[1]); place(D());
+    });
+    main.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-kind],[data-color],[data-pos],[data-sample],[data-wm]'); if (!b || !D()) return;
+      if (b.dataset.kind) { D().kind = b.dataset.kind; render(`[data-kind="${D().kind}"]`); }
+      else if (b.dataset.color) { D().color = b.dataset.color; render(`[data-color="${D().color}"]`); }
+      else if (b.dataset.pos) { const [, x, y] = POS9.find((p) => p[0] === b.dataset.pos); D().x = x; D().y = y; render(`[data-pos="${b.dataset.pos}"]`); }
+      else if (b.dataset.sample) { WM.sample = +b.dataset.sample; WM.sampleUrl = ''; render(`[data-sample="${WM.sample}"]`); }
+      else if (b.dataset.wm === 'download') exportWm();
+    });
+    main.addEventListener('input', (e) => {
+      if (!D()) return;
+      if (e.target.id === 'wmText') { D().text = e.target.value; $('.wmmark span', main).textContent = D().text || 'example.ru'; }
+      else if (e.target.id === 'wmSize') { D().size = +e.target.value; $('#wmSizeV', main).textContent = Math.round(D().size * 100) + '%'; place(D()); }
+      else if (e.target.id === 'wmOp') { D().opacity = +e.target.value; $('#wmOpV', main).textContent = Math.round(D().opacity * 100) + '%'; place(D()); }
+    });
+    main.addEventListener('change', (e) => {
+      const f = e.target.files?.[0]; if (!f) return;
+      if (e.target.id === 'wmFile') { D()._img = URL.createObjectURL(f); render(); }
+      else if (e.target.id === 'wmSample') { WM.sampleUrl = URL.createObjectURL(f); render(); }
+    });
+    async function exportWm() {
+      const W = 1200, H = 800, c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'), d = D();
+      paintBg(ctx, W, H, WM.sample, WM.sampleUrl ? await loadImg(WM.sampleUrl) : null);
+      ctx.globalAlpha = d.opacity; const px = d.x * W, py = d.y * H, fs = d.size * W;
+      if (d.kind === 'image' && d._img) { const im = await loadImg(d._img); if (im) { const w = fs * 3, h = w * im.height / im.width; ctx.drawImage(im, px - w / 2, py - h / 2, w, h); } }
+      else {
+        ctx.fillStyle = d.color; ctx.font = `800 ${fs}px Manrope, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (d.kind === 'logo') { paintLogo(ctx, px - fs * 2, py, fs * 0.8, d.color); ctx.textAlign = 'left'; ctx.fillText('SEOlit', px - fs * 1.1, py); }
+        else ctx.fillText(d.text || 'example.ru', px, py);
+      }
+      download(c, 'seolit-watermark.png', 'wm.downloaded');
+    }
+  };
+
+  /* ---------- Автокартинки: картинка из заголовка ---------- */
+  const AI = { cur: null, draft: null, text: '', ratio: 'r1' };
+  const RATIO = { r1: [1080, 1080], r2: [1280, 720], r3: [720, 1280] };
+  SECTIONS.autoimg = (main) => {
+    main.replaceWith(main = main.cloneNode(false));
+    if (!AI.text) AI.text = tx(DEMO.sample.title);
+    function paint() {
+      const cv = $('#aiCanvas', main); if (!cv) return;
+      const d = AI.draft, [W, H] = RATIO[AI.ratio]; cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d'); paintBg(ctx, W, H, d.bg);
+      ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0, 0, W, H);
+      const pad0 = W * 0.08, fs = Math.round(Math.min(W, H) * 0.075 * d.font);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = `800 ${fs}px Manrope, sans-serif`; ctx.textBaseline = 'top'; ctx.textAlign = d.align === 'center' ? 'center' : 'left';
+      // Перенос по словам
+      const words = (AI.text || ' ').split(/\s+/), lines = []; let line = '';
+      words.forEach((w) => { const tr = line ? line + ' ' + w : w; if (ctx.measureText(tr).width > W - pad0 * 2 && line) { lines.push(line); line = w; } else line = tr; });
+      lines.push(line);
+      const lh = fs * 1.2, total = lines.length * lh, y0 = (H - total) / 2, x0 = d.align === 'center' ? W / 2 : pad0;
+      lines.forEach((l, i) => ctx.fillText(l, x0, y0 + i * lh));
+      if (d.logo) {
+        const r = fs * 0.55; paintLogo(ctx, pad0 + r, H - pad0 - r * 0.4, r, '#FFFFFF');
+        ctx.font = `700 ${Math.round(fs * 0.5)}px Manrope, sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('example.ru', pad0 + r * 2.4, H - pad0 - r * 0.4);
+      }
+      cv.setAttribute('aria-label', t('aimg.preview', { text: AI.text }));
+    }
+    const render = listEditor(main, {
+      key: 'autoimg', p: 'aimg', icon: 'autoimg', state: AI, blank: () => ({ bg: 0, align: 'left', font: 1, logo: true }),
+      meta: (s) => `${t('aimg.bgN', { n: (s.bg ?? 0) + 1 })} · ${t(s.align === 'center' ? 'aimg.center' : 'aimg.left')}`,
+      extraFoot: `<button type="button" class="btn" data-ai="download">${ico('down', 'ico--sm')}${esc(t('aimg.download'))}</button>`,
+      body: (d) => `<div class="wmed"><div class="aistage aistage--${AI.ratio}"><canvas id="aiCanvas" role="img"></canvas></div>
+        <div class="wmed__side">
+          <div class="field"><label for="aiText">${esc(t('aimg.text'))}</label><textarea class="input" id="aiText" rows="2">${esc(AI.text)}</textarea></div>
+          <fieldset class="field"><legend class="field__lbl">${esc(t('aimg.ratio'))}</legend><div class="seg">${Object.keys(RATIO).map((k) => `<button type="button" data-ratio="${k}" aria-pressed="${AI.ratio === k}">${esc(t('aimg.' + k))}</button>`).join('')}</div></fieldset>
+          <fieldset class="field"><legend class="field__lbl">${esc(t('aimg.bg'))}</legend><div class="chips">${APP.THUMBS.map((g, i) => `<button type="button" class="swatchbtn" data-bg="${i}" aria-pressed="${d.bg === i}" aria-label="${esc(t('aimg.bgN', { n: i + 1 }))}" style="background:${g}"></button>`).join('')}</div></fieldset>
+          <fieldset class="field"><legend class="field__lbl">${esc(t('aimg.align'))}</legend><div class="seg">${['left', 'center'].map((k) => `<button type="button" data-align="${k}" aria-pressed="${d.align === k}">${esc(t('aimg.' + k))}</button>`).join('')}</div></fieldset>
+          <div class="field"><label for="aiFont">${esc(t('aimg.font'))} <span class="num muted" id="aiFontV">${Math.round(d.font * 100)}%</span></label><input type="range" id="aiFont" min="0.7" max="1.5" step="0.05" value="${d.font}"></div>
+          <label class="check"><input type="checkbox" id="aiLogo"${d.logo ? ' checked' : ''}><span>${esc(t('aimg.logo'))}</span></label>
+        </div></div>`,
+      after: () => paint(),
+    });
+    main.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-ratio],[data-bg],[data-align],[data-ai]'); if (!b || !AI.draft) return;
+      if (b.dataset.ratio) { AI.ratio = b.dataset.ratio; render(`[data-ratio="${AI.ratio}"]`); }
+      else if (b.dataset.bg) { AI.draft.bg = +b.dataset.bg; render(`[data-bg="${AI.draft.bg}"]`); }
+      else if (b.dataset.align) { AI.draft.align = b.dataset.align; render(`[data-align="${AI.draft.align}"]`); }
+      else download($('#aiCanvas', main), 'seolit-autoimage.png', 'aimg.downloaded');
+    });
+    main.addEventListener('input', (e) => {
+      if (!AI.draft) return;
+      if (e.target.id === 'aiText') { AI.text = e.target.value; paint(); }
+      else if (e.target.id === 'aiFont') { AI.draft.font = +e.target.value; $('#aiFontV', main).textContent = Math.round(AI.draft.font * 100) + '%'; paint(); }
+    });
+    main.addEventListener('change', (e) => { if (e.target.id === 'aiLogo') { AI.draft.logo = e.target.checked; paint(); } });
+    // Шрифт мог догрузиться позже — перерисовать
+    document.fonts?.ready.then(paint);
+  };
+
   function soon(main) {
     main.innerHTML = `<section class="card empty soon"><span class="empty__ico">${ico(PAGE)}</span><h1>${esc(t('nav.' + PAGE))}</h1>
       <p>${esc(t('soon.text'))}</p><a class="btn btn--p" href="projects.html">${ico('projects', 'ico--sm')}${esc(t('soon.back'))}</a></section>`;
@@ -644,7 +837,8 @@
 
   const main = $('#main');
   if (main && PAGE && !['projects', 'project', 'queue', 'post', 'soon', 'login', 'register'].includes(PAGE)) {
-    const run = () => (SECTIONS[PAGE] ? SECTIONS[PAGE](main) : soon(main));
+    // #main ищем каждый раз: редакторы картинок заменяют его чистой копией, чтобы сбросить слушатели
+    const run = () => { const m = $('#main'); SECTIONS[PAGE] ? SECTIONS[PAGE](m) : soon(m); };
     run();
     I18N.onChange(run);
   }
