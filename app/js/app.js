@@ -87,6 +87,7 @@
     });
   }
   mqDark.addEventListener?.('change', syncTheme);
+  document.addEventListener('theme-changed', syncTheme);
 
   /* ---------- Переключатель языка RU · EN · KZ ---------- */
   // Выбор языка: кнопка с текущим языком, по нажатию — меню с остальными

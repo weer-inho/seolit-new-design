@@ -828,6 +828,90 @@
     document.fonts?.ready.then(paint);
   };
 
+  /* ---------- Помощь: вопросы с поиском и обращение в поддержку ---------- */
+  const HELP = [[1, [1, 2]], [2, [3, 4, 5]], [3, [6, 7, 8, 9]], [4, []]];
+  const HS = { q: '', open: new Set([1]) };
+  SECTIONS.help = (main) => {
+    const qa = (n) => ({ n, q: t('help.q' + n), a: t('help.a' + n) });
+    function list() {
+      const s = HS.q.toLowerCase();
+      return HELP.map(([c, ns]) => ({ c, items: (c === 4 ? [2] : ns).map(qa).filter((x) => !s || (x.q + ' ' + x.a).toLowerCase().includes(s)) })).filter((g) => g.items.length && !(g.c === 4 && !s));
+    }
+    function faq() {
+      const L = list();
+      return L.length ? L.map((g) => `<section class="faq"><h2 class="sec-t">${esc(t('help.c' + g.c))}</h2>${g.items.map((x) => `<details class="faq__item" data-n="${x.n}"${HS.open.has(x.n) || HS.q ? ' open' : ''}>
+        <summary><b>${esc(x.q)}</b>${ico('down', 'ico--sm')}</summary><p>${esc(x.a)}</p>${x.n === 9 ? `<p><a href="https://www.bitrix24.ru/apps/app/advina.seolit/" target="_blank" rel="noopener">${esc(t('help.b24'))} →</a></p>` : ''}</details>`).join('')}</section>`).join('')
+        : `<p class="card col__none">${esc(t('help.none'))}</p>`;
+    }
+    main.innerHTML = `${head('help.title', 'help.sub')}
+      <div class="helpg"><div class="helpg__main"><label class="search search--lg"><span class="vh">${esc(t('help.search'))}</span>${ico('search', 'ico--sm')}<input type="search" id="hSearch" autocomplete="off" placeholder="${esc(t('help.search'))}" value="${esc(HS.q)}"></label>
+        <div id="faq">${faq()}</div></div>
+      <aside class="helpg__side"><nav class="card card--pad helplinks"><a href="https://seolit.ru/autoposting-5-minutes.html">${ico('help', 'ico--sm')}${esc(t('help.guide'))}</a><a href="https://seolit.ru/price.html">${ico('balance', 'ico--sm')}${esc(t('help.price'))}</a>
+          <a href="https://seolit.ru/contacts.html">${ico('referrals', 'ico--sm')}${esc(t('help.contacts'))}</a><a href="https://www.bitrix24.ru/apps/app/advina.seolit/" target="_blank" rel="noopener">${ico('projects', 'ico--sm')}${esc(t('help.b24'))}</a></nav>
+        <form class="card card--pad helpask" novalidate><h2>${esc(t('help.ask'))}</h2><div class="field"><label for="hTopic">${esc(t('help.topic'))}</label>${sel('hTopic', [1, 2, 3, 4].map((n) => [n, t('help.t' + n)]), 1)}</div>
+          <div class="field"><label for="hMsg">${esc(t('help.msg'))}</label><textarea class="input" id="hMsg" rows="4" placeholder="${esc(t('help.msgPh'))}" aria-describedby="hErr"></textarea><span class="field__err" id="hErr" hidden>${esc(t('help.msgErr'))}</span></div>
+          <button type="submit" class="btn btn--p">${esc(t('help.send'))}</button></form></aside></div>`;
+    main.oninput = (e) => { if (e.target.id === 'hSearch') { HS.q = e.target.value.trim(); $('#faq', main).innerHTML = faq(); } };
+    main.ontoggle = null;
+    main.addEventListener('toggle', (e) => { const d = e.target.closest?.('.faq__item'); if (d && !HS.q) d.open ? HS.open.add(+d.dataset.n) : HS.open.delete(+d.dataset.n); }, true);
+    main.onsubmit = (e) => {
+      e.preventDefault();
+      const m = $('#hMsg', main), ok = !!m.value.trim();
+      $('#hErr', main).hidden = ok; m.setAttribute('aria-invalid', String(!ok)); if (!ok) { m.focus(); return; }
+      m.value = ''; toast(t('help.sent', { email: DEMO.loggedIn() || DEMO.user.email }));
+    };
+  };
+
+  /* ---------- Новости ---------- */
+  SECTIONS.news = (main) => {
+    const read = db().newsRead || (db().newsRead = []);
+    const items = DEMO.news.map((n, i) => ({ ...n, i })).sort((a, b) => b.at - a.at);
+    main.innerHTML = `${head('news.title', 'news.sub', `<div class="post__h-r"><button type="button" class="btn" data-mark>${esc(t('news.markAll'))}</button><a class="btn btn--p" href="https://seolit.ru/blog.html">${esc(t('news.all'))} →</a></div>`)}
+      <div class="newsl">${items.map((n) => `<article class="card card--pad newsl__item${read.includes(n.i) ? '' : ' is-new'}"><time class="muted num">${esc(I18N.date(n.at))}</time>${read.includes(n.i) ? '' : `<span class="pill pill--info">${esc(t('news.unread'))}</span>`}
+        <h2>${esc(tx(n.title))}</h2><a href="https://seolit.ru/blog.html" data-read="${n.i}">${esc(t('news.more'))} →</a></article>`).join('')}</div>`;
+    main.onclick = (e) => {
+      const r = e.target.closest('[data-read]'); if (r && !read.includes(+r.dataset.read)) { read.push(+r.dataset.read); save(); }
+      if (e.target.closest('[data-mark]')) { items.forEach((n) => { if (!read.includes(n.i)) read.push(n.i); }); save(); SECTIONS.news(main); toast(t('news.marked')); }
+    };
+  };
+
+  /* ---------- Настройки профиля ---------- */
+  SECTIONS.settings = (main) => {
+    const P = db().profile || (db().profile = { tz: 'Europe/Moscow', n: { err: true, bal: true, exp: true, news: false, digest: true }, ch: { email: true, tg: false } });
+    const theme = document.documentElement.dataset.theme || 'system';
+    main.innerHTML = `${head('prof.title', 'prof.sub')}
+      <form class="profile" novalidate>
+        <section class="card card--pad psettings"><h2 class="sec-t">${esc(t('prof.account'))}</h2>
+          <div class="field"><label for="pfEmail">${esc(t('prof.email'))}</label><input class="input" id="pfEmail" value="${esc(DEMO.loggedIn() || DEMO.user.email)}" readonly></div>
+          <button type="button" class="btn" data-pass style="align-self:flex-start">${esc(t('prof.pass'))}</button></section>
+        <section class="card card--pad psettings"><div class="two"><div class="field"><label for="pfLang">${esc(t('prof.lang'))}</label>${sel('pfLang', I18N.LANGS.map((l) => [l, { ru: 'Русский', en: 'English', kk: 'Қазақша' }[l]]), I18N.lang)}</div>
+          <div class="field"><label for="pfTheme">${esc(t('prof.theme'))}</label>${sel('pfTheme', [['system', t('prof.tSystem')], ['light', t('prof.tLight')], ['dark', t('prof.tDark')]], theme)}</div></div>
+          <div class="field"><label for="pfTz">${esc(t('prof.tz'))}</label>${sel('pfTz', TZ.map(([id, off, city]) => [id, `${city} (UTC+${off})`]), P.tz)}</div></section>
+        <section class="card card--pad psettings"><h2 class="sec-t">${esc(t('prof.notify'))}</h2>
+          ${['err', 'bal', 'exp', 'news', 'digest'].map((k) => chk('pfN_' + k, t('prof.n' + k[0].toUpperCase() + k.slice(1)), P.n[k])).join('')}
+          <fieldset class="field accset__grp"><legend>${esc(t('prof.channels'))}</legend>${chk('pfC_email', t('prof.chEmail'), P.ch.email)}
+            <div class="psettings__row">${chk('pfC_tg', t('prof.chTg'), P.ch.tg)}<button type="button" class="btn btn--sm" data-tg>${net('tg', 22)}${esc(t('prof.tgConnect'))}</button></div></fieldset></section>
+        <div class="split__foot"><button type="submit" class="btn btn--p">${esc(t('prof.save'))}</button></div>
+      </form>`;
+    main.onclick = (e) => { if (e.target.closest('[data-pass]')) APP.demo('prof.passToast'); else if (e.target.closest('[data-tg]')) APP.demo('prof.tgToast'); };
+    main.onchange = (e) => {
+      if (e.target.id === 'pfLang') I18N.setLang(e.target.value);
+      else if (e.target.id === 'pfTheme') {
+        const v = e.target.value, root = document.documentElement;
+        if (v === 'system') { delete root.dataset.theme; try { localStorage.removeItem('seolit-theme'); } catch (er) { /* ничего */ } }
+        else { root.dataset.theme = v; try { localStorage.setItem('seolit-theme', v); } catch (er) { /* ничего */ } }
+        document.dispatchEvent(new Event('theme-changed'));
+      }
+    };
+    main.onsubmit = (e) => {
+      e.preventDefault();
+      P.tz = $('#pfTz', main).value;
+      ['err', 'bal', 'exp', 'news', 'digest'].forEach((k) => { P.n[k] = $('#pfN_' + k, main).checked; });
+      P.ch.email = $('#pfC_email', main).checked; P.ch.tg = $('#pfC_tg', main).checked;
+      save(); toast(t('prof.saved'));
+    };
+  };
+
   function soon(main) {
     main.innerHTML = `<section class="card empty soon"><span class="empty__ico">${ico(PAGE)}</span><h1>${esc(t('nav.' + PAGE))}</h1>
       <p>${esc(t('soon.text'))}</p><a class="btn btn--p" href="projects.html">${ico('projects', 'ico--sm')}${esc(t('soon.back'))}</a></section>`;

@@ -1180,3 +1180,28 @@ textarea.input { padding: 12px 14px; min-height: 120px; resize: vertical; }
 .aistage--r3 canvas { width: auto; max-width: 100%; max-height: 520px; }
 @media (max-width: 1080px) { .wmed { grid-template-columns: 1fr; } }
 .wmed__side .seg { flex-wrap: wrap; align-self: flex-start; }
+
+/* ---------- Помощь, новости, профиль ---------- */
+.helpg { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+.helpg__main { display: flex; flex-direction: column; gap: 20px; }
+.helpg__side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 84px; }
+.faq { display: flex; flex-direction: column; gap: 8px; }
+.faq .sec-t { margin-bottom: 4px; }
+.faq__item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.faq__item summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 8px 16px; cursor: pointer; list-style: none; }
+.faq__item summary::-webkit-details-marker { display: none; }
+.faq__item summary .ico { flex: none; color: var(--muted); transition: transform .2s; }
+.faq__item[open] summary .ico { transform: rotate(180deg); }
+.faq__item p { padding: 0 16px 14px; color: var(--muted); line-height: 1.6; }
+.helplinks { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+.helplinks a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border-radius: 10px; color: var(--fg); font-weight: 700; text-decoration: none; }
+.helplinks a:hover { background: var(--soft); }
+.helpask { display: flex; flex-direction: column; gap: 14px; }
+.helpask h2 { font-size: 17px; }
+.newsl { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.newsl__item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.newsl__item.is-new { border-color: var(--accent); }
+.newsl__item h2 { font-size: 17px; flex: 1; }
+.newsl__item a { font-weight: 800; text-decoration: none; }
+.profile { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+@media (max-width: 1080px) { .helpg { grid-template-columns: 1fr; } .helpg__side { position: static; } }
