@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Вход — SEOlit</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<script src="js/i18n.js"></script>
+<script src="../js/nets.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/app.js" defer></script>
+</head>
+<body>
+<div class="auth" data-page="login">
+  <main class="auth__main">
+    <div class="auth__top" data-auth-tools></div>
+    <div class="auth__box">
+      <a class="auth__logo" href="../index.html"><svg aria-hidden="true"><use href="#logo"></use></svg><span>SEOlit</span></a>
+      <h1 data-i18n="auth.loginTitle">Вход в SEOlit</h1>
+      <p class="auth__sub" data-i18n="auth.loginSub">Это демо: подойдут любой email и любой пароль.</p>
+      <form class="auth__form" id="authForm" novalidate>
+        <div class="field">
+          <label for="email" data-i18n="auth.email">Email</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="emailErr">
+          <span class="field__err" id="emailErr" hidden></span>
+        </div>
+        <div class="field">
+          <div class="field__row"><label for="password" data-i18n="auth.password">Пароль</label>
+            <button type="button" class="link-btn" id="forgot" aria-controls="forgotHint" aria-expanded="false" data-i18n="auth.forgot">Забыли пароль?</button></div>
+          <div class="pass">
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" aria-describedby="passErr">
+            <button type="button" class="pass__eye" data-eye aria-pressed="false" data-i18n-attr="aria-label:auth.show"></button>
+          </div>
+          <span class="field__err" id="passErr" hidden></span>
+          <p class="auth__hint" id="forgotHint" role="status" hidden data-i18n="auth.forgotHint"></p>
+        </div>
+        <button class="btn btn--p btn--lg" type="submit" data-i18n="auth.submit">Войти</button>
+      </form>
+      <div class="auth__or"><span data-i18n="auth.or">или</span></div>
+      <button class="btn btn--lg" type="button" id="demoLogin" data-i18n="auth.demo">Войти в демо без пароля</button>
+      <p class="auth__alt"><span data-i18n="auth.noAcc">Нет аккаунта?</span> <a href="register.html" data-i18n="auth.toRegister">Зарегистрироваться</a></p>
+    </div>
+  </main>
+  <aside class="auth__side" data-auth-side></aside>
+</div>
+</body>
+</html>

@@ -199,7 +199,7 @@
      Оболочка
      ========================================================================== */
   const shell = $('#shell');
-  const PAGE = shell?.dataset.page || '';
+  const PAGE = (shell || $('[data-page]'))?.dataset.page || '';
   const SOON = ['templates', 'schedules', 'watermarks', 'autoimg', 'balance', 'referrals', 'api', 'rss', 'help', 'settings', 'stats', 'access', 'projectSettings'];
   const q = new URLSearchParams(location.search);
   const soonKey = PAGE === 'soon' ? (SOON.includes(q.get('s')) ? q.get('s') : 'help') : '';
@@ -373,14 +373,121 @@
     </section>`;
   };
 
+  /* ---------- Вход и регистрация ---------- */
+  function authPage(kind) {
+    document.title = `${t(kind === 'login' ? 'auth.titleLogin' : 'auth.titleRegister')} — ${t('title.suffix')}`;
+    I18N.onChange(() => { document.title = `${t(kind === 'login' ? 'auth.titleLogin' : 'auth.titleRegister')} — ${t('title.suffix')}`; });
+
+    // Сверху: «← На главную», язык, тема
+    $('[data-auth-tools]').innerHTML = `<a class="btn btn--q auth__home" href="../index.html">${ico('back', 'ico--sm')}<span data-i18n="auth.home">${esc(t('auth.home'))}</span></a>
+      <div class="auth__tools">${langSeg()}<button type="button" class="ibtn" data-theme-btn></button></div>`;
+    authSide();
+
+    // Показать / скрыть пароль
+    const pass = $('#password'), eye = $('[data-eye]');
+    const syncEye = () => {
+      const on = pass.type === 'text';
+      eye.innerHTML = on ? '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.1A9.6 9.6 0 0 1 12 6c5 0 9 4.5 10 6-.4.7-1.4 2-2.8 3.3M6.6 6.6C4.4 8 2.7 10.2 2 12c1 1.5 5 6 10 6 1.8 0 3.4-.6 4.8-1.4M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>'
+        : '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+      eye.setAttribute('aria-pressed', String(on));
+      eye.dataset.i18nAttr = 'aria-label:' + (on ? 'auth.hide' : 'auth.show');
+      eye.setAttribute('aria-label', t(on ? 'auth.hide' : 'auth.show'));
+    };
+    eye.addEventListener('click', () => { pass.type = pass.type === 'password' ? 'text' : 'password'; syncEye(); pass.focus(); });
+    syncEye();
+
+    // Ошибки под полями: текст по ключу, aria-invalid, при смене языка перерисовываются
+    const setErr = (input, errEl, key) => {
+      input.setAttribute('aria-invalid', String(!!key));
+      errEl.hidden = !key;
+      if (key) { errEl.dataset.i18n = key; errEl.textContent = t(key); } else delete errEl.dataset.i18n;
+      return !key;
+    };
+    const email = $('#email'), form = $('#authForm');
+    const emailKey = () => (!email.value.trim() ? 'auth.errEmail' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) ? '' : 'auth.errEmailBad');
+    email.addEventListener('input', () => { if (email.getAttribute('aria-invalid') === 'true') setErr(email, $('#emailErr'), emailKey()); });
+    pass.addEventListener('input', () => { if (pass.value) setErr(pass, $('#passErr'), ''); });
+
+    const enter = (addr) => { DEMO.login(addr); location.href = 'projects.html'; };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const bad = [];
+      if (!setErr(email, $('#emailErr'), emailKey())) bad.push(email);
+      if (!setErr(pass, $('#passErr'), pass.value ? '' : 'auth.errPass')) bad.push(pass);
+      const offer = $('#offer');
+      if (offer && !setErr(offer, $('#offerErr'), offer.checked ? '' : 'auth.errOffer')) bad.push(offer);
+      if (bad.length) { bad[0].focus(); return; }
+      const addr = email.value.trim();
+      if (kind === 'login') { enter(addr); return; }
+      // Регистрация: экран «Аккаунт создан»
+      DEMO.login(addr);
+      $('#regBox').hidden = true;
+      const done = $('#regDone');
+      done.hidden = false;
+      $('.auth__ok', done).innerHTML = ico('check');
+      const txt = $('#doneText');
+      const fillDone = () => { txt.textContent = t('auth.doneText', { email: addr }); };
+      fillDone(); I18N.onChange(fillDone);
+      $('h1', done).focus();
+    });
+    $('#offer')?.addEventListener('change', (e) => { if (e.target.checked) setErr(e.target, $('#offerErr'), ''); });
+    $('#demoLogin')?.addEventListener('click', () => { email.value = DEMO.user.email; enter(DEMO.user.email); });
+    $('#forgot')?.addEventListener('click', (e) => {
+      const h = $('#forgotHint');
+      h.hidden = !h.hidden;
+      e.currentTarget.setAttribute('aria-expanded', String(!h.hidden));
+    });
+  }
+
+  // Правая панель: три мини-карточки постов, статус идёт «12:00 → публикуется… → ✓ в N соцсетях», и три факта
+  function authSide() {
+    const side = $('[data-auth-side]');
+    if (!side) return;
+    const cards = [
+      { key: 'auth.c1', time: '12:00', nets: ['vk', 'tg', 'ok'] },
+      { key: 'auth.c2', time: '15:30', nets: ['tg', 'pi', 'mm', 'x'] },
+      { key: 'auth.c3', time: '18:00', nets: ['vk', 'ok', 'in', 'tt', 're'] },
+    ];
+    side.setAttribute('aria-label', t('auth.sideAria'));
+    side.dataset.i18nAttr = 'aria-label:auth.sideAria';
+    side.innerHTML = `<div class="aside__in">
+      <h2 data-i18n="auth.sideTitle">${esc(t('auth.sideTitle'))}</h2>
+      <ul class="mini" aria-hidden="true">${cards.map((c, i) => `<li class="mini__card"><span class="mini__thumb mini__thumb--${i}"></span>
+        <span class="mini__body"><b data-i18n="${c.key}">${esc(t(c.key))}</b><span class="nets">${c.nets.map((n) => net(n, 22)).join('')}</span></span>
+        <span class="mini__st" data-st></span></li>`).join('')}</ul>
+      <ul class="facts">${[1, 2, 3].map((i) => `<li><b data-i18n="auth.f${i}">${esc(t('auth.f' + i))}</b><span data-i18n="auth.f${i}s">${esc(t(`auth.f${i}s`))}</span></li>`).join('')}</ul></div>`;
+    const els = $$('.mini__card', side);
+    // Каждая карточка — свой шаг: 0 — время, 1 — публикуется, 2 — опубликовано
+    const step = cards.map((c, i) => (i === 0 ? 1 : i === 1 ? 2 : 0));
+    const draw = (i, anim) => {
+      const st = $('[data-st]', els[i]), s = step[i];
+      st.className = 'mini__st' + (s === 1 ? ' is-run' : s === 2 ? ' is-done' : '');
+      st.innerHTML = s === 0 ? `${ico('clock', 'ico--sm')}<span>${cards[i].time}</span>`
+        : s === 1 ? `<i class="mini__spin"></i><span>${esc(t('auth.publishing'))}</span>`
+        : `${ico('check', 'ico--sm')}<span>${esc(plural(cards[i].nets.length, 'p.inNets'))}</span>`;
+      if (anim) st.animate(reduce.matches ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: reduce.matches ? 350 : 250, easing: 'ease-out' });
+    };
+    cards.forEach((c, i) => draw(i));
+    let k = 0;
+    setInterval(() => {
+      if (document.hidden) return;
+      const i = k++ % cards.length;
+      step[i] = (step[i] + 1) % 3;
+      draw(i, true);
+    }, 2000);
+    I18N.onChange(() => cards.forEach((c, i) => draw(i)));
+  }
+  PAGES.login = () => authPage('login');
+  PAGES.register = () => authPage('register');
+
   /* ---------- Запуск ---------- */
   if (shell) {
     buildShell();
     wireSearch();
   }
   banner();
-  syncTheme();
   PAGES[PAGE]?.();
+  syncTheme();
   I18N.apply();
 
   window.APP = { $, $$, esc, tx, ico, net, netName, toast, demo, dialog, confirmBox, setCrumbs, onSearch: (fn) => searchSubs.push(fn), reduce };

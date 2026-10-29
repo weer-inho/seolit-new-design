@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Регистрация — SEOlit</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<script src="js/i18n.js"></script>
+<script src="../js/nets.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/app.js" defer></script>
+</head>
+<body>
+<div class="auth" data-page="register">
+  <main class="auth__main">
+    <div class="auth__top" data-auth-tools></div>
+    <div class="auth__box" id="regBox">
+      <a class="auth__logo" href="../index.html"><svg aria-hidden="true"><use href="#logo"></use></svg><span>SEOlit</span></a>
+      <h1 data-i18n="auth.regTitle">Регистрация в SEOlit</h1>
+      <p class="auth__sub" data-i18n="auth.regSub">Первые 3 дня — бесплатно. Дальше 800 ₽ в месяц за проект.</p>
+      <form class="auth__form" id="authForm" novalidate>
+        <div class="field">
+          <label for="email" data-i18n="auth.email">Email</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="emailErr">
+          <span class="field__err" id="emailErr" hidden></span>
+        </div>
+        <div class="field">
+          <label for="password" data-i18n="auth.password">Пароль</label>
+          <div class="pass">
+            <input class="input" id="password" name="password" type="password" autocomplete="new-password" aria-describedby="passErr">
+            <button type="button" class="pass__eye" data-eye aria-pressed="false" data-i18n-attr="aria-label:auth.show"></button>
+          </div>
+          <span class="field__err" id="passErr" hidden></span>
+        </div>
+        <div class="field">
+          <!-- TODO: адрес оферты на seolit.ru уточнить у владельца (SPEC 4.2), пока — прайс -->
+          <label class="check"><input type="checkbox" id="offer" aria-describedby="offerErr">
+            <span><span data-i18n="auth.offer">Принимаю</span> <a href="https://seolit.ru/price.html" data-i18n="auth.offerLink">условия оферты</a></span></label>
+          <span class="field__err" id="offerErr" hidden></span>
+        </div>
+        <button class="btn btn--p btn--lg btn--wrap" type="submit" data-i18n="auth.regSubmit">Создать аккаунт и получить 3 дня бесплатно</button>
+      </form>
+      <p class="auth__alt"><span data-i18n="auth.haveAcc">Уже есть аккаунт?</span> <a href="login.html" data-i18n="auth.toLogin">Войти</a></p>
+    </div>
+    <div class="auth__box auth__done" id="regDone" hidden>
+      <span class="empty__ico auth__ok" aria-hidden="true"></span>
+      <h1 data-i18n="auth.doneTitle" tabindex="-1">Аккаунт создан</h1>
+      <p class="auth__sub" id="doneText"></p>
+      <a class="btn btn--p btn--lg" href="projects.html?new=1" data-i18n="auth.doneBtn">Создать первый проект</a>
+    </div>
+  </main>
+  <aside class="auth__side" data-auth-side></aside>
+</div>
+</body>
+</html>

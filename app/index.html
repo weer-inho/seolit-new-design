@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Демо кабинета — SEOlit</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script>
+  // Был демо-вход — сразу в проекты, иначе на вход. ?lang= передаём дальше.
+  (() => {
+    let user = null;
+    try { user = localStorage.getItem('seolit-demo-user'); } catch (e) { /* хранилище недоступно */ }
+    location.replace((user ? 'projects.html' : 'login.html') + location.search);
+  })();
+</script>
+</head>
+<body>
+<p><a href="login.html">Вход в демо SEOlit</a></p>
+</body>
+</html>
