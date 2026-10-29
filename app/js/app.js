@@ -9,6 +9,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const lcFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
   const tx = (o) => (o && typeof o === 'object' ? o[I18N.lang] ?? o.ru : o ?? ''); // текст из { ru, en, kk }
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -211,7 +212,7 @@
     ['nav.gAccount', ['balance', 'referrals', 'api', 'rss']],
   ];
   // В меню «Очередь» — сколько постов ждёт во всех проектах
-  const queueCount = () => DEMO.db.projects.reduce((s, p) => s + (p.q || 0), 0);
+  const queueCount = () => DEMO.stats().plan;
   const navLink = (k, cls = 'side__link') => `<a class="${cls}" href="${href(k)}"${k === active ? ' aria-current="page"' : ''}>${ico(k)}<span data-i18n="nav.${k}">${esc(t('nav.' + k))}</span>${k === 'queue' ? `<span class="count num" data-queue-count>${I18N.num(queueCount())}</span>` : ''}</a>`;
 
   // Крошки: [{ key | text, href }]; последняя — текущая страница
@@ -477,6 +478,145 @@
     }, 2000);
     I18N.onChange(() => cards.forEach((c, i) => draw(i)));
   }
+  /* ---------- Проекты ---------- */
+  const DAY = 864e5;
+  const daysLeft = (p) => Math.ceil((p.until - DEMO.D0) / DAY);
+  // Статус-пилюля проекта: ok / err (N ошибок) / demo / off
+  function projPill(p) {
+    const st = DEMO.stats(p.id);
+    if (p.st === 'err' && st.err) return `<span class="pill pill--err"><i></i>${esc(plural(st.err, 'p.errors'))}</span>`;
+    const cls = { ok: 'ok', err: 'ok', demo: 'info', off: 'off' }[p.st];
+    return `<span class="pill pill--${cls}"><i></i>${esc(t('prj.st.' + (p.st === 'err' ? 'ok' : p.st)))}</span>`;
+  }
+  function projPaid(p) {
+    const d = I18N.date(p.until);
+    return t(p.st === 'demo' ? 'prj.demoUntil' : p.st === 'off' ? 'prj.ended' : 'prj.paidUntil', { date: d });
+  }
+  const projNets = (p, max) => {
+    const more = p.nets.length - max;
+    return `<span class="nets" role="list" aria-label="${esc(t('prj.netsAria'))}">${p.nets.slice(0, max).map((n) => `<span role="listitem">${net(n, 28, false)}</span>`).join('')}${more > 0 ? `<span class="nets__more" role="listitem">${esc(t('prj.netsMore', { n: more }))}</span>` : ''}</span>`;
+  };
+
+  PAGES.projects = () => {
+    const main = $('#main');
+    let query = (q.get('q') || '').toLowerCase();
+    if (query) $('#topSearch').value = q.get('q');
+
+    // Что требует внимания: ошибки публикации (первый приёмник с ошибкой) и демо, которое кончается
+    function alerts() {
+      const list = [];
+      DEMO.db.projects.filter((p) => p.own).forEach((p) => {
+        const st = DEMO.stats(p.id);
+        if (st.err) {
+          const r = DEMO.db.receivers.find((x) => x.p === p.id && x.st === 'err');
+          list.push({ net: r ? r.net : p.nets[0], text: t('prj.errAlert', { name: tx(p.name), net: netName(r ? r.net : p.nets[0]), text: lcFirst(tx(r ? r.meta : '')) }),
+            btn: `<a class="btn btn--sm btn--line" href="project.html?id=${p.id}&filter=err">${esc(t('prj.reconnect'))}</a>` });
+        }
+        const left = daysLeft(p);
+        if (p.st === 'demo' && left >= 0 && left <= 1) {
+          list.push({ net: p.nets[0], text: t('prj.demoEnds', { name: tx(p.name), when: t(left ? 'prj.demoEnds1' : 'prj.demoEnds0') }),
+            btn: `<button type="button" class="btn btn--sm btn--line" data-pay>${esc(t('prj.pay'))}</button>` });
+        }
+      });
+      return list;
+    }
+
+    function card(p) {
+      const st = DEMO.stats(p.id), left = daysLeft(p);
+      const pct = Math.max(0, Math.min(100, Math.round((left / p.period) * 100)));
+      const cta = p.st === 'demo' ? 'prj.pay' : p.st === 'off' ? 'prj.renew' : '';
+      const leftTxt = left > 0 ? plural(left, 'p.days') : '';
+      return `<article class="card pcard pcard--${p.st}">
+        <div class="pcard__head"><div class="pcard__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pcard__site">${esc(p.site || '')}</span></div>${projPill(p)}</div>
+        <div class="pcard__nets d-only">${projNets(p, 6)}</div>
+        <div class="pcard__nets m-only">${projNets(p, 5)}<span class="pcard__q"><b class="num">${I18N.num(st.plan)}</b> ${esc(t('prj.inQueue'))}</span></div>
+        <dl class="pcard__nums d-only">
+          <div><dt>${esc(t('prj.inQueue'))}</dt><dd class="num">${I18N.num(st.plan)}</dd></div>
+          <div><dt>${esc(t('prj.paused'))}</dt><dd class="num">${I18N.num(st.paused)}</dd></div>
+          <div${st.err ? ' class="is-err"' : ''}><dt>${esc(plural(st.err, 'p.errWord'))}</dt><dd class="num">${I18N.num(st.err)}</dd></div>
+        </dl>
+        <div class="pcard__paid"><span>${esc(projPaid(p))}</span><b class="d-only${p.st === 'demo' ? ' is-warn' : ''}">${esc(leftTxt)}</b></div>
+        <div class="bar d-only" aria-hidden="true"><span class="bar--${p.st}" style="width:${pct}%"></span></div>
+        <div class="pcard__acts d-only">
+          ${cta ? `<button type="button" class="btn btn--p btn--sm" data-pay="${cta}">${esc(t(cta))}</button>` : ''}
+          <a class="btn btn--sm btn--line" href="project.html?id=${p.id}">${esc(t('prj.open'))}</a>
+          <a class="btn btn--sm btn--q" href="post.html?project=${p.id}">${esc(t('prj.post'))}</a>
+        </div>
+      </article>`;
+    }
+
+    function render() {
+      const own = DEMO.db.projects.filter((p) => p.own), shared = DEMO.db.projects.filter((p) => !p.own);
+      const match = (p) => !query || [tx(p.name), p.site].some((s) => String(s || '').toLowerCase().includes(query));
+      const ownF = own.filter(match), sharedF = shared.filter(match);
+      const al = alerts();
+      const none = query && !ownF.length && !sharedF.length;
+      main.innerHTML = `
+        <div class="page__head d-only"><div><h1>${esc(t('prj.title'))}</h1>
+          <p>${esc(plural(own.length, 'p.own'))} · ${esc(plural(shared.length, 'p.sharedYou'))}</p></div>
+          <button type="button" class="btn" data-new>${ico('plus', 'ico--sm')}${esc(t('prj.newProject'))}</button></div>
+        <section class="card mbal m-only"><div><span class="lbl">${esc(t('bal.lbl'))}</span><b class="num">${money(DEMO.user.balance)}</b><span class="muted">${esc(t('bal.enough'))}</span></div>
+          <a class="btn btn--p" href="soon.html?s=balance">${esc(t('bal.topup'))}</a></section>
+        ${al.length && !query ? `<section class="attn" aria-labelledby="attnT">
+          <h2 class="attn__t d-only" id="attnT">${ico('alert', 'ico--sm')}${esc(t('prj.attention'))} · ${al.length}</h2>
+          <button type="button" class="attn__sum m-only" aria-expanded="false" aria-controls="attnList"><span class="attn__ico">${ico('alert')}</span>
+            <span><b>${esc(t('prj.attentionN', { n: al.length }))}</b><span>${esc(al[0].text)}</span></span>${ico('chev')}</button>
+          <ul class="attn__list" id="attnList">${al.map((a) => `<li>${net(a.net, 28)}<span>${esc(a.text)}</span>${a.btn}</li>`).join('')}</ul></section>` : ''}
+        ${none ? `<section class="card empty"><span class="empty__ico">${ico('search')}</span><h3>${esc(t('prj.searchNone', { q: query }))}</h3>
+          <p>${esc(t('prj.searchHint'))}</p><button type="button" class="btn" data-clear>${esc(t('prj.searchReset'))}</button></section>` : ''}
+        ${ownF.length || !query ? `<section aria-labelledby="mineT"><h2 class="sec-t" id="mineT">${esc(t('prj.mine'))}<span class="sec-t__n">${ownF.length}</span></h2>
+          <div class="pgrid">${ownF.map(card).join('')}
+          ${query ? '' : `<button type="button" class="pnew" data-new><span class="pnew__plus">${ico('plus')}</span><b>${esc(t('prj.newProject'))}</b><span class="d-only">${esc(t('prj.newHint'))}</span></button>`}</div></section>` : ''}
+        ${sharedF.length ? `<section class="d-only" aria-labelledby="sharedT"><h2 class="sec-t" id="sharedT">${esc(t('prj.shared'))}<span class="sec-t__n">${sharedF.length}</span></h2>
+          ${sharedF.map((p) => { const st = DEMO.stats(p.id); return `<article class="card prow">
+            <div class="prow__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pill pill--info">${esc(t('prj.role.' + p.role))}</span>
+              <span class="prow__owner">${esc(t('prj.owner', { email: p.owner }))}</span></div>
+            <div class="prow__nums"><span><b class="num">${I18N.num(st.plan)}</b> ${esc(t('prj.inQueue'))}</span><span><b class="num">${I18N.num(st.paused)}</b> ${esc(t('prj.paused'))}</span>
+              <span${st.err ? ' class="is-err"' : ''}><b class="num">${I18N.num(st.err)}</b> ${esc(plural(st.err, 'p.errWord'))}</span></div>
+            <a class="btn btn--sm btn--line" href="project.html?id=${p.id}">${esc(t('prj.open'))}</a></article>`; }).join('')}</section>` : ''}
+        ${query ? '' : `<section class="card news d-only"><span class="pill pill--info">${esc(t('prj.newsLbl'))}</span>
+          <div class="news__list">${DEMO.news.map((n) => `<span><b>${esc(tx(n.title))}</b> <time class="muted">${esc(I18N.date(n.at))}</time></span>`).join('')}</div>
+          <a class="news__all" href="https://seolit.ru/blog.html">${esc(t('prj.allNews'))} →</a></section>
+        <p class="tip d-only">${esc(t('prj.tip'))}</p>`}`;
+    }
+
+    // Окно «Новый проект»
+    function newProject() {
+      const d = dialog({ titleKey: 'prj.newTitle', html: `<form class="modal__body" novalidate>
+        <p class="muted">${esc(t('prj.newText'))}</p>
+        <div class="field"><label for="npName">${esc(t('prj.newName'))}</label><input class="input" id="npName" autocomplete="off" placeholder="${esc(t('prj.newNamePh'))}" aria-describedby="npErr"><span class="field__err" id="npErr" hidden>${esc(t('prj.newErr'))}</span></div>
+        <div class="field"><label for="npSite">${esc(t('prj.newSite'))}</label><input class="input" id="npSite" inputmode="url" autocomplete="off" placeholder="${esc(t('prj.newSitePh'))}" aria-describedby="npHint"><span class="field__hint" id="npHint">${esc(t('prj.newSiteHint'))}</span></div>
+        <div class="modal__foot modal__foot--in"><button type="button" class="btn" data-close>${esc(t('c.cancel'))}</button><button type="submit" class="btn btn--p">${esc(t('prj.create'))}</button></div></form>` });
+      const form = $('form', d.box), name = $('#npName', d.box);
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const v = name.value.trim();
+        name.setAttribute('aria-invalid', String(!v)); $('#npErr', d.box).hidden = !!v;
+        if (!v) { name.focus(); return; }
+        const site = $('#npSite', d.box).value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+        DEMO.db.projects.splice(DEMO.db.projects.filter((p) => p.own).length, 0,
+          { id: DEMO.uid('p'), name: { ru: v, en: v, kk: v }, site, st: 'demo', nets: [], published: 0, until: DEMO.at(3), period: 3, own: true });
+        DEMO.save();
+        d.close();
+        render();
+        toast(t('prj.created', { name: v }));
+      });
+    }
+
+    main.addEventListener('click', (e) => {
+      if (e.target.closest('[data-new]')) newProject();
+      else if (e.target.closest('[data-pay]')) demo('prj.payToast');
+      else if (e.target.closest('[data-clear]')) { query = ''; $('#topSearch').value = ''; render(); }
+      const sum = e.target.closest('.attn__sum');
+      if (sum) { const open = sum.getAttribute('aria-expanded') !== 'true'; sum.setAttribute('aria-expanded', String(open)); sum.parentElement.classList.toggle('is-open', open); }
+    });
+    searchSubs.push((v) => { query = v; render(); });
+    I18N.onChange(render);
+    render();
+    // ?new=1 — сразу окно «Новый проект» (после регистрации); из адреса убираем, чтобы не открылось снова
+    if (q.get('new')) { const u = new URL(location.href); u.searchParams.delete('new'); history.replaceState(null, '', u); newProject(); }
+  };
+
   PAGES.login = () => authPage('login');
   PAGES.register = () => authPage('register');
 

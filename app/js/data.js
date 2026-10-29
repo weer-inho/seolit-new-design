@@ -13,19 +13,20 @@
   const user = { email: 'anna@example.ru', balance: 4300, months: 5 };
 
   /* ---------- Проекты: 4 своих + 1 чужой ---------- */
-  // st: ok — работает, err — есть ошибки, demo — пробный период, off — отключён. until — оплачен до, period — дней в периоде.
+  // st: ok — работает, err — есть ошибки, demo — пробный период, off — отключён. until — оплачен до, period — дней в периоде,
+  // published — сколько постов вышло раньше (к ним добавляются опубликованные из очереди). Очередь, пауза и ошибки считаются по постам.
   const projects = [
     { id: 'shop', name: L('Магазин «Пример»', 'Example Store', '«Мысал» дүкені'), site: 'example.ru', st: 'ok',
-      nets: ['vk', 'tg', 'ok', 'mm', 'pi', 'in', 'x', 'tu', 'lj', 'tt', 'bl', 're', 'max', 'ig'], q: 28, pause: 3, err: 0,
+      nets: ['vk', 'tg', 'ok', 'mm', 'pi', 'in', 'x', 'tu', 'lj', 'tt', 'bl', 're', 'max', 'ig'], published: 1201,
       until: at(20), period: 30, own: true },
     { id: 'news', name: L('Новости района', 'Neighborhood News', 'Аудан жаңалықтары'), site: 'news-rayon.ru', st: 'err',
-      nets: ['vk', 'tg', 'x'], q: 14, pause: 0, err: 2, until: at(86), period: 93, own: true },
+      nets: ['vk', 'tg', 'x'], published: 640, until: at(86), period: 93, own: true },
     { id: 'travel', name: L('Блог о путешествиях', 'Travel Blog', 'Саяхат блогы'), site: 'travel-blog.ru', st: 'demo',
-      nets: ['tg', 'pi'], q: 0, pause: 0, err: 0, until: at(1), period: 3, own: true },
+      nets: ['tg', 'pi'], published: 0, until: at(1), period: 3, own: true },
     { id: 'cook', name: L('Кулинарный канал', 'Cooking Channel', 'Аспаздық арна'), site: 'cook.ru', st: 'off',
-      nets: ['vk', 'ok'], q: 0, pause: 12, err: 0, until: at(-14), period: 30, own: true },
+      nets: ['vk', 'ok'], published: 312, until: at(-14), period: 30, own: true },
     { id: 'signal', name: L('Агентство «Сигнал»', 'Signal Agency', '«Сигнал» агенттігі'), site: 'signal-agency.ru', st: 'err',
-      nets: ['vk', 'tg', 'ok', 'in'], q: 36, pause: 76, err: 6, until: at(41), period: 30, own: false,
+      nets: ['vk', 'tg', 'ok', 'in'], published: 2210, until: at(41), period: 30, own: false,
       role: 'editor', owner: 'ivan@example.ru' },
   ];
 
@@ -120,6 +121,38 @@
     P(19, 'shop', -1, 16, 10, 'vk', ['tg', 'x'], 0, L('Отзыв покупателя', 'Customer review', 'Сатып алушы пікірі'), L('«Доставили за день, всё целое»', '“Delivered in a day, all intact”', '«Бір күнде жеткізді, бәрі бүтін»'), 'done'),
     P(20, 'news', -1, 19, 30, 'rss', ['tg', 'vk'], 0, L('Ярмарка в субботу', 'Saturday fair', 'Сенбідегі жәрмеңке'), L('Фермерские продукты на площади с 10:00', 'Farm produce on the square from 10:00', 'Алаңда 10:00-ден фермерлік өнімдер'), 'done'),
   ];
+  // Дописываем очередь до чисел на карточках проектов: [в очереди, на паузе, с ошибкой]. Тексты — по кругу из пула проекта.
+  const POOL = {
+    cook: [
+      [L('Суп-пюре из тыквы за 30 минут', 'Pumpkin soup in 30 minutes', '30 минутта асқабақ сорпасы'), L('Пошаговый рецепт с фото', 'Step-by-step recipe with photos', 'Суреттері бар қадамдық рецепт')],
+      [L('Что приготовить на ужин', 'What to cook for dinner', 'Кешкі асқа не дайындау керек'), L('Пять быстрых блюд из того, что есть дома', 'Five quick dishes from what you have at home', 'Үйдегі азық-түліктен бес жылдам тағам')],
+      [L('Секреты пышных блинов', 'Secrets of fluffy pancakes', 'Үлпілдек құймақтың құпиялары'), L('Тесто, сковорода и температура', 'Batter, pan and heat', 'Қамыр, таба және температура')],
+    ],
+    signal: [
+      [L('Как вести соцсети клиента без хаоса', 'Running client social media without chaos', 'Клиенттің әлеуметтік желілерін ретімен жүргізу'), L('Наш чек-лист для запуска', 'Our launch checklist', 'Іске қосуға арналған чек-парағымыз')],
+      [L('Дайджест агентства за неделю', 'Agency weekly digest', 'Агенттіктің апталық дайджесті'), L('Главное из блога и кейсов', 'Highlights from the blog and case studies', 'Блог пен кейстердің ең маңыздысы')],
+      [L('Вакансия: SMM-менеджер', 'Job opening: SMM manager', 'Бос орын: SMM-менеджер'), L('Ищем в команду человека с опытом от года', 'Looking for someone with a year of experience', 'Бір жылдан астам тәжірибесі бар маман іздейміз')],
+    ],
+  };
+  const NEED = { shop: [28, 3, 0], news: [14, 0, 2], cook: [0, 12, 0], signal: [36, 76, 6] };
+  const DESTS = { shop: [['vk', 'tg', 'ok'], ['vk', 'tg'], ['tg', 'pi', 'mm']], news: [['tg', 'vk'], ['tg', 'vk', 'x']], cook: [['vk', 'ok']], signal: [['vk', 'tg', 'in'], ['vk', 'tg']] };
+  const ERR = {
+    news: L('ВКонтакте: нужна повторная авторизация', 'VK: sign in again to keep posting', 'ВКонтакте: қайта авторизация қажет'),
+    signal: L('Telegram: бота удалили из канала', 'Telegram: the bot was removed from the channel', 'Telegram: бот арнадан шығарылды'),
+  };
+  let nid = posts.length + 1;
+  Object.entries(NEED).forEach(([p, need]) => {
+    const pool = POOL[p] || posts.filter((x) => x.p === p).map((x) => [x.title, x.text]);
+    ['plan', 'paused', 'err'].forEach((st, j) => {
+      for (let have = posts.filter((x) => x.p === p && x.st === st).length, k = 0; have < need[j]; have++, k++) {
+        const [title, text] = pool[k % pool.length];
+        const d = st === 'plan' ? 3 + (k % 4) : st === 'err' ? 0 : 1 + (k % 6);
+        const post = P(nid++, p, d, st === 'err' ? 8 + k : 9 + ((k * 3) % 12), [0, 15, 30, 45][k % 4], k % 3 ? 'rss' : 'man', DESTS[p][k % DESTS[p].length], 0, title, text, st);
+        if (st === 'err') post.err = ERR[p];
+        posts.push(post);
+      }
+    });
+  });
 
   /* ---------- Новости сервиса ---------- */
   const news = [
@@ -128,11 +161,11 @@
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 1, projects, sources, receivers, posts, publishedBase: 1184, nextId: 100 });
+  const seed = () => ({ v: 2, projects, sources, receivers, posts, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 1) db = clone(seed());
+  if (!db || db.v !== 2) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };
@@ -149,5 +182,12 @@
     get db() { return db; },
     save, reset, uid, login, logout, loggedIn,
     project: (id) => db.projects.find((p) => p.id === id),
+    // Счётчики постов проекта (или всех, если id не задан): plan, paused, err, done (вместе с вышедшими раньше)
+    stats(id) {
+      const c = { plan: 0, paused: 0, err: 0, done: 0 };
+      db.posts.forEach((x) => { if (!id || x.p === id) c[x.st]++; });
+      db.projects.forEach((p) => { if (!id || p.id === id) c.done += p.published || 0; });
+      return c;
+    },
   };
 })();
