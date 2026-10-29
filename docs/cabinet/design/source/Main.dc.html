@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>SEOlit — проекты</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--ok-bg:#E3F4EC;--err:#C42D35;--err-bg:#FCEAEB;--warn:#9A5206;--warn-bg:#FCF1DF;--shadow:0 1px 2px rgba(13,21,38,.05),0 10px 30px -14px rgba(13,21,38,.22);--overlay:rgba(13,21,38,.5);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--ok-bg:rgba(61,219,160,.12);--err:#FF8A8F;--err-bg:rgba(255,138,143,.12);--warn:#FBC453;--warn-bg:rgba(251,196,83,.12);--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);--overlay:rgba(0,0,0,.62)}
+.app a{color:var(--atext)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1.2 Manrope,system-ui,sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:9px}
+.btn.q{border-color:transparent;background:transparent;color:var(--muted)}
+.btn:hover{filter:brightness(1.06)}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--ok-bg);color:var(--ok)}.err{background:var(--err-bg);color:var(--err)}.warn{background:var(--warn-bg);color:var(--warn)}.info{background:var(--soft);color:var(--atext)}.off{background:var(--soft);color:var(--muted)}
+.net{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:9.5px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.bar{height:6px;border-radius:999px;background:var(--soft);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:999px}
+</style>
+</helmet>
+<div class="app {{themeCls}}" style="display: flex; flex-wrap: wrap; min-height: 1120px">
+<dc-import name="Sidebar" lang="{{lang}}" active="projects" hint-size="248px,1120px"></dc-import>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<dc-import name="TopBar" lang="{{lang}}" theme="{{theme}}" crumb-a="{{t.title}}" action="{{t.newPost}}" action-href="Post.dc.html" on-lang="{{setLang}}" on-theme="{{toggleTheme}}" hint-size="100%,64px"></dc-import>
+<main style="width: 100%; max-width: 1180px; box-sizing: border-box; padding: 28px; display: flex; flex-direction: column; gap: 26px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{t.title}}</h1>
+<span class="lbl" style="font-size: 14px">{{t.subtitle}}</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" class="btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{t.newProject}}</button>
+</div>
+</div>
+
+<section aria-label="{{t.attention}}" class="card" style="padding: 6px 18px; border-color: var(--warn)">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 0 8px; color: var(--warn); font-weight: 800; font-size: 14px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 17h-19z"></path><path d="M12 10v4M12 17.5v.01"></path></svg>
+{{t.attention}} · 2
+</div>
+<sc-for list="{{alerts}}" as="a" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line)">
+<span class="net" style="background: {{a.c}}">{{a.s}}</span>
+<span style="flex: 1 1 260px; min-width: 0; font-size: 14px; font-weight: 600">{{a.text}}</span>
+<a href="{{a.href}}" class="btn sm">{{a.btn}}</a>
+</div>
+</sc-for>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 800">{{t.mine}} <span class="lbl" style="font-size: 14px">4</span></h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px">
+<sc-for list="{{projects}}" as="p" hint-placeholder-count="4">
+<article class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Project.dc.html" style="font-size: 17px; font-weight: 800; color: var(--fg); text-decoration: none">{{p.name}}</a>
+<span class="lbl">{{p.site}}</span>
+</div>
+<span class="pill {{p.cls}}"><i></i>{{p.st}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 5px">
+<sc-for list="{{p.nets}}" as="n" hint-placeholder-count="5"><span class="net" style="background: {{n.c}}" title="{{n.n}}">{{n.s}}</span></sc-for>
+<span class="lbl" style="margin-left: 4px">{{p.more}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">{{p.q}}</b><span class="lbl">{{t.inQueue}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">{{p.pause}}</b><span class="lbl">{{t.paused}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums; color: {{p.errColor}}">{{p.err}}</b><span class="lbl">{{t.errors}}</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span class="lbl">{{p.paid}}</span><span class="lbl" style="color: {{p.leftColor}}">{{p.left}}</span></div>
+<div class="bar"><span style="width: {{p.pct}}%; background: {{p.barColor}}"></span></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<sc-if value="{{p.hasCta}}" hint-placeholder-val="{{ false }}"><button type="button" class="btn sm p">{{p.cta}}</button></sc-if>
+<a href="Project.dc.html" class="btn sm">{{t.open}}</a>
+<a href="Post.dc.html" class="btn sm q">{{t.post}}</a>
+</div>
+</article>
+</sc-for>
+<button type="button" style="min-height: 280px; border-radius: 16px; border: 2px dashed var(--line); background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font: 700 15px Manrope, system-ui, sans-serif; cursor: pointer; padding: 20px">
+<span style="width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+<span style="color: var(--fg)">{{t.newProject}}</span>
+<span class="lbl" style="max-width: 220px; text-align: center; line-height: 1.45">{{t.newProjectHint}}</span>
+</button>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 800">{{t.shared}} <span class="lbl" style="font-size: 14px">1</span></h2>
+<article class="card" style="padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><b style="font-size: 16px">{{t.sharedName}}</b><span class="pill info">{{t.role}}</span></div>
+<span class="lbl">{{t.owner}}</span>
+</div>
+<div style="display: flex; gap: 24px; font-size: 14px; font-weight: 700">
+<span><b style="font-size: 18px">36</b> <span class="lbl">{{t.inQueue}}</span></span>
+<span><b style="font-size: 18px">76</b> <span class="lbl">{{t.paused}}</span></span>
+<span><b style="font-size: 18px; color: var(--err)">6</b> <span class="lbl">{{t.errors}}</span></span>
+</div>
+<a href="Project.dc.html" class="btn sm">{{t.open}}</a>
+</article>
+</section>
+
+<section class="card" style="padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+<span class="pill info">{{t.newsLbl}}</span>
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<a href="#" style="font-size: 14px; font-weight: 700; color: var(--fg); text-decoration: none">{{t.news1}}</a>
+<span class="lbl">27.10.2026 · {{t.news2}} · 23.10.2026</span>
+</div>
+<a href="#" style="font-size: 14px; font-weight: 700; text-decoration: none">{{t.allNews}} →</a>
+</section>
+
+<p class="lbl" style="margin: 0; font-size: 13px; line-height: 1.5; max-width: 70ch">{{t.tip}}</p>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"ru"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = {}; }
+  renderVals() {
+    const lang = this.state.lang || this.props.lang || 'ru';
+    const theme = this.state.theme || this.props.theme || 'light';
+    const T = {
+      ru: { title: 'Проекты', subtitle: '4 своих проекта · 1 доступен вам', newPost: 'Новый пост', newProject: 'Новый проект', newProjectHint: '800 ₽ за 30 дней. По 1 аккаунту каждой соцсети и любое число лент', attention: 'Требует внимания', mine: 'Мои проекты', shared: 'Доступны мне', inQueue: 'в очереди', paused: 'на паузе', errors: 'ошибок', open: 'Открыть', post: 'Новый пост', sharedName: 'Агентство «Сигнал»', role: 'Редактор', owner: 'Владелец: ivan@example.ru', newsLbl: 'Новое в SEOlit', news1: 'Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь', news2: 'MAX.RU: каналы, чаты и собственный бот', allNews: 'Все новости', tip: 'Совет: заводите отдельный проект для каждого сайта — так проще следить за очередью и оплатой.' },
+      en: { title: 'Projects', subtitle: '4 own projects · 1 shared with you', newPost: 'New post', newProject: 'New project', newProjectHint: '800 ₽ per 30 days. One account in every network and unlimited feeds', attention: 'Needs attention', mine: 'My projects', shared: 'Shared with me', inQueue: 'queued', paused: 'paused', errors: 'errors', open: 'Open', post: 'New post', sharedName: 'Signal Agency', role: 'Editor', owner: 'Owner: ivan@example.ru', newsLbl: 'What’s new', news1: 'This year in SEOlit: AI co-author, templates, queue', news2: 'MAX.RU: channels, chats and your own bot', allNews: 'All news', tip: 'Tip: create a separate project for each website — queues and billing stay easy to follow.' },
+      kk: { title: 'Жобалар', subtitle: '4 жеке жоба · 1 сізге қолжетімді', newPost: 'Жаңа жазба', newProject: 'Жаңа жоба', newProjectHint: '30 күнге 800 ₽. Әр желіде 1 аккаунт және кез келген таспа саны', attention: 'Назар аударыңыз', mine: 'Менің жобаларым', shared: 'Маған қолжетімді', inQueue: 'кезекте', paused: 'кідірісте', errors: 'қате', open: 'Ашу', post: 'Жаңа жазба', sharedName: '«Сигнал» агенттігі', role: 'Редактор', owner: 'Иесі: ivan@example.ru', newsLbl: 'SEOlit жаңалығы', news1: 'Бір жылда не қосылды: ЖИ-серіктес, үлгілер, кезек', news2: 'MAX.RU: арналар, чаттар және жеке бот', allNews: 'Барлық жаңалықтар', tip: 'Кеңес: әр сайтқа жеке жоба ашыңыз — кезек пен төлемді бақылау оңайырақ.' }
+    };
+    const N = { vk: ['ВК', '#0060D1', 'ВКонтакте'], tg: ['TG', '#1B7DB0', 'Telegram'], ok: ['OK', '#C2560A', 'Одноклассники'], mm: ['ММ', '#1268B3', 'Мой Мир'], pi: ['Pi', '#C8001E', 'Pinterest'], li: ['In', '#0A66C2', 'LinkedIn'], x: ['X', '#16181C', 'X'], mx: ['MX', '#5B3FD8', 'Max.ru'] };
+    const nets = (keys) => keys.map((k) => ({ s: N[k][0], c: N[k][1], n: N[k][2] }));
+    const L = {
+      ru: [
+        ['Магазин «Пример»', 'Работает', 'Оплачен до 18.11.2026', '20 дней', '', '+6 соцсетей'],
+        ['Новости района', '2 ошибки', 'Оплачен до 23.01.2027', '86 дней', '', ''],
+        ['Блог о путешествиях', 'Демо', 'Демо до 30.10.2026', '1 день', 'Оплатить 800 ₽', ''],
+        ['Кулинарный канал', 'Отключён', 'Закончился 15.10.2026', '', 'Продлить за 800 ₽', '']
+      ],
+      en: [
+        ['Example Store', 'Active', 'Paid until Nov 18, 2026', '20 days left', '', '+6 networks'],
+        ['Neighborhood News', '2 errors', 'Paid until Jan 23, 2027', '86 days left', '', ''],
+        ['Travel Blog', 'Trial', 'Trial until Oct 30, 2026', '1 day left', 'Pay 800 ₽', ''],
+        ['Cooking Channel', 'Disabled', 'Expired Oct 15, 2026', '', 'Renew for 800 ₽', '']
+      ],
+      kk: [
+        ['«Мысал» дүкені', 'Жұмыс істеп тұр', '18.11.2026 дейін төленген', '20 күн қалды', '', '+6 желі'],
+        ['Аудан жаңалықтары', '2 қате', '23.01.2027 дейін төленген', '86 күн қалды', '', ''],
+        ['Саяхат блогы', 'Демо', 'Демо 30.10.2026 дейін', '1 күн қалды', '800 ₽ төлеу', ''],
+        ['Аспаздық арна', 'Өшірулі', '15.10.2026 аяқталды', '', '800 ₽-ге ұзарту', '']
+      ]
+    }[T[lang] ? lang : 'ru'];
+    const meta = [
+      { site: 'example.ru', cls: 'ok', nets: nets(['vk', 'tg', 'ok', 'mm', 'pi', 'li']), q: 28, pause: 3, err: 0, pct: 33, bar: 'var(--accent)', leftColor: 'var(--muted)' },
+      { site: 'news-rayon.ru', cls: 'err', nets: nets(['vk', 'tg', 'x']), q: 14, pause: 0, err: 2, pct: 92, bar: 'var(--accent)', leftColor: 'var(--muted)' },
+      { site: 'travel-blog.ru', cls: 'info', nets: nets(['tg', 'pi']), q: 0, pause: 0, err: 0, pct: 8, bar: 'var(--warn)', leftColor: 'var(--warn)' },
+      { site: 'cook.ru', cls: 'off', nets: nets(['vk', 'ok']), q: 0, pause: 12, err: 0, pct: 0, bar: 'var(--muted)', leftColor: 'var(--muted)' }
+    ];
+    const projects = meta.map((m, i) => ({
+      ...m, name: L[i][0], st: L[i][1], paid: L[i][2], left: L[i][3], cta: L[i][4], hasCta: !!L[i][4], more: L[i][5],
+      errColor: m.err > 0 ? 'var(--err)' : 'var(--fg)', barColor: m.bar
+    }));
+    const A = {
+      ru: [['Новости района · ВКонтакте: нужна повторная авторизация', 'Переподключить'], ['Блог о путешествиях: демо закончится завтра', 'Оплатить 800 ₽']],
+      en: [['Neighborhood News · VK: sign in again to keep posting', 'Reconnect'], ['Travel Blog: trial ends tomorrow', 'Pay 800 ₽']],
+      kk: [['Аудан жаңалықтары · ВКонтакте: қайта авторизация қажет', 'Қайта қосу'], ['Саяхат блогы: демо ертең аяқталады', '800 ₽ төлеу']]
+    }[T[lang] ? lang : 'ru'];
+    const alerts = [
+      { s: 'ВК', c: '#0060D1', text: A[0][0], btn: A[0][1], href: 'Project.dc.html' },
+      { s: 'TG', c: '#1B7DB0', text: A[1][0], btn: A[1][1], href: '#' }
+    ];
+    return {
+      lang, theme, t: T[lang] || T.ru,
+      themeCls: theme === 'dark' ? 'dark' : '',
+      projects, alerts,
+      setLang: (l) => this.setState({ lang: l }),
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' })
+    };
+  }
+}
+</script>
+</body>
+</html>

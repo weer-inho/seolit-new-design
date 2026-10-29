@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Меню кабинета SEOlit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<nav aria-label="{{t.aria}}" style="width: 248px; min-height: 1000px; height: 100%; box-sizing: border-box; padding: 16px 14px 20px; display: flex; flex-direction: column; gap: 20px; background: var(--surface, #FFFFFF); border-right: 1px solid var(--line, #E2E7F0); font-family: Manrope, system-ui, sans-serif; color: var(--fg, #0D1526)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 6px 8px; text-decoration: none; color: var(--fg, #0D1526)">
+<svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" style="fill: var(--accent, #2563EB)"></circle><circle cx="24" cy="24" r="12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"></circle><path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path><circle cx="24" cy="24" r="4.5" fill="#fff"></circle><circle cx="24" cy="12" r="3.5" fill="#fff"></circle><circle cx="34.4" cy="30" r="3.5" fill="#fff"></circle><circle cx="13.6" cy="30" r="3.5" fill="#fff"></circle></svg>
+<span style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em">SEOlit</span>
+</a>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">{{t.gWork}}</span>
+<a href="Main.dc.html" style="{{s.projects}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2"></rect><rect x="14" y="4" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>{{t.projects}}</a>
+<a href="Queue.dc.html" style="{{s.queue}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg>{{t.queue}}<span style="margin-left: auto; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--soft, #EDF1F8); color: var(--muted, #566176)">78</span></a>
+<a href="#" style="{{s.templates}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"></path></svg>{{t.templates}}</a>
+<a href="#" style="{{s.schedules}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>{{t.schedules}}</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">{{t.gLook}}</span>
+<a href="#" style="{{s.watermarks}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M7 16l4-5 3 4 2-2 3 3"></path></svg>{{t.watermarks}}</a>
+<a href="#" style="{{s.autoimg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="8" height="8" rx="2"></rect><path d="M14 7h7M14 11h7M3 17h18"></path></svg>{{t.autoimg}}</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">{{t.gAccount}}</span>
+<a href="#" style="{{s.balance}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M3 10h18M7 15h4"></path></svg>{{t.balance}}</a>
+<a href="#" style="{{s.referrals}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M18 8v6M15 11h6"></path></svg>{{t.referrals}}</a>
+<a href="#" style="{{s.api}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3M13 6l-2 12"></path></svg>API</a>
+<a href="#" style="{{s.rss}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="1.5"></circle><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"></path></svg>{{t.rss}}</a>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+<div style="padding: 14px; border-radius: 14px; background: var(--soft, #EDF1F8); display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: var(--muted, #566176)">{{t.balanceLbl}}</span>
+<b style="font-size: 22px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">4 300 ₽</b>
+<span style="font-size: 12px; line-height: 1.4; color: var(--muted, #566176)">{{t.enough}}</span>
+<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 10px; background: var(--accent, #2563EB); color: #FFFFFF; font-size: 13px; font-weight: 800; text-decoration: none">{{t.topup}}</a>
+</div>
+<a href="#" style="{{s.help}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"></path></svg>{{t.help}}</a>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"ru"},"active":{"editor":"enum","options":["projects","queue","templates","schedules","watermarks","autoimg","balance","referrals","api","rss","help"],"default":"projects"},"$preview":{"width":248,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const T = {
+      ru: { aria: 'Разделы кабинета', gWork: 'Работа', gLook: 'Оформление', gAccount: 'Аккаунт', projects: 'Проекты', queue: 'Очередь', templates: 'Шаблоны', schedules: 'Расписания', watermarks: 'Водяные знаки', autoimg: 'Автокартинки', balance: 'Баланс', referrals: 'Рефералы', rss: 'RSS-тест', help: 'Помощь и инструкции', balanceLbl: 'Баланс', enough: 'Хватит примерно на 5 месяцев', topup: 'Пополнить' },
+      en: { aria: 'Account sections', gWork: 'Work', gLook: 'Design', gAccount: 'Account', projects: 'Projects', queue: 'Queue', templates: 'Templates', schedules: 'Schedules', watermarks: 'Watermarks', autoimg: 'Auto images', balance: 'Balance', referrals: 'Referrals', rss: 'RSS check', help: 'Help & guides', balanceLbl: 'Balance', enough: 'Enough for about 5 months', topup: 'Top up' },
+      kk: { aria: 'Кабинет бөлімдері', gWork: 'Жұмыс', gLook: 'Безендіру', gAccount: 'Аккаунт', projects: 'Жобалар', queue: 'Кезек', templates: 'Үлгілер', schedules: 'Кестелер', watermarks: 'Су таңбалары', autoimg: 'Автосуреттер', balance: 'Баланс', referrals: 'Рефералдар', rss: 'RSS-тексеру', help: 'Көмек және нұсқаулар', balanceLbl: 'Баланс', enough: 'Шамамен 5 айға жетеді', topup: 'Толтыру' }
+    };
+    const lang = T[this.props.lang] ? this.props.lang : 'ru';
+    const active = this.props.active || 'projects';
+    const base = 'display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; ';
+    const on = base + 'background: var(--soft, #EDF1F8); color: var(--atext, #1D4ED8)';
+    const off = base + 'background: transparent; color: var(--muted, #566176)';
+    const keys = ['projects', 'queue', 'templates', 'schedules', 'watermarks', 'autoimg', 'balance', 'referrals', 'api', 'rss', 'help'];
+    const s = {};
+    keys.forEach((k) => { s[k] = k === active ? on : off; });
+    return { t: T[lang], s };
+  }
+}
+</script>
+</body>
+</html>

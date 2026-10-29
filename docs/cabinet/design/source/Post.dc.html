@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SEOlit — new post</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--warn:#9A5206;--warn-bg:#FCF1DF;--ai:#FFE27A;--shadow:0 1px 2px rgba(13,21,38,.05),0 10px 30px -14px rgba(13,21,38,.22);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--warn:#FBC453;--warn-bg:rgba(251,196,83,.12);--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7)}
+.app a{color:var(--atext)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld>span{font-size:12px;font-weight:800;color:var(--muted)}
+.box{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 15px Manrope,system-ui,sans-serif;box-sizing:border-box}
+.box input,.box textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;color:var(--fg);resize:vertical}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--soft);gap:2px}
+.seg button{min-height:36px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.net{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:9.5px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;border-radius:999px;background:var(--soft);color:var(--atext);font-size:13px;font-weight:700}
+.tog{position:relative;width:38px;height:22px;border-radius:999px;border:0;background:var(--line);cursor:pointer;flex:none;padding:0}
+.tog::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.tog.on{background:var(--accent)}.tog.on::after{left:19px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;border-top:1px solid var(--line);font-size:14px;font-weight:700}
+.chk{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer;flex:none}
+.grow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 4px;border-top:1px solid var(--line);font-size:14px;font-weight:700;cursor:pointer}
+</style>
+</helmet>
+<div class="app {{themeCls}}" style="display: flex; flex-wrap: wrap; min-height: 1200px">
+<dc-import name="Sidebar" lang="{{lang}}" active="projects" hint-size="248px,1200px"></dc-import>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<dc-import name="TopBar" lang="{{lang}}" theme="{{theme}}" crumb-a="{{t.project}}" crumb-b="{{t.title}}" action="" on-lang="{{setLang}}" on-theme="{{toggleTheme}}" hint-size="100%,64px"></dc-import>
+<main style="width: 100%; max-width: 1180px; box-sizing: border-box; padding: 28px 28px 0; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{t.title}}</h1>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<form class="card" style="flex: 1.45 1 420px; min-width: 0; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<label class="fld"><span>{{t.headline}}</span><span class="box"><input type="text" value="{{c.head}}" aria-label="{{t.headline}}"></span></label>
+
+<div class="fld">
+<span>{{t.text}}</span>
+<div class="box" style="flex-direction: column; align-items: stretch; padding: 12px 14px; gap: 10px">
+<textarea rows="5" aria-label="{{t.text}}" style="line-height: 1.55">{{c.body}}</textarea>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line)">
+<button type="button" onClick="{{toggleAi}}" aria-expanded="{{aiExpanded}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--ai); color: #0D1526; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3" fill="#0D1526"></rect><circle cx="9" cy="14" r="1.6" fill="#FFE27A"></circle><circle cx="15" cy="14" r="1.6" fill="#FFE27A"></circle><path d="M12 8V4.5" stroke="#0D1526" stroke-width="2" stroke-linecap="round"></path><circle cx="12" cy="3.5" r="1.6" fill="#0D1526"></circle></svg>
+{{t.ai}}</button>
+<button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.template}}: {{t.tplName}}</button>
+<span style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 12px">
+<sc-for list="{{counters}}" as="k" hint-placeholder-count="3"><span class="lbl" style="color: {{k.color}}; font-variant-numeric: tabular-nums">{{k.label}}</span></sc-for>
+</span>
+</div>
+<sc-if value="{{aiOpen}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border-radius: 12px; background: var(--soft)">
+<span class="lbl">{{t.model}}</span>
+<span class="box" style="min-height: 36px; font-size: 13px">Yandex GPT Lite ▾</span>
+<span class="box" style="min-height: 36px; font-size: 13px; flex: 1 1 200px">{{t.aiPrompt}}</span>
+<button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.aiGo}}</button>
+<span class="lbl" style="width: 100%">{{t.aiCost}}</span>
+</div>
+</sc-if>
+</div>
+</div>
+
+<div class="fld">
+<span>{{t.media}} · 2 / 10</span>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<div aria-hidden="true" style="width: 96px; height: 76px; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #38BDF8)"></div>
+<div aria-hidden="true" style="width: 96px; height: 76px; border-radius: 12px; background: linear-gradient(135deg, #F59E0B, #EF4444)"></div>
+<button type="button" style="flex: 1 1 220px; min-height: 76px; border-radius: 12px; border: 2px dashed var(--line); background: transparent; color: var(--muted); font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer; padding: 8px 14px">{{t.drop}}</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+<label class="fld"><span>{{t.link}}</span><span class="box"><input type="url" value="https://example.ru/catalog/new" aria-label="{{t.link}}"></span></label>
+<div class="fld"><span>{{t.tags}}</span><span class="box" style="flex-wrap: wrap; padding: 6px 8px; gap: 6px"><span class="tag">{{c.tag1}}</span><span class="tag">{{c.tag2}}</span><span class="lbl" style="padding: 0 6px">+ {{t.addTag}}</span></span></div>
+</div>
+
+<div class="fld">
+<span>{{t.when}}</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div class="seg" role="group" aria-label="{{t.when}}">
+<sc-for list="{{whens}}" as="w" hint-placeholder-count="3"><button type="button" class="{{w.cls}}" aria-pressed="{{w.pressed}}" onClick="{{w.pick}}">{{w.label}}</button></sc-for>
+</div>
+<sc-if value="{{isSched}}" hint-placeholder-val="{{ true }}">
+<span class="box" style="min-height: 42px">30.10.2026</span>
+<span class="box" style="min-height: 42px">10:00</span>
+</sc-if>
+</div>
+<span class="lbl" style="font-weight: 600; line-height: 1.45">{{whenHint}}</span>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<button type="button" onClick="{{toggleMore}}" aria-expanded="{{moreExpanded}}" class="opt" style="border-bottom: 0; background: transparent; color: var(--fg); font: 800 14px Manrope, system-ui, sans-serif; cursor: pointer; padding: 0 4px">{{t.more}}<span class="lbl">{{moreHint}}</span></button>
+<sc-if value="{{moreOpen}}" hint-placeholder-val="{{ false }}">
+<div class="opt"><span>{{t.o1}}</span><button type="button" class="tog" aria-pressed="false" aria-label="{{t.o1}}"></button></div>
+<div class="opt"><span>{{t.o2}}</span><button type="button" class="tog" aria-pressed="false" aria-label="{{t.o2}}"></button></div>
+<div class="opt"><span>{{t.o3}}</span><button type="button" class="tog on" aria-pressed="true" aria-label="{{t.o3}}"></button></div>
+<div class="opt"><span>{{t.o4}}</span><span class="lbl">{{t.notSet}} ›</span></div>
+<div class="opt"><span>{{t.o5}}</span><span class="lbl">{{t.notSet}} ›</span></div>
+</sc-if>
+</div>
+</form>
+
+<div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section class="card" style="padding: 18px 18px 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">{{t.where}}</h2>
+<span class="lbl">{{whereCount}}</span>
+</div>
+<label class="grow" style="border-top: 0"><input type="checkbox" class="chk" checked="{{allOn}}" onChange="{{toggleAll}}"><span style="flex: 1">{{t.allActive}}</span><span class="lbl">16</span></label>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="8">
+<label class="grow"><input type="checkbox" class="chk" checked="{{g.on}}" onChange="{{g.toggle}}"><span class="net" style="background: {{g.c}}">{{g.s}}</span><span style="flex: 1">{{g.name}}</span><span class="lbl">{{g.count}}</span></label>
+</sc-for>
+</section>
+
+<section class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">{{t.preview}}</h2>
+<div class="seg" role="group" aria-label="{{t.preview}}">
+<sc-for list="{{pvTabs}}" as="p" hint-placeholder-count="3"><button type="button" class="{{p.cls}}" aria-pressed="{{p.pressed}}" onClick="{{p.pick}}">{{p.label}}</button></sc-for>
+</div>
+</div>
+<sc-if value="{{pvTg}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 16px; border-radius: 14px; background: #8FB3D9; background-image: radial-gradient(rgba(255,255,255,.18) 1px, transparent 1.5px); background-size: 14px 14px">
+<div style="max-width: 300px; border-radius: 16px 16px 16px 4px; overflow: hidden; background: #FFFFFF; color: #0D1526; box-shadow: 0 2px 6px rgba(0,0,0,.15)">
+<div style="height: 140px; background: linear-gradient(135deg, #2563EB, #38BDF8)"></div>
+<div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.45">
+<b style="color: #1B7DB0">{{t.storeName}}</b>
+<b>{{c.head}}</b>
+<span>{{c.short}}</span>
+<span style="color: #1B7DB0">{{c.tag1}} {{c.tag2}}</span>
+<span style="align-self: flex-end; font-size: 11px; color: #6F7A8F">10:00</span>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{pvCard}}" hint-placeholder-val="{{ true }}">
+<div style="border-radius: 14px; border: 1px solid var(--line); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px">
+<span style="width: 36px; height: 36px; border-radius: 50%; background: {{pvColor}}"></span>
+<div style="display: flex; flex-direction: column"><b style="font-size: 14px">{{t.storeName}}</b><span class="lbl">{{t.tomorrowAt}}</span></div>
+</div>
+<div style="padding: 0 12px 12px; font-size: 13.5px; line-height: 1.5; display: flex; flex-direction: column; gap: 6px"><b>{{c.head}}</b><span>{{c.short}}</span><span style="color: var(--atext)">{{c.tag1}} {{c.tag2}}</span></div>
+<div style="height: 150px; background: linear-gradient(135deg, #2563EB, #38BDF8)"></div>
+<div style="padding: 10px 12px; background: var(--soft); display: flex; flex-direction: column; gap: 2px"><span class="lbl">example.ru</span><b style="font-size: 13px">{{c.head}}</b></div>
+</div>
+</sc-if>
+<span class="lbl" style="font-weight: 600">{{t.pvNote}}</span>
+</section>
+</div>
+</div>
+
+<div style="position: sticky; bottom: 0; z-index: 5; margin: 0 -28px; padding: 14px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--surface); border-top: 1px solid var(--line)">
+<a href="Queue.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; color: var(--muted); font-weight: 700; text-decoration: none">{{t.cancel}}</a>
+<span style="margin-left: auto"></span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); font: 700 14px Manrope, system-ui, sans-serif; cursor: pointer">{{t.saveDraft}}</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 14px Manrope, system-ui, sans-serif; cursor: pointer">{{submit}}</button>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"en"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { when: 'sched', pv: 'vk', ai: true, more: false, off: {} }; }
+  renderVals() {
+    const lang0 = this.state.lang || this.props.lang || 'en';
+    const theme = this.state.theme || this.props.theme || 'light';
+    const T = {
+      ru: { project: 'Магазин «Пример»', title: 'Новый пост', headline: 'Заголовок', text: 'Текст поста', ai: 'ИИ-соавтор', template: 'Шаблон', tplName: 'Анонс', model: 'Модель', aiPrompt: 'Сделай текст короче и дружелюбнее', aiGo: 'Переписать', aiCost: 'Примерно 60 токенов · 1 токен Lite — 0,0002 ₽', media: 'Фото и видео', drop: 'Перетащите фото или видео, или вставьте ссылку', link: 'Ссылка на материал', tags: 'Хэштеги', addTag: 'хэштег', when: 'Когда публиковать', now: 'Сразу', sched: 'Запланировать', draft: 'Черновик', hNow: 'Пост уйдёт во все выбранные соцсети сразу после сохранения.', hSched: 'Если у приёмника своё расписание, пост выйдет в ближайшее разрешённое время.', hDraft: 'Черновик сохранится в очереди, но не опубликуется.', more: 'Дополнительно', moreHint: 'удаление, реклама, гео, автор, повтор', o1: 'Удалить после публикации', o2: 'Пометить как рекламу', o3: 'Повторять публикацию', o4: 'Геокоординаты', o5: 'Автор', notSet: 'не задано', where: 'Куда', allActive: 'Все работающие приёмники', of: 'из', preview: 'Предпросмотр', storeName: 'Магазин «Пример»', tomorrowAt: 'завтра в 10:00', pvNote: 'Так пост увидят подписчики. Текст для каждой соцсети подгоняется по шаблону.', cancel: 'Отмена', saveDraft: 'Сохранить черновик', submitNow: 'Опубликовать в', submitSched: 'Запланировать на 30.10 10:00 ·', submitDraft: 'Сохранить черновик', dests: 'соцсетей', shortened: 'сократится' },
+      en: { project: 'Example Store', title: 'New post', headline: 'Headline', text: 'Post text', ai: 'AI co-author', template: 'Template', tplName: 'Announcement', model: 'Model', aiPrompt: 'Make it shorter and friendlier', aiGo: 'Rewrite', aiCost: 'About 60 tokens · 1 Lite token — 0.0002 ₽', media: 'Photos and video', drop: 'Drop photos or video here, or paste a link', link: 'Link to the article', tags: 'Hashtags', addTag: 'hashtag', when: 'When to publish', now: 'Now', sched: 'Schedule', draft: 'Draft', hNow: 'The post goes to every selected network as soon as you save it.', hSched: 'Destinations with their own schedule publish at their next allowed time.', hDraft: 'The draft stays in the queue and isn’t published.', more: 'More options', moreHint: 'auto-delete, ad label, location, author, repeat', o1: 'Delete after publishing', o2: 'Label as advertising', o3: 'Repeat this post', o4: 'Location', o5: 'Author', notSet: 'not set', where: 'Where to publish', allActive: 'All active destinations', of: 'of', preview: 'Preview', storeName: 'Example Store', tomorrowAt: 'tomorrow at 10:00', pvNote: 'This is what followers will see. The text is fitted to each network by your template.', cancel: 'Cancel', saveDraft: 'Save draft', submitNow: 'Publish to', submitSched: 'Schedule for Oct 30, 10:00 ·', submitDraft: 'Save draft', dests: 'destinations', shortened: 'will be shortened' },
+      kk: { project: '«Мысал» дүкені', title: 'Жаңа жазба', headline: 'Тақырып', text: 'Жазба мәтіні', ai: 'ЖИ-серіктес', template: 'Үлгі', tplName: 'Хабарландыру', model: 'Модель', aiPrompt: 'Мәтінді қысқа әрі жылы ет', aiGo: 'Қайта жазу', aiCost: 'Шамамен 60 токен · Lite 1 токені — 0,0002 ₽', media: 'Фото және бейне', drop: 'Фото не бейнені осында сүйреңіз немесе сілтеме қойыңыз', link: 'Материалға сілтеме', tags: 'Хэштегтер', addTag: 'хэштег', when: 'Қашан жариялау', now: 'Бірден', sched: 'Жоспарлау', draft: 'Нобай', hNow: 'Сақтағаннан кейін жазба таңдалған желілердің бәріне бірден кетеді.', hSched: 'Қабылдағыштың өз кестесі болса, жазба ең жақын рұқсат етілген уақытта шығады.', hDraft: 'Нобай кезекте сақталады, бірақ жарияланбайды.', more: 'Қосымша', moreHint: 'жою, жарнама, гео, автор, қайталау', o1: 'Жариялағаннан кейін жою', o2: 'Жарнама деп белгілеу', o3: 'Жариялауды қайталау', o4: 'Геокоординаттар', o5: 'Автор', notSet: 'берілмеген', where: 'Қайда жариялау', allActive: 'Барлық жұмыс істеп тұрған қабылдағыштар', of: '/', preview: 'Алдын ала қарау', storeName: '«Мысал» дүкені', tomorrowAt: 'ертең 10:00-де', pvNote: 'Жазылушылар жазбаны осылай көреді. Мәтін әр желіге үлгі бойынша бейімделеді.', cancel: 'Болдырмау', saveDraft: 'Нобайды сақтау', submitNow: 'Жариялау:', submitSched: '30.10 10:00-ге жоспарлау ·', submitDraft: 'Нобайды сақтау', dests: 'желі', shortened: 'қысқарады' }
+    };
+    const lang = T[lang0] ? lang0 : 'en';
+    const t = T[lang];
+    const C = {
+      ru: { head: 'Новинки недели в каталоге', body: 'Собрали 12 новых товаров недели: уютные пледы, керамика ручной работы и техника для кухни. Всё уже в каталоге, доставка от 1 дня. Успейте выбрать подарки заранее — самые популярные позиции заканчиваются за пару дней.', short: 'Собрали 12 новых товаров недели: уютные пледы, керамика ручной работы и техника для кухни…', tag1: '#новинки', tag2: '#каталог' },
+      en: { head: 'This week’s new arrivals', body: 'We’ve added 12 new products this week: cosy blankets, handmade ceramics and kitchen gadgets. Everything is in the catalogue now, with delivery from 1 day. Pick your gifts early — the most popular items sell out in a couple of days.', short: 'We’ve added 12 new products this week: cosy blankets, handmade ceramics and kitchen gadgets…', tag1: '#newarrivals', tag2: '#catalogue' },
+      kk: { head: 'Каталогтағы апта жаңалықтары', body: 'Осы аптада 12 жаңа тауар қостық: жылы пледтер, қолдан жасалған керамика және ас үй техникасы. Барлығы каталогта, жеткізу 1 күннен бастап. Сыйлықтарды ертерек таңдаңыз — ең танымал тауарлар бір-екі күнде таусылады.', short: 'Осы аптада 12 жаңа тауар қостық: жылы пледтер, қолдан жасалған керамика және ас үй техникасы…', tag1: '#жаңалар', tag2: '#каталог' }
+    }[lang];
+    const len = C.head.length + C.body.length + 24 + C.tag1.length + C.tag2.length;
+    const counters = [['ВК', 16384], ['TG', 4096], ['X', 280]].map(([n, lim]) => ({
+      label: n + ' ' + len + ' / ' + lim.toLocaleString('ru-RU') + (len > lim ? ' · ' + t.shortened : ''),
+      color: len > lim ? 'var(--warn)' : 'var(--muted)'
+    }));
+    const G = [['vk', 'ВК', '#0060D1', 'ВКонтакте', 3, 9], ['tg', 'TG', '#1B7DB0', 'Telegram', 2, 4], ['ok', 'OK', '#C2560A', 'Одноклассники', 2, 6], ['mm', 'ММ', '#1268B3', 'Мой Мир', 1, 3], ['x', 'X', '#16181C', 'X (Twitter)', 2, 8], ['pi', 'Pi', '#C8001E', 'Pinterest', 2, 5], ['in', 'In', '#0A66C2', 'LinkedIn', 1, 3], ['lj', 'ЖЖ', '#004359', 'LiveJournal', 1, 3], ['mx', 'MX', '#5B3FD8', 'Max.ru', 2, 3]];
+    const off = this.state.off;
+    let sel = 0;
+    const groups = G.map(([k, s, c, name, act, total]) => {
+      const on = !off[k];
+      if (on) sel += act;
+      return { s, c, name, on, count: act + ' ' + t.of + ' ' + total, toggle: () => this.setState({ off: { ...off, [k]: !off[k] } }) };
+    });
+    const allOn = Object.values(off).every((v) => !v);
+    const when = this.state.when;
+    const whens = [['now', t.now], ['sched', t.sched], ['draft', t.draft]].map(([k, label]) => ({ label, cls: k === when ? 'on' : '', pressed: k === when ? 'true' : 'false', pick: () => this.setState({ when: k }) }));
+    const pv = this.state.pv;
+    const pvTabs = [['vk', 'ВКонтакте'], ['tg', 'Telegram'], ['ok', 'OK']].map(([k, label]) => ({ label, cls: k === pv ? 'on' : '', pressed: k === pv ? 'true' : 'false', pick: () => this.setState({ pv: k }) }));
+    const submit = when === 'draft' ? t.submitDraft : (when === 'now' ? t.submitNow + ' ' + sel + ' ' + t.dests : t.submitSched + ' ' + sel + ' ' + t.dests);
+    return {
+      lang, theme, t, c: C, themeCls: theme === 'dark' ? 'dark' : '',
+      counters, groups, allOn, whereCount: sel + ' ' + t.of + ' 62',
+      toggleAll: () => { const nx = {}; if (allOn) G.forEach((g) => { nx[g[0]] = true; }); this.setState({ off: nx }); },
+      whens, isSched: when === 'sched', whenHint: when === 'now' ? t.hNow : when === 'sched' ? t.hSched : t.hDraft,
+      pvTabs, pvTg: pv === 'tg', pvCard: pv !== 'tg', pvColor: pv === 'ok' ? '#C2560A' : '#0060D1',
+      aiOpen: this.state.ai, aiExpanded: this.state.ai ? 'true' : 'false', toggleAi: () => this.setState({ ai: !this.state.ai }),
+      moreOpen: this.state.more, moreExpanded: this.state.more ? 'true' : 'false', moreHint: this.state.more ? '−' : t.moreHint + '  +',
+      toggleMore: () => this.setState({ more: !this.state.more }),
+      submit,
+      setLang: (l) => this.setState({ lang: l }),
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' })
+    };
+  }
+}
+</script>
+</body>
+</html>

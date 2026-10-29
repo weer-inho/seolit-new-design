@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Статичный снимок макета из холста дизайна: без интерактива. Логика и переводы — в source/*.dc.html -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--ok-bg:#E3F4EC;--err:#C42D35;--err-bg:#FCEAEB;--warn:#9A5206;--warn-bg:#FCF1DF;--shadow:0 1px 2px rgba(13,21,38,.05),0 10px 30px -14px rgba(13,21,38,.22);--overlay:rgba(13,21,38,.5);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--ok-bg:rgba(61,219,160,.12);--err:#FF8A8F;--err-bg:rgba(255,138,143,.12);--warn:#FBC453;--warn-bg:rgba(251,196,83,.12);--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);--overlay:rgba(0,0,0,.62)}
+.app a{color:var(--atext)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1.2 Manrope,system-ui,sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:9px}
+.btn.q{border-color:transparent;background:transparent;color:var(--muted)}
+.btn:hover{filter:brightness(1.06)}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--ok-bg);color:var(--ok)}.err{background:var(--err-bg);color:var(--err)}.warn{background:var(--warn-bg);color:var(--warn)}.info{background:var(--soft);color:var(--atext)}.off{background:var(--soft);color:var(--muted)}
+.net{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:9.5px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.bar{height:6px;border-radius:999px;background:var(--soft);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:999px}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+<title>SEOlit — проекты</title></head><body>
+
+
+<div class="app " style="display: flex; flex-wrap: wrap; min-height: 1120px">
+
+
+<nav aria-label="Разделы кабинета" style="width: 248px; min-height: 1000px; height: 100%; box-sizing: border-box; padding: 16px 14px 20px; display: flex; flex-direction: column; gap: 20px; background: var(--surface, #FFFFFF); border-right: 1px solid var(--line, #E2E7F0); font-family: Manrope, system-ui, sans-serif; color: var(--fg, #0D1526)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 6px 8px; text-decoration: none; color: var(--fg, #0D1526)">
+<svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" style="fill: var(--accent, #2563EB)"></circle><circle cx="24" cy="24" r="12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"></circle><path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path><circle cx="24" cy="24" r="4.5" fill="#fff"></circle><circle cx="24" cy="12" r="3.5" fill="#fff"></circle><circle cx="34.4" cy="30" r="3.5" fill="#fff"></circle><circle cx="13.6" cy="30" r="3.5" fill="#fff"></circle></svg>
+<span style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em">SEOlit</span>
+</a>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Работа</span>
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: var(--soft, #EDF1F8); color: var(--atext, #1D4ED8)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2"></rect><rect x="14" y="4" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>Проекты</a>
+<a href="Queue.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg>Очередь<span style="margin-left: auto; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--soft, #EDF1F8); color: var(--muted, #566176)">78</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"></path></svg>Шаблоны</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>Расписания</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Оформление</span>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M7 16l4-5 3 4 2-2 3 3"></path></svg>Водяные знаки</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="8" height="8" rx="2"></rect><path d="M14 7h7M14 11h7M3 17h18"></path></svg>Автокартинки</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Аккаунт</span>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M3 10h18M7 15h4"></path></svg>Баланс</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M18 8v6M15 11h6"></path></svg>Рефералы</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3M13 6l-2 12"></path></svg>API</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="1.5"></circle><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"></path></svg>RSS-тест</a>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+<div style="padding: 14px; border-radius: 14px; background: var(--soft, #EDF1F8); display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: var(--muted, #566176)">Баланс</span>
+<b style="font-size: 22px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">4 300 ₽</b>
+<span style="font-size: 12px; line-height: 1.4; color: var(--muted, #566176)">Хватит примерно на 5 месяцев</span>
+<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 10px; background: var(--accent, #2563EB); color: #FFFFFF; font-size: 13px; font-weight: 800; text-decoration: none">Пополнить</a>
+</div>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"></path></svg>Помощь и инструкции</a>
+</div>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+
+
+<header style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 64px; padding: 10px 28px; box-sizing: border-box; background: var(--surface, #FFFFFF); border-bottom: 1px solid var(--line, #E2E7F0); font-family: Manrope, system-ui, sans-serif; color: var(--fg, #0D1526)">
+<nav aria-label="Навигация" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; min-width: 0">
+
+
+<span style="white-space: nowrap">Проекты</span>
+
+</nav>
+
+<label style="flex: 1 1 220px; max-width: 420px; margin-left: 12px; display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 10px 0 12px; border-radius: 11px; background: var(--soft, #EDF1F8); color: var(--muted, #566176); font-size: 14px; box-sizing: border-box">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" placeholder="Поиск по проектам и аккаунтам" aria-label="Поиск по проектам и аккаунтам" style="flex: 1 1 0%; min-width: 0px; border: 0px; outline: 0px; background: transparent; font: 500 14px Manrope, system-ui, sans-serif; color: var(--fg, #0D1526);">
+<span style="font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line, #E2E7F0); color: var(--faint, #7A8499)">Ctrl K</span>
+</label>
+
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<div role="group" aria-label="Язык интерфейса" style="display: flex; padding: 3px; border-radius: 11px; background: var(--soft, #EDF1F8)">
+
+<button type="button" aria-pressed="true" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); box-shadow: 0 1px 3px rgba(0,0,0,.12)">RU</button>
+
+<button type="button" aria-pressed="false" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: transparent; color: var(--muted, #566176)">EN</button>
+
+<button type="button" aria-pressed="false" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: transparent; color: var(--muted, #566176)">KZ</button>
+
+</div>
+<button type="button" aria-label="Тёмная тема" title="Тёмная тема" style="width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line, #E2E7F0); background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); display: grid; place-items: center; cursor: pointer">
+
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+</button>
+<button type="button" aria-label="Уведомления: 1 новое" style="position: relative; width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line, #E2E7F0); background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); display: grid; place-items: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 7px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #E5484D; box-shadow: 0 0 0 2px var(--surface, #FFFFFF)"></span>
+</button>
+
+<a href="Post.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px; border-radius: 11px; background: var(--accent, #2563EB); color: #FFFFFF; font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Новый пост</a>
+
+<button type="button" aria-label="Профиль anna@example.ru" style="display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 4px 0 4px; border: 0; background: transparent; color: var(--fg, #0D1526); cursor: pointer">
+<span style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #38BDF8); color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 800">A</span>
+</button>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1180px; box-sizing: border-box; padding: 28px; display: flex; flex-direction: column; gap: 26px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">Проекты</h1>
+<span class="lbl" style="font-size: 14px">4 своих проекта · 1 доступен вам</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" class="btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Новый проект</button>
+</div>
+</div>
+
+<section aria-label="Требует внимания" class="card" style="padding: 6px 18px; border-color: var(--warn)">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 0 8px; color: var(--warn); font-weight: 800; font-size: 14px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 17h-19z"></path><path d="M12 10v4M12 17.5v.01"></path></svg>
+Требует внимания · 2
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line)">
+<span class="net" style="background: #0060D1">ВК</span>
+<span style="flex: 1 1 260px; min-width: 0; font-size: 14px; font-weight: 600">Новости района · ВКонтакте: нужна повторная авторизация</span>
+<a href="Project.dc.html" class="btn sm">Переподключить</a>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line)">
+<span class="net" style="background: #1B7DB0">TG</span>
+<span style="flex: 1 1 260px; min-width: 0; font-size: 14px; font-weight: 600">Блог о путешествиях: демо закончится завтра</span>
+<a href="#" class="btn sm">Оплатить 800 ₽</a>
+</div>
+
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 800">Мои проекты<span class="lbl" style="font-size: 14px">4</span></h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px">
+
+<article class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Project.dc.html" style="font-size: 17px; font-weight: 800; color: var(--fg); text-decoration: none">Магазин «Пример»</a>
+<span class="lbl">example.ru</span>
+</div>
+<span class="pill ok"><i></i>Работает</span>
+</div>
+<div style="display: flex; align-items: center; gap: 5px">
+<span class="net" style="background: #0060D1" title="ВКонтакте">ВК</span><span class="net" style="background: #1B7DB0" title="Telegram">TG</span><span class="net" style="background: #C2560A" title="Одноклассники">OK</span><span class="net" style="background: #1268B3" title="Мой Мир">ММ</span><span class="net" style="background: #C8001E" title="Pinterest">Pi</span><span class="net" style="background: #0A66C2" title="LinkedIn">In</span>
+<span class="lbl" style="margin-left: 4px">+6 соцсетей</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">28</b><span class="lbl">в очереди</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">3</b><span class="lbl">на паузе</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums; color: var(--fg)">0</b><span class="lbl">ошибок</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span class="lbl">Оплачен до 18.11.2026</span><span class="lbl" style="color: var(--muted)">20 дней</span></div>
+<div class="bar"><span style="width: 33%; background: var(--accent)"></span></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+
+<a href="Project.dc.html" class="btn sm">Открыть</a>
+<a href="Post.dc.html" class="btn sm q">Новый пост</a>
+</div>
+</article>
+
+<article class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Project.dc.html" style="font-size: 17px; font-weight: 800; color: var(--fg); text-decoration: none">Новости района</a>
+<span class="lbl">news-rayon.ru</span>
+</div>
+<span class="pill err"><i></i>2 ошибки</span>
+</div>
+<div style="display: flex; align-items: center; gap: 5px">
+<span class="net" style="background: #0060D1" title="ВКонтакте">ВК</span><span class="net" style="background: #1B7DB0" title="Telegram">TG</span><span class="net" style="background: #16181C" title="X">X</span>
+<span class="lbl" style="margin-left: 4px"></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">14</b><span class="lbl">в очереди</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">0</b><span class="lbl">на паузе</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums; color: var(--err)">2</b><span class="lbl">ошибок</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span class="lbl">Оплачен до 23.01.2027</span><span class="lbl" style="color: var(--muted)">86 дней</span></div>
+<div class="bar"><span style="width: 92%; background: var(--accent)"></span></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+
+<a href="Project.dc.html" class="btn sm">Открыть</a>
+<a href="Post.dc.html" class="btn sm q">Новый пост</a>
+</div>
+</article>
+
+<article class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Project.dc.html" style="font-size: 17px; font-weight: 800; color: var(--fg); text-decoration: none">Блог о путешествиях</a>
+<span class="lbl">travel-blog.ru</span>
+</div>
+<span class="pill info"><i></i>Демо</span>
+</div>
+<div style="display: flex; align-items: center; gap: 5px">
+<span class="net" style="background: #1B7DB0" title="Telegram">TG</span><span class="net" style="background: #C8001E" title="Pinterest">Pi</span>
+<span class="lbl" style="margin-left: 4px"></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">0</b><span class="lbl">в очереди</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">0</b><span class="lbl">на паузе</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums; color: var(--fg)">0</b><span class="lbl">ошибок</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span class="lbl">Демо до 30.10.2026</span><span class="lbl" style="color: var(--warn)">1 день</span></div>
+<div class="bar"><span style="width: 8%; background: var(--warn)"></span></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" class="btn sm p">Оплатить 800 ₽</button>
+<a href="Project.dc.html" class="btn sm">Открыть</a>
+<a href="Post.dc.html" class="btn sm q">Новый пост</a>
+</div>
+</article>
+
+<article class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<a href="Project.dc.html" style="font-size: 17px; font-weight: 800; color: var(--fg); text-decoration: none">Кулинарный канал</a>
+<span class="lbl">cook.ru</span>
+</div>
+<span class="pill off"><i></i>Отключён</span>
+</div>
+<div style="display: flex; align-items: center; gap: 5px">
+<span class="net" style="background: #0060D1" title="ВКонтакте">ВК</span><span class="net" style="background: #C2560A" title="Одноклассники">OK</span>
+<span class="lbl" style="margin-left: 4px"></span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line)">
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">0</b><span class="lbl">в очереди</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums">12</b><span class="lbl">на паузе</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; font-variant-numeric: tabular-nums; color: var(--fg)">0</b><span class="lbl">ошибок</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span class="lbl">Закончился 15.10.2026</span><span class="lbl" style="color: var(--muted)"></span></div>
+<div class="bar"><span style="width: 0%; background: var(--muted)"></span></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" class="btn sm p">Продлить за 800 ₽</button>
+<a href="Project.dc.html" class="btn sm">Открыть</a>
+<a href="Post.dc.html" class="btn sm q">Новый пост</a>
+</div>
+</article>
+
+<button type="button" style="min-height: 280px; border-radius: 16px; border: 2px dashed var(--line); background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font: 700 15px Manrope, system-ui, sans-serif; cursor: pointer; padding: 20px">
+<span style="width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+<span style="color: var(--fg)">Новый проект</span>
+<span class="lbl" style="max-width: 220px; text-align: center; line-height: 1.45">800 ₽ за 30 дней. По 1 аккаунту каждой соцсети и любое число лент</span>
+</button>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 800">Доступны мне<span class="lbl" style="font-size: 14px">1</span></h2>
+<article class="card" style="padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><b style="font-size: 16px">Агентство «Сигнал»</b><span class="pill info">Редактор</span></div>
+<span class="lbl">Владелец: ivan@example.ru</span>
+</div>
+<div style="display: flex; gap: 24px; font-size: 14px; font-weight: 700">
+<span><b style="font-size: 18px">36</b> <span class="lbl">в очереди</span></span>
+<span><b style="font-size: 18px">76</b> <span class="lbl">на паузе</span></span>
+<span><b style="font-size: 18px; color: var(--err)">6</b> <span class="lbl">ошибок</span></span>
+</div>
+<a href="Project.dc.html" class="btn sm">Открыть</a>
+</article>
+</section>
+
+<section class="card" style="padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+<span class="pill info">Новое в SEOlit</span>
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<a href="#" style="font-size: 14px; font-weight: 700; color: var(--fg); text-decoration: none">Что ещё появилось за год: ИИ-соавтор, шаблоны, очередь</a>
+<span class="lbl">27.10.2026 · MAX.RU: каналы, чаты и собственный бот · 23.10.2026</span>
+</div>
+<a href="#" style="font-size: 14px; font-weight: 700; text-decoration: none">Все новости →</a>
+</section>
+
+<p class="lbl" style="margin: 0; font-size: 13px; line-height: 1.5; max-width: 70ch">Совет: заводите отдельный проект для каждого сайта — так проще следить за очередью и оплатой.</p>
+</main>
+</div>
+</div>
+</body></html>

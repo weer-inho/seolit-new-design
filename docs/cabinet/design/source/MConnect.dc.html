@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SEOlit — connect a destination, phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--overlay:rgba(13,21,38,.5);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--overlay:rgba(0,0,0,.66)}
+.chipf{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap;flex:none}
+.chipf.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 6px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;text-align:center;cursor:pointer;min-height:104px}
+.tile.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,116,246,.3)}
+.net{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#fff;font-size:13px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lang{min-width:32px;min-height:30px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:800 12px Manrope,system-ui,sans-serif;cursor:pointer}
+.lang.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+</style>
+</helmet>
+<div class="app {{themeCls}}" style="width: 390px; height: 844px; position: relative; overflow: hidden">
+<div aria-hidden="true" style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="height: 44px; border-radius: 12px; background: var(--surface)"></div>
+<div style="height: 120px; border-radius: 16px; background: var(--surface)"></div>
+<div style="height: 260px; border-radius: 16px; background: var(--surface)"></div>
+</div>
+<div style="position: absolute; inset: 0; background: var(--overlay)"></div>
+<section role="dialog" aria-modal="true" aria-labelledby="mc-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 70px; background: var(--surface); border-radius: 24px 24px 0 0; display: flex; flex-direction: column; overflow: hidden">
+<div aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin-top: 8px"></div>
+<div style="padding: 12px 16px 12px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--line)">
+<div style="display: flex; align-items: center; gap: 8px">
+<h2 id="mc-title" style="margin: 0; flex: 1; font-size: 19px; font-weight: 800">{{t.title}}</h2>
+<div role="group" aria-label="{{t.lang}}" style="display: flex; padding: 3px; border-radius: 10px; background: var(--soft)">
+<sc-for list="{{langs}}" as="l" hint-placeholder-count="3"><button type="button" class="{{l.cls}}" aria-pressed="{{l.pressed}}" onClick="{{l.pick}}">{{l.label}}</button></sc-for>
+</div>
+<a href="MProject.dc.html" aria-label="{{t.close}}" style="width: 40px; height: 40px; border-radius: 12px; background: var(--soft); color: var(--muted); display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 14px; border-radius: 13px; background: var(--soft); color: var(--muted)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" value="{{query}}" onInput="{{onQuery}}" placeholder="{{t.search}}" aria-label="{{t.search}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 600 16px Manrope, system-ui, sans-serif; color: var(--fg)">
+</label>
+<div role="group" aria-label="{{t.cats}}" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5"><button type="button" class="{{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for>
+</div>
+</div>
+<div style="flex: 1; overflow-y: auto; padding: 14px 16px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{nets}}" as="n" hint-placeholder-count="9">
+<button type="button" class="{{n.cls}}" aria-pressed="{{n.pressed}}" onClick="{{n.pick}}">
+<span class="net" style="background: {{n.c}}">{{n.s}}</span>
+<b style="font-size: 13px; line-height: 1.2">{{n.name}}</b>
+<span style="font-size: 11px; font-weight: 700; line-height: 1.25; color: {{n.capColor}}">{{n.cap}}</span>
+</button>
+</sc-for>
+</div>
+<p style="margin: 14px 2px 0; font-size: 12px; line-height: 1.5; font-weight: 600; color: var(--muted)">{{t.note}} * {{t.meta}}</p>
+</div>
+<div style="padding: 12px 16px 16px; border-top: 1px solid var(--line)">
+<button type="button" style="width: 100%; min-height: 52px; border-radius: 14px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 16px Manrope, system-ui, sans-serif; cursor: pointer">{{cta}}</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"en"},"theme":{"editor":"enum","options":["light","dark"],"default":"dark"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { cat: 'all', q: '', sel: 'vk' }; }
+  renderVals() {
+    const lang0 = this.state.lang || this.props.lang || 'en';
+    const theme = this.state.theme || this.props.theme || 'dark';
+    const T = {
+      ru: { title: 'Подключить приёмник', lang: 'Язык', close: 'Закрыть', search: 'Найти соцсеть', cats: 'Категории', all: 'Все', social: 'Соцсети', msg: 'Мессенджеры', blogs: 'Блоги', video: 'Видео', included: 'В тарифе', extra: '+100 ₽/мес', note: '1 аккаунт каждой соцсети входит в тариф, дополнительный — 100 ₽ за 30 дней.', meta: 'Meta признана экстремистской и запрещена в РФ.', go: 'Продолжить с' },
+      en: { title: 'Connect a destination', lang: 'Language', close: 'Close', search: 'Find a network', cats: 'Categories', all: 'All', social: 'Social', msg: 'Messengers', blogs: 'Blogs', video: 'Video', included: 'In your plan', extra: '+100 ₽/mo', note: 'One account per network is included; each extra one is 100 ₽ per 30 days.', meta: 'Meta is designated extremist and banned in Russia.', go: 'Continue with' },
+      kk: { title: 'Қабылдағышты қосу', lang: 'Тіл', close: 'Жабу', search: 'Желіні іздеу', cats: 'Санаттар', all: 'Барлығы', social: 'Әлеуметтік', msg: 'Мессенджерлер', blogs: 'Блогтар', video: 'Бейне', included: 'Тарифте', extra: '+100 ₽/ай', note: 'Әр желіден 1 аккаунт тарифке кіреді, қосымшасы — 30 күнге 100 ₽.', meta: 'Meta экстремистік деп танылған, РФ-та тыйым салынған.', go: 'Жалғастыру:' }
+    };
+    const lang = T[lang0] ? lang0 : 'en';
+    const t = T[lang];
+    const ALL = [
+      ['vk', 'ВК', '#0060D1', 'ВКонтакте', 'social'], ['tg', 'TG', '#1B7DB0', 'Telegram', 'msg'], ['ok', 'OK', '#C2560A', 'Одноклассники', 'social'],
+      ['mm', 'ММ', '#1268B3', 'Мой Мир', 'social'], ['mx', 'MX', '#5B3FD8', 'Max.ru', 'msg'], ['x', 'X', '#16181C', 'X', 'social'],
+      ['pi', 'Pi', '#C8001E', 'Pinterest', 'social'], ['in', 'In', '#0A66C2', 'LinkedIn', 'social'], ['tt', 'TT', '#C4113F', 'TikTok', 'video'],
+      ['lj', 'ЖЖ', '#004359', 'LiveJournal', 'blogs'], ['tu', 'Tu', '#36465D', 'Tumblr', 'blogs'], ['bl', 'Bl', '#A23B10', 'Blogger', 'blogs'],
+      ['re', 'Re', '#C93800', 'Reddit', 'blogs'], ['fb', 'FB', '#1659C7', 'Facebook*', 'social'], ['ig', 'IG', '#B0306A', 'Instagram*', 'social']
+    ];
+    const cat = this.state.cat, q = (this.state.q || '').trim().toLowerCase();
+    const cats = ['all', 'social', 'msg', 'blogs', 'video'].map((k) => ({ label: t[k], cls: k === cat ? 'chipf on' : 'chipf', pressed: k === cat ? 'true' : 'false', pick: () => this.setState({ cat: k }) }));
+    const nets = ALL.filter((n) => (cat === 'all' || n[4] === cat) && (!q || n[3].toLowerCase().includes(q))).map((n) => {
+      const on = this.state.sel === n[0];
+      const conn = n[0] === 'tg';
+      return { s: n[1], c: n[2], name: n[3], cls: on ? 'tile on' : 'tile', pressed: on ? 'true' : 'false', cap: conn ? t.extra : t.included, capColor: conn ? 'var(--muted)' : 'var(--ok)', pick: () => this.setState({ sel: n[0] }) };
+    });
+    const sel = ALL.find((n) => n[0] === this.state.sel);
+    const langs = [['ru', 'RU'], ['en', 'EN'], ['kk', 'KZ']].map(([k, label]) => ({ label, cls: k === lang ? 'lang on' : 'lang', pressed: k === lang ? 'true' : 'false', pick: () => this.setState({ lang: k }) }));
+    return {
+      t, langs, cats, nets, themeCls: theme === 'dark' ? 'dark' : '', query: this.state.q,
+      onQuery: (e) => this.setState({ q: e.target.value }),
+      cta: t.go + ' ' + (sel ? sel[3] : '')
+    };
+  }
+}
+</script>
+</body>
+</html>

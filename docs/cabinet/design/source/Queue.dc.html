@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>SEOlit — очередь публикаций</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--ok-bg:#E3F4EC;--err:#C42D35;--warn:#9A5206;--warn-bg:#FCF1DF;--ink:#0D1526;--ink-fg:#FFFFFF;--shadow:0 1px 2px rgba(13,21,38,.05),0 10px 30px -14px rgba(13,21,38,.22);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--ok-bg:rgba(61,219,160,.12);--err:#FF8A8F;--warn:#FBC453;--warn-bg:rgba(251,196,83,.12);--ink:#E8EDF7;--ink-fg:#0A0F1A;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7)}
+.app a{color:var(--atext)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1.2 Manrope,system-ui,sans-serif;cursor:pointer;text-decoration:none;white-space:nowrap}
+.sel{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--soft);gap:2px;flex-wrap:wrap}
+.seg button{min-height:34px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg small{font-size:12px;opacity:.7;margin-left:4px}
+.net{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;color:#fff;font-size:9px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.ib{width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:inline-grid;place-items:center;cursor:pointer}
+.ib:hover{background:var(--soft);color:var(--fg)}
+.qrow{display:grid;grid-template-columns:24px 64px minmax(0,1fr) auto 64px auto;align-items:center;gap:14px;padding:14px 16px;border-top:1px solid var(--line)}
+.qrow:hover{background:var(--soft)}
+.chk{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer}
+</style>
+</helmet>
+<div class="app {{themeCls}}" style="display: flex; flex-wrap: wrap; min-height: 1120px">
+<dc-import name="Sidebar" lang="{{lang}}" active="queue" hint-size="248px,1120px"></dc-import>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<dc-import name="TopBar" lang="{{lang}}" theme="{{theme}}" crumb-a="{{t.project}}" crumb-b="{{t.title}}" action="{{t.newPost}}" action-href="Post.dc.html" on-lang="{{setLang}}" on-theme="{{toggleTheme}}" hint-size="100%,64px"></dc-import>
+<main style="position: relative; width: 100%; max-width: 1180px; box-sizing: border-box; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{t.title}}</h1>
+<span class="lbl" style="font-size: 14px">{{t.subtitle}}</span>
+</div>
+<div class="seg" role="group" aria-label="{{t.view}}">
+<button type="button" class="on" aria-pressed="true">{{t.list}}</button>
+<button type="button" aria-pressed="false">{{t.calendar}}</button>
+</div>
+</div>
+
+<div class="seg" role="group" aria-label="{{t.status}}" style="align-self: flex-start">
+<sc-for list="{{tabs}}" as="s" hint-placeholder-count="4">
+<button type="button" class="{{s.cls}}" aria-pressed="{{s.pressed}}" onClick="{{s.pick}}">{{s.label}}<small>{{s.n}}</small></button>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface); color: var(--muted)">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" placeholder="{{t.search}}" aria-label="{{t.search}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 500 14px Manrope, system-ui, sans-serif; color: var(--fg)">
+</label>
+<button type="button" class="sel">{{t.allDests}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" class="sel">{{t.allSources}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" class="sel">{{t.week}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="padding: 48px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<span style="width: 52px; height: 52px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); display: grid; place-items: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<b style="font-size: 17px">{{t.noErrors}}</b>
+<span class="lbl" style="font-size: 14px">{{t.noErrorsHint}}</span>
+</div>
+</sc-if>
+
+<sc-for list="{{days}}" as="d" hint-placeholder-count="2">
+<section class="card" style="overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--soft)">
+<b style="font-size: 14px">{{d.title}}</b>
+<span class="lbl">{{d.count}}</span>
+</div>
+<sc-for list="{{d.items}}" as="it" hint-placeholder-count="3">
+<div class="qrow" style="background: {{it.bg}}">
+<input type="checkbox" class="chk" checked="{{it.checked}}" onChange="{{it.toggle}}" aria-label="{{it.title}}">
+<div aria-hidden="true" style="width: 64px; height: 48px; border-radius: 10px; background: {{it.thumb}}; position: relative; overflow: hidden">
+<span style="position: absolute; left: 8px; bottom: -10px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.35)"></span>
+</div>
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<b style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.title}}</b>
+<span class="lbl" style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.text}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<span class="net" style="background: {{it.srcC}}" title="{{it.srcName}}">{{it.src}}</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--faint)"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+<sc-for list="{{it.dests}}" as="n" hint-placeholder-count="3"><span class="net" style="background: {{n.c}}">{{n.s}}</span></sc-for>
+<span class="lbl">{{it.more}}</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<b style="font-size: 15px; font-variant-numeric: tabular-nums; color: {{it.timeColor}}">{{it.time}}</b>
+<span class="lbl" style="color: {{it.stColor}}">{{it.st}}</span>
+</div>
+<div style="display: flex; gap: 2px">
+<button type="button" class="ib" aria-label="{{t.publishNow}}" title="{{t.publishNow}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l12 8-12 8z"></path></svg></button>
+<a href="Post.dc.html" class="ib" aria-label="{{t.edit}}" title="{{t.edit}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></a>
+<button type="button" class="ib" aria-label="{{t.more}}" title="{{t.more}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+</div>
+</div>
+</sc-for>
+</section>
+</sc-for>
+
+<sc-if value="{{hasSel}}" hint-placeholder-val="{{ true }}">
+<div role="region" aria-label="{{t.bulk}}" style="position: sticky; bottom: 16px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px 10px 18px; border-radius: 16px; background: var(--ink); color: var(--ink-fg); box-shadow: 0 20px 40px -16px rgba(0,0,0,.5)">
+<b style="font-size: 14px; margin-right: auto">{{selLabel}}</b>
+<button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.publishNow}}</button>
+<button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: inherit; font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.reschedule}}</button>
+<button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: inherit; font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.pause}}</button>
+<button type="button" style="min-height: 36px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: #FF6B70; font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer">{{t.del}}</button>
+<button type="button" onClick="{{clearSel}}" aria-label="{{t.clear}}" style="width: 36px; height: 36px; border-radius: 10px; border: 0; background: transparent; color: inherit; cursor: pointer; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-if>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"ru"},"theme":{"editor":"enum","options":["light","dark"],"default":"dark"},"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'plan', sel: { 1: true, 2: true } }; }
+  renderVals() {
+    const lang0 = this.state.lang || this.props.lang || 'ru';
+    const theme = this.state.theme || this.props.theme || 'dark';
+    const T = {
+      ru: { project: 'Магазин «Пример»', title: 'Очередь публикаций', subtitle: 'Все посты проекта: что, куда и когда выйдет', newPost: 'Новый пост', view: 'Вид', list: 'Список', calendar: 'Календарь', status: 'Статус', plan: 'Запланировано', paused: 'На паузе', errors: 'Ошибки', done: 'Опубликовано', search: 'Найти пост по тексту', allDests: 'Все приёмники', allSources: 'Все источники', week: 'Ближайшие 7 дней', today: 'Сегодня, 29 октября', tomorrow: 'Завтра, 30 октября', yesterday: 'Вчера, 28 октября', posts: 'поста', publishNow: 'Опубликовать сейчас', edit: 'Изменить', more: 'Ещё действия', bulk: 'Действия с выбранными', selected: 'Выбрано', reschedule: 'Перенести', pause: 'На паузу', del: 'Удалить', clear: 'Снять выбор', noErrors: 'Ошибок нет', noErrorsHint: 'Все посты уходят по плану. Если что-то сломается, пришлём уведомление.', inTime: 'по расписанию', manual: 'Вручную', publishedAt: 'опубликован', pausedSt: 'приёмник выключен' },
+      en: { project: 'Example Store', title: 'Publishing queue', subtitle: 'Every post in the project: what goes where, and when', newPost: 'New post', view: 'View', list: 'List', calendar: 'Calendar', status: 'Status', plan: 'Scheduled', paused: 'Paused', errors: 'Errors', done: 'Published', search: 'Search posts', allDests: 'All destinations', allSources: 'All sources', week: 'Next 7 days', today: 'Today, October 29', tomorrow: 'Tomorrow, October 30', yesterday: 'Yesterday, October 28', posts: 'posts', publishNow: 'Publish now', edit: 'Edit', more: 'More actions', bulk: 'Bulk actions', selected: 'Selected', reschedule: 'Reschedule', pause: 'Pause', del: 'Delete', clear: 'Clear selection', noErrors: 'No errors', noErrorsHint: 'Everything goes out on schedule. We’ll notify you if something breaks.', inTime: 'on schedule', manual: 'Manual', publishedAt: 'published', pausedSt: 'destination is off' },
+      kk: { project: '«Мысал» дүкені', title: 'Жариялау кезегі', subtitle: 'Жобаның барлық жазбалары: не, қайда және қашан шығады', newPost: 'Жаңа жазба', view: 'Көрініс', list: 'Тізім', calendar: 'Күнтізбе', status: 'Күйі', plan: 'Жоспарланған', paused: 'Кідірісте', errors: 'Қателер', done: 'Жарияланған', search: 'Жазбаны мәтін бойынша іздеу', allDests: 'Барлық қабылдағыштар', allSources: 'Барлық дереккөздер', week: 'Алдағы 7 күн', today: 'Бүгін, 29 қазан', tomorrow: 'Ертең, 30 қазан', yesterday: 'Кеше, 28 қазан', posts: 'жазба', publishNow: 'Қазір жариялау', edit: 'Өзгерту', more: 'Басқа әрекеттер', bulk: 'Таңдалғандармен әрекеттер', selected: 'Таңдалды', reschedule: 'Ауыстыру', pause: 'Кідірту', del: 'Жою', clear: 'Таңдауды алу', noErrors: 'Қате жоқ', noErrorsHint: 'Барлық жазба жоспар бойынша шығады. Ақау болса, хабарлаймыз.', inTime: 'кесте бойынша', manual: 'Қолмен', publishedAt: 'жарияланды', pausedSt: 'қабылдағыш өшірулі' }
+    };
+    const lang = T[lang0] ? lang0 : 'ru';
+    const t = T[lang];
+    const P = (ru, en, kk) => ({ ru, en, kk })[lang];
+    const N = { vk: ['ВК', '#0060D1'], tg: ['TG', '#1B7DB0'], ok: ['OK', '#C2560A'], mm: ['ММ', '#1268B3'], pi: ['Pi', '#C8001E'], x: ['X', '#16181C'], in: ['In', '#0A66C2'], rss: ['RSS', '#D9590B'], yt: ['YT', '#C4302B'], man: ['✎', '#566176'] };
+    const thumbs = ['linear-gradient(135deg,#2563EB,#38BDF8)', 'linear-gradient(135deg,#F59E0B,#EF4444)', 'linear-gradient(135deg,#10B981,#0EA5E9)', 'linear-gradient(135deg,#8B5CF6,#EC4899)', 'linear-gradient(135deg,#0EA5E9,#22C55E)', 'linear-gradient(135deg,#334155,#64748B)'];
+    const raw = [
+      { id: 1, day: 'today', time: '15:30', src: 'rss', dests: ['vk', 'tg', 'ok'], more: '+3', title: P('Новинки недели в каталоге', 'This week’s new arrivals', 'Каталогтағы апта жаңалықтары'), text: P('Собрали 12 новых товаров: от уютных пледов до техники для кухни', '12 new products, from cosy blankets to kitchen gadgets', 'Жылы пледтерден ас үй техникасына дейін 12 жаңа тауар') },
+      { id: 2, day: 'today', time: '18:00', src: 'rss', dests: ['vk', 'mm', 'pi'], more: '', title: P('Как выбрать подарок и не ошибиться', 'How to pick a gift that lands', 'Сыйлықты қателеспей қалай таңдау керек'), text: P('7 идей для близких и коллег — с ценами и ссылками', '7 ideas for family and colleagues, with prices and links', 'Жақындар мен әріптестерге 7 идея — бағасы мен сілтемесімен') },
+      { id: 3, day: 'today', time: '20:15', src: 'vk', dests: ['tg', 'x'], more: '', title: P('Отзыв покупателя недели', 'Customer review of the week', 'Аптаның сатып алушы пікірі'), text: P('«Заказала в пятницу, в субботу уже пользовалась»', '“Ordered on Friday, using it by Saturday”', '«Жұмада тапсырыс бердім, сенбіде қолдандым»') },
+      { id: 4, day: 'tomorrow', time: '10:00', src: 'man', dests: ['vk', 'tg', 'ok', 'in'], more: '', title: P('Акция выходного дня', 'Weekend sale', 'Демалыс күнгі акция'), text: P('Скидка 15% на всё до воскресенья', '15% off everything until Sunday', 'Жексенбіге дейін бәріне 15% жеңілдік') },
+      { id: 5, day: 'tomorrow', time: '12:30', src: 'rss', dests: ['vk', 'tg'], more: '', title: P('Свежий кейс в блоге', 'New case study on the blog', 'Блогтағы жаңа кейс'), text: P('Как кофейня увеличила продажи через соцсети', 'How a coffee shop grew sales through social media', 'Кофехана әлеуметтік желі арқылы сатылымды қалай арттырды') },
+      { id: 6, day: 'tomorrow', time: '19:00', src: 'yt', dests: ['tg', 'vk', 'ok'], more: '', title: P('Обзор новой модели', 'New model review', 'Жаңа модельге шолу'), text: P('Видео: показываем все режимы за 4 минуты', 'Video: every mode in 4 minutes', 'Бейне: барлық режим 4 минутта') }
+    ];
+    const tab = this.state.tab;
+    const mk = (r, i, mode) => ({
+      ...r, src: N[r.src][0], srcC: N[r.src][1], srcName: r.src === 'man' ? t.manual : r.src.toUpperCase(),
+      dests: r.dests.map((k) => ({ s: N[k][0], c: N[k][1] })), thumb: thumbs[i % thumbs.length],
+      checked: !!this.state.sel[r.id], bg: this.state.sel[r.id] ? 'var(--soft)' : 'transparent',
+      toggle: () => this.setState({ sel: { ...this.state.sel, [r.id]: !this.state.sel[r.id] } }),
+      st: mode === 'done' ? t.publishedAt : mode === 'paused' ? t.pausedSt : t.inTime,
+      stColor: mode === 'done' ? 'var(--ok)' : mode === 'paused' ? 'var(--warn)' : 'var(--muted)',
+      timeColor: 'var(--fg)'
+    });
+    let days = [];
+    if (tab === 'plan') {
+      days = [
+        { title: t.today, items: raw.filter((r) => r.day === 'today').map((r, i) => mk(r, i, 'plan')) },
+        { title: t.tomorrow, items: raw.filter((r) => r.day === 'tomorrow').map((r, i) => mk(r, i + 3, 'plan')) }
+      ];
+    } else if (tab === 'paused') {
+      days = [{ title: t.tomorrow, items: raw.slice(3, 6).map((r, i) => mk(r, i + 3, 'paused')) }];
+    } else if (tab === 'done') {
+      days = [{ title: t.yesterday, items: raw.slice(0, 4).map((r, i) => mk({ ...r, time: ['09:00', '12:40', '16:10', '19:30'][i] }, i, 'done')) }];
+    }
+    days = days.map((d) => ({ ...d, count: d.items.length + ' ' + t.posts }));
+    const counts = { plan: 28, paused: 3, err: 0, done: '1 204' };
+    const tabs = [['plan', t.plan], ['paused', t.paused], ['err', t.errors], ['done', t.done]].map(([k, label]) => ({
+      label, n: counts[k], cls: k === tab ? 'on' : '', pressed: k === tab ? 'true' : 'false', pick: () => this.setState({ tab: k })
+    }));
+    const nSel = Object.values(this.state.sel).filter(Boolean).length;
+    return {
+      lang, theme, t, themeCls: theme === 'dark' ? 'dark' : '',
+      tabs, days, isEmpty: tab === 'err',
+      hasSel: nSel > 0 && tab !== 'err', selLabel: t.selected + ': ' + nSel,
+      clearSel: () => this.setState({ sel: {} }),
+      setLang: (l) => this.setState({ lang: l }),
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' })
+    };
+  }
+}
+</script>
+</body>
+</html>

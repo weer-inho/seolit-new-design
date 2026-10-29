@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<title>SEOlit — қабылдағышты қосу</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--ok-bg:#E3F4EC;--overlay:rgba(13,21,38,.5);--shadow:0 30px 80px -20px rgba(13,21,38,.45);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--ok-bg:rgba(61,219,160,.12);--overlay:rgba(0,0,0,.66);--shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+.app a{color:var(--atext)}
+.sk{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.chipf{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.chipf.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;text-align:left;cursor:pointer;min-height:118px}
+.tile:hover{border-color:var(--accent)}
+.tile.on{border-color:var(--accent);box-shadow:0 0 0 4px rgba(37,99,235,.18)}
+.net{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#fff;font-size:13px;font-weight:800;flex:none}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+</style>
+</helmet>
+<div class="app {{themeCls}}" style="position: relative; display: flex; flex-wrap: wrap; min-height: 1000px; overflow: hidden">
+<dc-import name="Sidebar" lang="{{lang}}" active="projects" hint-size="248px,1000px"></dc-import>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<dc-import name="TopBar" lang="{{lang}}" theme="{{theme}}" crumb-a="{{t.projects}}" crumb-b="{{t.project}}" action="{{t.newPost}}" action-href="Post.dc.html" on-lang="{{setLang}}" on-theme="{{toggleTheme}}" hint-size="100%,64px"></dc-import>
+<div aria-hidden="true" style="padding: 28px; display: flex; flex-direction: column; gap: 18px; max-width: 1180px">
+<div style="height: 34px; width: 320px; border-radius: 10px; background: var(--line)"></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px"><div class="sk" style="height: 110px"></div><div class="sk" style="height: 110px"></div><div class="sk" style="height: 110px"></div><div class="sk" style="height: 110px"></div></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px"><div class="sk" style="height: 420px"></div><div class="sk" style="height: 420px"></div></div>
+</div>
+</div>
+
+<div style="position: absolute; inset: 0; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 56px 16px; box-sizing: border-box">
+<section role="dialog" aria-modal="true" aria-labelledby="cn-title" style="width: 100%; max-width: 780px; background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; max-height: 880px; overflow: hidden">
+<div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid var(--line)">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="cn-title" style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em">{{t.title}}</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted)">{{t.subtitle}}</p>
+</div>
+<a href="Project.dc.html" aria-label="{{t.close}}" style="width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; color: var(--muted); background: var(--soft)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; font-weight: 700">
+<li style="display: flex; align-items: center; gap: 8px; color: var(--fg)"><span style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: grid; place-items: center; font-size: 12px">1</span>{{t.step1}}</li>
+<li style="display: flex; align-items: center; gap: 8px; color: var(--muted)"><span style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12px">2</span>{{t.step2}}</li>
+<li style="display: flex; align-items: center; gap: 8px; color: var(--muted)"><span style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12px">3</span>{{t.step3}}</li>
+</ol>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 14px; border-radius: 13px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--muted)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" value="{{query}}" onInput="{{onQuery}}" placeholder="{{t.search}}" aria-label="{{t.search}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 600 15px Manrope, system-ui, sans-serif; color: var(--fg)">
+</label>
+<div role="group" aria-label="{{t.cats}}" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+<button type="button" class="{{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.label}} <span style="opacity: .65">{{c.n}}</span></button>
+</sc-for>
+</div>
+</div>
+
+<div style="padding: 18px 24px; overflow-y: auto; flex: 1">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px">
+<sc-for list="{{nets}}" as="n" hint-placeholder-count="12">
+<button type="button" class="{{n.cls}}" aria-pressed="{{n.pressed}}" onClick="{{n.pick}}">
+<span class="net" style="background: {{n.c}}">{{n.s}}</span>
+<span style="display: flex; flex-direction: column; gap: 3px">
+<b style="font-size: 15px">{{n.name}}</b>
+<span class="lbl" style="color: {{n.capColor}}; line-height: 1.35">{{n.cap}}</span>
+</span>
+</button>
+</sc-for>
+</div>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 24px 0; text-align: center; color: var(--muted); font-size: 14px">{{t.nothing}}</p>
+</sc-if>
+</div>
+
+<div style="padding: 16px 24px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+<p class="lbl" style="margin: 0; flex: 1 1 280px; line-height: 1.5">{{t.note}}<br>* {{t.meta}}</p>
+<button type="button" style="min-height: 44px; padding: 0 20px; border-radius: 12px; border: 0; background: {{ctaBg}}; color: {{ctaFg}}; font: 800 15px Manrope, system-ui, sans-serif; cursor: pointer; white-space: nowrap">{{cta}}</button>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["ru","en","kk"],"default":"kk"},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { cat: 'all', q: '', sel: 'tg' }; }
+  renderVals() {
+    const lang0 = this.state.lang || this.props.lang || 'kk';
+    const theme = this.state.theme || this.props.theme || 'light';
+    const T = {
+      ru: { projects: 'Проекты', project: 'Блог о путешествиях', newPost: 'Новый пост', title: 'Подключить приёмник', subtitle: 'Выберите соцсеть, куда SEOlit будет публиковать посты этого проекта.', close: 'Закрыть', step1: 'Соцсеть', step2: 'Вход в аккаунт', step3: 'Страница или группа', search: 'Найти соцсеть', cats: 'Категории', all: 'Все', social: 'Соцсети', msg: 'Мессенджеры', blogs: 'Блоги', video: 'Видео', included: 'Входит в тариф', extra: 'Уже подключён: 1 · ещё +100 ₽/мес', nothing: 'Ничего не нашлось. Напишите нам — добавим нужную соцсеть.', note: 'В тариф проекта входит 1 аккаунт каждой соцсети. Дополнительный — 100 ₽ за 30 дней.', meta: 'Meta признана экстремистской организацией и запрещена в РФ.', go: 'Продолжить с', pick: 'Выберите соцсеть' },
+      en: { projects: 'Projects', project: 'Travel Blog', newPost: 'New post', title: 'Connect a destination', subtitle: 'Choose the network where SEOlit will publish this project’s posts.', close: 'Close', step1: 'Network', step2: 'Sign in', step3: 'Page or group', search: 'Find a network', cats: 'Categories', all: 'All', social: 'Social', msg: 'Messengers', blogs: 'Blogs', video: 'Video', included: 'Included in your plan', extra: '1 connected · next one +100 ₽/mo', nothing: 'Nothing found. Write to us and we’ll add the network you need.', note: 'Your project plan includes one account in every network. Each extra account is 100 ₽ per 30 days.', meta: 'Meta is designated an extremist organization and banned in Russia.', go: 'Continue with', pick: 'Choose a network' },
+      kk: { projects: 'Жобалар', project: 'Саяхат блогы', newPost: 'Жаңа жазба', title: 'Қабылдағышты қосу', subtitle: 'SEOlit осы жобаның жазбаларын жариялайтын желіні таңдаңыз.', close: 'Жабу', step1: 'Желі', step2: 'Аккаунтқа кіру', step3: 'Бет немесе топ', search: 'Желіні іздеу', cats: 'Санаттар', all: 'Барлығы', social: 'Әлеуметтік желілер', msg: 'Мессенджерлер', blogs: 'Блогтар', video: 'Бейне', included: 'Тарифке кіреді', extra: '1 қосылған · келесісі +100 ₽/ай', nothing: 'Ештеңе табылмады. Бізге жазыңыз — қажетті желіні қосамыз.', note: 'Жоба тарифіне әр желіден 1 аккаунт кіреді. Қосымша аккаунт — 30 күнге 100 ₽.', meta: 'Meta экстремистік ұйым деп танылған және РФ-та тыйым салынған.', go: 'Жалғастыру:', pick: 'Желіні таңдаңыз' }
+    };
+    const lang = T[lang0] ? lang0 : 'kk';
+    const t = T[lang];
+    const ALL = [
+      ['vk', 'ВК', '#0060D1', 'ВКонтакте', 'social'], ['ok', 'OK', '#C2560A', 'Одноклассники', 'social'], ['mm', 'ММ', '#1268B3', 'Мой Мир', 'social'],
+      ['tg', 'TG', '#1B7DB0', 'Telegram', 'msg'], ['mx', 'MX', '#5B3FD8', 'Max.ru', 'msg'], ['x', 'X', '#16181C', 'X (Twitter)', 'social'],
+      ['pi', 'Pi', '#C8001E', 'Pinterest', 'social'], ['in', 'In', '#0A66C2', 'LinkedIn', 'social'], ['tt', 'TT', '#C4113F', 'TikTok', 'video'],
+      ['lj', 'ЖЖ', '#004359', 'LiveJournal', 'blogs'], ['tu', 'Tu', '#36465D', 'Tumblr', 'blogs'], ['bl', 'Bl', '#A23B10', 'Blogger', 'blogs'],
+      ['re', 'Re', '#C93800', 'Reddit', 'blogs'], ['fb', 'FB', '#1659C7', 'Facebook*', 'social'], ['ig', 'IG', '#B0306A', 'Instagram*', 'social']
+    ];
+    const cat = this.state.cat, q = (this.state.q || '').trim().toLowerCase();
+    const counts = { all: ALL.length };
+    ALL.forEach((n) => { counts[n[4]] = (counts[n[4]] || 0) + 1; });
+    const cats = ['all', 'social', 'msg', 'blogs', 'video'].map((k) => ({
+      label: t[k], n: counts[k], cls: k === cat ? 'chipf on' : 'chipf', pressed: k === cat ? 'true' : 'false',
+      pick: () => this.setState({ cat: k })
+    }));
+    const nets = ALL.filter((n) => (cat === 'all' || n[4] === cat) && (!q || n[3].toLowerCase().includes(q))).map((n) => {
+      const on = this.state.sel === n[0];
+      const conn = n[0] === 'tg';
+      return {
+        s: n[1], c: n[2], name: n[3], cls: on ? 'tile on' : 'tile', pressed: on ? 'true' : 'false',
+        cap: conn ? t.extra : t.included, capColor: conn ? 'var(--muted)' : 'var(--ok)',
+        pick: () => this.setState({ sel: n[0] })
+      };
+    });
+    const sel = ALL.find((n) => n[0] === this.state.sel);
+    return {
+      lang, theme, t, themeCls: theme === 'dark' ? 'dark' : '',
+      cats, nets, empty: nets.length === 0, query: this.state.q,
+      onQuery: (e) => this.setState({ q: e.target.value }),
+      cta: sel ? t.go + ' ' + sel[3] : t.pick,
+      ctaBg: sel ? 'var(--accent)' : 'var(--soft)', ctaFg: sel ? '#FFFFFF' : 'var(--muted)',
+      setLang: (l) => this.setState({ lang: l }),
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' })
+    };
+  }
+}
+</script>
+</body>
+</html>

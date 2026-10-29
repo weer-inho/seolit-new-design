@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Статичный снимок макета из холста дизайна: без интерактива. Логика и переводы — в source/*.dc.html -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#F4F6FA;--surface:#FFFFFF;--fg:#0D1526;--muted:#566176;--faint:#6F7A8F;--line:#E2E7F0;--soft:#EDF1F8;--accent:#2563EB;--atext:#1D4ED8;--ok:#0A7D56;--warn:#9A5206;--warn-bg:#FCF1DF;--ai:#FFE27A;--shadow:0 1px 2px rgba(13,21,38,.05),0 10px 30px -14px rgba(13,21,38,.22);font-family:Manrope,system-ui,sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app.dark{--bg:#0A0F1A;--surface:#111827;--fg:#E8EDF7;--muted:#A3AEC2;--faint:#8792A8;--line:#222D44;--soft:#18223A;--atext:#8DB1FF;--ok:#3DDBA0;--warn:#FBC453;--warn-bg:rgba(251,196,83,.12);--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7)}
+.app a{color:var(--atext)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld>span{font-size:12px;font-weight:800;color:var(--muted)}
+.box{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 15px Manrope,system-ui,sans-serif;box-sizing:border-box}
+.box input,.box textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;color:var(--fg);resize:vertical}
+.seg{display:inline-flex;padding:3px;border-radius:12px;background:var(--soft);gap:2px}
+.seg button{min-height:36px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.net{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#fff;font-size:9.5px;font-weight:800;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;border-radius:999px;background:var(--soft);color:var(--atext);font-size:13px;font-weight:700}
+.tog{position:relative;width:38px;height:22px;border-radius:999px;border:0;background:var(--line);cursor:pointer;flex:none;padding:0}
+.tog::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.tog.on{background:var(--accent)}.tog.on::after{left:19px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;border-top:1px solid var(--line);font-size:14px;font-weight:700}
+.chk{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer;flex:none}
+.grow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 4px;border-top:1px solid var(--line);font-size:14px;font-weight:700;cursor:pointer}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+<title>SEOlit — new post</title></head><body>
+
+
+<div class="app " style="display: flex; flex-wrap: wrap; min-height: 1200px">
+
+
+<nav aria-label="Разделы кабинета" style="width: 248px; min-height: 1000px; height: 100%; box-sizing: border-box; padding: 16px 14px 20px; display: flex; flex-direction: column; gap: 20px; background: var(--surface, #FFFFFF); border-right: 1px solid var(--line, #E2E7F0); font-family: Manrope, system-ui, sans-serif; color: var(--fg, #0D1526)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 6px 8px; text-decoration: none; color: var(--fg, #0D1526)">
+<svg width="32" height="32" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" style="fill: var(--accent, #2563EB)"></circle><circle cx="24" cy="24" r="12" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"></circle><path d="M24 24 L24 12 M24 24 L34.4 30 M24 24 L13.6 30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path><circle cx="24" cy="24" r="4.5" fill="#fff"></circle><circle cx="24" cy="12" r="3.5" fill="#fff"></circle><circle cx="34.4" cy="30" r="3.5" fill="#fff"></circle><circle cx="13.6" cy="30" r="3.5" fill="#fff"></circle></svg>
+<span style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em">SEOlit</span>
+</a>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Работа</span>
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: var(--soft, #EDF1F8); color: var(--atext, #1D4ED8)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="2"></rect><rect x="14" y="4" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>Проекты</a>
+<a href="Queue.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg>Очередь<span style="margin-left: auto; font-size: 12px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: var(--soft, #EDF1F8); color: var(--muted, #566176)">78</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"></path></svg>Шаблоны</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>Расписания</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Оформление</span>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M7 16l4-5 3 4 2-2 3 3"></path></svg>Водяные знаки</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="8" height="8" rx="2"></rect><path d="M14 7h7M14 11h7M3 17h18"></path></svg>Автокартинки</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 0 10px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint, #7A8499)">Аккаунт</span>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M3 10h18M7 15h4"></path></svg>Баланс</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M18 8v6M15 11h6"></path></svg>Рефералы</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3M13 6l-2 12"></path></svg>API</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="1.5"></circle><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"></path></svg>RSS-тест</a>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+<div style="padding: 14px; border-radius: 14px; background: var(--soft, #EDF1F8); display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: var(--muted, #566176)">Баланс</span>
+<b style="font-size: 22px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">4 300 ₽</b>
+<span style="font-size: 12px; line-height: 1.4; color: var(--muted, #566176)">Хватит примерно на 5 месяцев</span>
+<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 10px; background: var(--accent, #2563EB); color: #FFFFFF; font-size: 13px; font-weight: 800; text-decoration: none">Пополнить</a>
+</div>
+<a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; background: transparent; color: var(--muted, #566176)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"></path></svg>Помощь и инструкции</a>
+</div>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+
+
+<header style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 64px; padding: 10px 28px; box-sizing: border-box; background: var(--surface, #FFFFFF); border-bottom: 1px solid var(--line, #E2E7F0); font-family: Manrope, system-ui, sans-serif; color: var(--fg, #0D1526)">
+<nav aria-label="Навигация" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; min-width: 0">
+
+<a href="Main.dc.html" style="color: var(--muted, #566176); text-decoration: none; white-space: nowrap">Магазин «Пример»</a>
+<span aria-hidden="true" style="color: var(--faint, #7A8499)">/</span>
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Новый пост</span>
+
+
+</nav>
+
+<label style="flex: 1 1 220px; max-width: 420px; margin-left: 12px; display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 10px 0 12px; border-radius: 11px; background: var(--soft, #EDF1F8); color: var(--muted, #566176); font-size: 14px; box-sizing: border-box">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" placeholder="Поиск по проектам и аккаунтам" aria-label="Поиск по проектам и аккаунтам" style="flex: 1 1 0%; min-width: 0px; border: 0px; outline: 0px; background: transparent; font: 500 14px Manrope, system-ui, sans-serif; color: var(--fg, #0D1526);">
+<span style="font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line, #E2E7F0); color: var(--faint, #7A8499)">Ctrl K</span>
+</label>
+
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<div role="group" aria-label="Язык интерфейса" style="display: flex; padding: 3px; border-radius: 11px; background: var(--soft, #EDF1F8)">
+
+<button type="button" aria-pressed="true" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); box-shadow: 0 1px 3px rgba(0,0,0,.12)">RU</button>
+
+<button type="button" aria-pressed="false" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: transparent; color: var(--muted, #566176)">EN</button>
+
+<button type="button" aria-pressed="false" style="min-width: 40px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer; background: transparent; color: var(--muted, #566176)">KZ</button>
+
+</div>
+<button type="button" aria-label="Тёмная тема" title="Тёмная тема" style="width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line, #E2E7F0); background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); display: grid; place-items: center; cursor: pointer">
+
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+</button>
+<button type="button" aria-label="Уведомления: 1 новое" style="position: relative; width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line, #E2E7F0); background: var(--surface, #FFFFFF); color: var(--fg, #0D1526); display: grid; place-items: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 7px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #E5484D; box-shadow: 0 0 0 2px var(--surface, #FFFFFF)"></span>
+</button>
+
+<button type="button" aria-label="Профиль anna@example.ru" style="display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 4px 0 4px; border: 0; background: transparent; color: var(--fg, #0D1526); cursor: pointer">
+<span style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #38BDF8); color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 800">A</span>
+</button>
+</div>
+</header>
+
+<main style="width: 100%; max-width: 1180px; box-sizing: border-box; padding: 28px 28px 0; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">Новый пост</h1>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<form class="card" style="flex: 1.45 1 420px; min-width: 0; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<label class="fld"><span>Заголовок</span><span class="box"><input type="text" value="Новинки недели в каталоге" aria-label="Заголовок" style=""></span></label>
+
+<div class="fld">
+<span>Текст поста</span>
+<div class="box" style="flex-direction: column; align-items: stretch; padding: 12px 14px; gap: 10px">
+<textarea rows="5" aria-label="Текст поста" style="line-height: 1.55;">Собрали 12 новых товаров недели: уютные пледы, керамика ручной работы и техника для кухни. Всё уже в каталоге, доставка от 1 дня. Успейте выбрать подарки заранее — самые популярные позиции заканчиваются за пару дней.</textarea>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line)">
+<button type="button" aria-expanded="true" style="display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--ai); color: #0D1526; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3" fill="#0D1526"></rect><circle cx="9" cy="14" r="1.6" fill="#FFE27A"></circle><circle cx="15" cy="14" r="1.6" fill="#FFE27A"></circle><path d="M12 8V4.5" stroke="#0D1526" stroke-width="2" stroke-linecap="round"></path><circle cx="12" cy="3.5" r="1.6" fill="#0D1526"></circle></svg>ИИ-соавтор</button>
+<button type="button" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer">Шаблон: Анонс</button>
+<span style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 12px">
+<span class="lbl" style="color: var(--muted); font-variant-numeric: tabular-nums">ВК 281 / 16&nbsp;384</span><span class="lbl" style="color: var(--muted); font-variant-numeric: tabular-nums">TG 281 / 4&nbsp;096</span><span class="lbl" style="color: var(--warn); font-variant-numeric: tabular-nums">X 281 / 280 · сократится</span>
+</span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border-radius: 12px; background: var(--soft)">
+<span class="lbl">Модель</span>
+<span class="box" style="min-height: 36px; font-size: 13px">Yandex GPT Lite ▾</span>
+<span class="box" style="min-height: 36px; font-size: 13px; flex: 1 1 200px">Сделай текст короче и дружелюбнее</span>
+<button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 13px Manrope, system-ui, sans-serif; cursor: pointer">Переписать</button>
+<span class="lbl" style="width: 100%">Примерно 60 токенов · 1 токен Lite — 0,0002 ₽</span>
+</div>
+
+</div>
+</div>
+
+<div class="fld">
+<span>Фото и видео · 2 / 10</span>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<div aria-hidden="true" style="width: 96px; height: 76px; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #38BDF8)"></div>
+<div aria-hidden="true" style="width: 96px; height: 76px; border-radius: 12px; background: linear-gradient(135deg, #F59E0B, #EF4444)"></div>
+<button type="button" style="flex: 1 1 220px; min-height: 76px; border-radius: 12px; border: 2px dashed var(--line); background: transparent; color: var(--muted); font: 700 13px Manrope, system-ui, sans-serif; cursor: pointer; padding: 8px 14px">Перетащите фото или видео, или вставьте ссылку</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+<label class="fld"><span>Ссылка на материал</span><span class="box"><input type="url" value="https://example.ru/catalog/new" aria-label="Ссылка на материал" style=""></span></label>
+<div class="fld"><span>Хэштеги</span><span class="box" style="flex-wrap: wrap; padding: 6px 8px; gap: 6px"><span class="tag">#новинки</span><span class="tag">#каталог</span><span class="lbl" style="padding: 0 6px">+ хэштег</span></span></div>
+</div>
+
+<div class="fld">
+<span>Когда публиковать</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<div class="seg" role="group" aria-label="Когда публиковать">
+<button type="button" class="" aria-pressed="false">Сразу</button><button type="button" class="on" aria-pressed="true">Запланировать</button><button type="button" class="" aria-pressed="false">Черновик</button>
+</div>
+
+<span class="box" style="min-height: 42px">30.10.2026</span>
+<span class="box" style="min-height: 42px">10:00</span>
+
+</div>
+<span class="lbl" style="font-weight: 600; line-height: 1.45">Если у приёмника своё расписание, пост выйдет в ближайшее разрешённое время.</span>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<button type="button" aria-expanded="false" class="opt" style="border-bottom: 0; background: transparent; color: var(--fg); font: 800 14px Manrope, system-ui, sans-serif; cursor: pointer; padding: 0 4px">Дополнительно<span class="lbl">удаление, реклама, гео, автор, повтор  +</span></button>
+
+</div>
+</form>
+
+<div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section class="card" style="padding: 18px 18px 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">Куда</h2>
+<span class="lbl">16 из 62</span>
+</div>
+<label class="grow" style="border-top: 0"><input type="checkbox" class="chk" checked="" style=""><span style="flex: 1">Все работающие приёмники</span><span class="lbl">16</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #0060D1">ВК</span><span style="flex: 1">ВКонтакте</span><span class="lbl">3 из 9</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #1B7DB0">TG</span><span style="flex: 1">Telegram</span><span class="lbl">2 из 4</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #C2560A">OK</span><span style="flex: 1">Одноклассники</span><span class="lbl">2 из 6</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #1268B3">ММ</span><span style="flex: 1">Мой Мир</span><span class="lbl">1 из 3</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #16181C">X</span><span style="flex: 1">X (Twitter)</span><span class="lbl">2 из 8</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #C8001E">Pi</span><span style="flex: 1">Pinterest</span><span class="lbl">2 из 5</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #0A66C2">In</span><span style="flex: 1">LinkedIn</span><span class="lbl">1 из 3</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #004359">ЖЖ</span><span style="flex: 1">LiveJournal</span><span class="lbl">1 из 3</span></label>
+
+<label class="grow"><input type="checkbox" class="chk" checked="" style=""><span class="net" style="background: #5B3FD8">MX</span><span style="flex: 1">Max.ru</span><span class="lbl">2 из 3</span></label>
+
+</section>
+
+<section class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">Предпросмотр</h2>
+<div class="seg" role="group" aria-label="Предпросмотр">
+<button type="button" class="on" aria-pressed="true">ВКонтакте</button><button type="button" class="" aria-pressed="false">Telegram</button><button type="button" class="" aria-pressed="false">OK</button>
+</div>
+</div>
+
+
+<div style="border-radius: 14px; border: 1px solid var(--line); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px">
+<span style="width: 36px; height: 36px; border-radius: 50%; background: #0060D1"></span>
+<div style="display: flex; flex-direction: column"><b style="font-size: 14px">Магазин «Пример»</b><span class="lbl">завтра в 10:00</span></div>
+</div>
+<div style="padding: 0 12px 12px; font-size: 13.5px; line-height: 1.5; display: flex; flex-direction: column; gap: 6px"><b>Новинки недели в каталоге</b><span>Собрали 12 новых товаров недели: уютные пледы, керамика ручной работы и техника для кухни…</span><span style="color: var(--atext)">#новинки #каталог</span></div>
+<div style="height: 150px; background: linear-gradient(135deg, #2563EB, #38BDF8)"></div>
+<div style="padding: 10px 12px; background: var(--soft); display: flex; flex-direction: column; gap: 2px"><span class="lbl">example.ru</span><b style="font-size: 13px">Новинки недели в каталоге</b></div>
+</div>
+
+<span class="lbl" style="font-weight: 600">Так пост увидят подписчики. Текст для каждой соцсети подгоняется по шаблону.</span>
+</section>
+</div>
+</div>
+
+<div style="position: sticky; bottom: 0; z-index: 5; margin: 0 -28px; padding: 14px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--surface); border-top: 1px solid var(--line)">
+<a href="Queue.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; color: var(--muted); font-weight: 700; text-decoration: none">Отмена</a>
+<span style="margin-left: auto"></span>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); font: 700 14px Manrope, system-ui, sans-serif; cursor: pointer">Сохранить черновик</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--accent); color: #FFFFFF; font: 800 14px Manrope, system-ui, sans-serif; cursor: pointer">Запланировать на 30.10 10:00 · 16 соцсетей</button>
+</div>
+</main>
+</div>
+</div>
+</body></html>
