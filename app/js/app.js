@@ -228,7 +228,7 @@
   const queueCount = () => DEMO.stats().plan;
   // «Хватит примерно на N месяцев»: баланс / (800 ₽ × оплаченные свои проекты)
   function enough() {
-    const n = DEMO.db.projects.filter((p) => p.own && (p.st === 'ok' || p.st === 'err') && p.until > Date.now()).length * 800;
+    const n = DEMO.prognoz();
     const m = n ? Math.floor(DEMO.db.balance / n) : 0;
     return !n ? '' : m ? plural(m, 'p.enough') : t('bal.enoughLess');
   }
@@ -648,7 +648,7 @@
   PAGES.project = () => {
     const main = $('#main');
     const P = DEMO.project(q.get('id')) || DEMO.project('shop');
-    const S = { view: ['sources', 'dests', 'stats', 'settings'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
+    const S = { view: ['sources', 'dests', 'stats', 'access', 'settings'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
       search: '', open: new Set(), allGroups: false, allSrc: false, m: 'dests' };
     const recvs = () => DEMO.db.receivers.filter((r) => r.p === P.id);
     const srcs = () => DEMO.db.sources.filter((r) => r.p === P.id);
@@ -665,7 +665,7 @@
       const name = tx(r.name), err = r.st === 'err';
       return `<li class="acc${err ? ' is-err' : ''}">${plate ? net(r.net, 28, false) : ''}
         <div class="acc__txt"><b>${esc(name)}</b><span>${esc(tx(r.meta))}</span></div>
-        ${err ? `<button type="button" class="btn btn--sm" data-act="fix" data-id="${r.id}">${esc(tx(r.fix))}</button>`
+        ${err ? `<button type="button" class="btn btn--sm" data-act="fix" data-id="${r.id}">${esc(t('proj.fix'))}</button>`
           : `<button type="button" class="tog" role="switch" aria-checked="${r.st === 'on'}" data-act="tog" data-id="${r.id}" aria-label="${esc(t('proj.toggle', { name }))}"></button>`}
         <div class="pop"><button type="button" class="ibtn ibtn--sm" data-pop aria-expanded="false" aria-label="${esc(t('proj.rowMenu', { name }))}">${ico('dots')}</button>
           <div class="menu" hidden><button type="button" data-act="settings" data-kind="${kind}" data-id="${r.id}">${ico('settings')}${esc(t('proj.rowSettings'))}</button>
@@ -743,13 +743,13 @@
       const st = DEMO.stats(P.id), nS = srcs().length, nR = recvs().length;
       const tab = (k, label, n) => `<button type="button" class="ptab" data-act="view" data-id="${k}"${S.view === k ? ' aria-current="page"' : ''}>${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</button>`;
       const link = (h, label, n) => `<a class="ptab" href="${h}">${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</a>`;
-      const extra = ['stats', 'settings'].includes(S.view);
+      const extra = ['stats', 'access', 'settings'].includes(S.view);
       const cols = S.view === 'sources' ? sourcesCol() : S.view === 'dests' ? destsCol() : extra ? '' : sourcesCol() + destsCol();
       main.innerHTML = `<div class="page__head"><div><div class="proj__title"><h1 class="d-only">${esc(tx(P.name))}</h1>${projPill(P)}</div>
           <p class="proj__site">${esc(t('proj.site', { site: P.site || '—', paid: lcFirst(projPaid(P)) }))}</p></div>
           <button type="button" class="btn d-only" data-act="view" data-id="settings"${S.view === 'settings' ? ' aria-current="page"' : ''}>${ico('settings', 'ico--sm')}${esc(t('proj.settings'))}</button></div>
         <nav class="ptabs" aria-label="${esc(t('proj.sections'))}">${tab('overview', 'proj.overview')}${tab('sources', 'proj.sources', nS)}${tab('dests', 'proj.dests', nR)}
-          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${tab('stats', 'proj.stats')}<span class="m-only">${tab('settings', 'proj.settings')}</span></nav>
+          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${tab('stats', 'proj.stats')}${P.own ? tab('access', 'proj.access', (DEMO.db.team && DEMO.db.team[P.id] || []).length || 1) : ''}<span class="m-only">${tab('settings', 'proj.settings')}</span></nav>
         ${S.view === 'overview' ? kpis() : ''}
         ${extra ? '<div class="ptab-body" id="ptab"></div>' : ''}
         <div class="seg seg--m m-only${extra ? ' is-hidden' : ''}" role="group" aria-label="${esc(t('proj.view'))}">
@@ -793,9 +793,8 @@
         const kind = b.closest('.pcol--src') ? 'source' : 'dest', r = find(kind, id);
         if (!r) return;
         if (act === 'fix') {
-          demo('proj.fixToast', { action: tx(r.fix), net: netName(r.net) });
-          r.st = 'on'; r.meta = JUST(); delete r.fix;
-          DEMO.save(); rerender(`[data-act="tog"][data-id="${id}"]`);
+          // Как в старом кабинете: текст ошибки и настройки с общей кнопкой «Обновить подключение» (повторный вход в соцсеть)
+          if (window.SECTIONS) window.SECTIONS.accSettings(kind, r, P, () => rerender(`[data-act="tog"][data-id="${id}"]`));
         } else {
           r.st = r.st === 'on' ? 'off' : 'on'; r.meta = r.st === 'on' ? JUST() : OFFTXT();
           DEMO.save(); rerender();
@@ -920,7 +919,7 @@
     I18N.onChange(() => { setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]); render(); });
     render();
     // sections.js подключается после app.js — когда он готов, дорисовать вкладку этапа 2
-    document.addEventListener('sections-ready', () => { if (['stats', 'settings'].includes(S.view)) render(); });
+    document.addEventListener('sections-ready', () => { if (['stats', 'access', 'settings'].includes(S.view)) render(); });
     if (location.hash === '#connect') openConnect('dest');
     else if (location.hash === '#connect-source') openConnect('source');
   };

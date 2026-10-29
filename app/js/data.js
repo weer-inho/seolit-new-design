@@ -278,7 +278,7 @@
     { id: 'a2', name: L('Тёмная цитата', 'Dark quote', 'Қараңғы дәйексөз'), bg: 5, align: 'center', font: 1.2, logo: false },
   ];
   const team = {
-    shop: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'oleg@example.ru', role: 'editor' }, { email: 'smm@example.ru', role: 'viewer' }],
+    shop: [{ email: 'anna@example.ru', name: 'Anna', role: 'owner' }, { email: 'oleg@example.ru', name: 'Oleg', role: 'admin' }, { email: 'smm@example.ru', name: 'Maria (SMM)', role: 'publisher' }],
     srt: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'dev@seolit.ru', role: 'editor' }, { email: 'qa@seolit.ru', role: 'editor' }, { email: 'support@seolit.ru', role: 'viewer' }],
     tgs: [{ email: 'anna@example.ru', role: 'owner' }, { email: 'support@seolit.ru', role: 'editor' }],
   };
@@ -301,11 +301,11 @@
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 6, projects, sources, receivers, posts, templates, schedules, watermarks, autoimg, team, payments, apiKeys, balance: user.balance, nextId: 1000 });
+  const seed = () => ({ v: 8, projects, sources, receivers, posts, templates, schedules, watermarks, autoimg, team, payments, apiKeys, balance: user.balance, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 6) db = clone(seed());
+  if (!db || db.v !== 8) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };
@@ -322,6 +322,15 @@
     get db() { return db; },
     save, reset, uid, login, logout, loggedIn,
     project: (id) => db.projects.find((p) => p.id === id),
+    // К оплате за 30 дней (prognoz_30): включённые свои проекты по 800 ₽ + платные аккаунты (второй и следующие одной соцсети в проекте) по 100 ₽
+    prognoz() {
+      const prj = db.projects.filter((p) => p.own && p.st !== 'off' && p.st !== 'demo');
+      let extra = 0;
+      prj.forEach((p) => { const seen = {}; db.receivers.filter((r) => r.p === p.id && r.st !== 'off').forEach((r) => { if (seen[r.net]) extra++; seen[r.net] = 1; }); });
+      return prj.length * 800 + extra * 100;
+    },
+    // Расход за месяц (rasxod_month): списания за последние 30 дней
+    rasxod: () => -db.payments.filter((x) => x.sum < 0 && x.at > Date.now() - 30 * 864e5).reduce((s, x) => s + x.sum, 0),
     // Ошибки подключений проекта: приёмники и источники с ошибкой
     conn(id) {
       const r = db.receivers.filter((x) => x.p === id && x.st === 'err').length, s2 = db.sources.filter((x) => x.p === id && x.st === 'err').length;

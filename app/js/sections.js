@@ -62,7 +62,9 @@
       tabs.innerHTML = tabList.length > 1 ? tabList.map((k) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${S.tab === k}" aria-pressed="${S.tab === k}">${esc(t('acc.t' + { main: 'Main', more: 'More', tpl: 'Tpl' }[k]))}</button>`).join('') : '';
       tabs.hidden = tabList.length < 2;
       if (S.tab === 'main') {
-        body.innerHTML = `${inp('asName', t('acc.name'), S.name, 'data-k="name"')}
+        body.innerHTML = `${r.st === 'err' ? `<p class="note-box note-box--err">${ico('alert', 'ico--sm')}<span>${esc(t('acc.fatal', { text: tx(r.meta) }))}</span></p>` : ''}
+          ${r.net === 'rss' ? '' : `<div class="reauth"><button type="button" class="btn${r.st === 'err' ? ' btn--p' : ''}" data-reauth>${ico('reset', 'ico--sm')}${esc(t('acc.reauth'))}</button><span class="field__hint">${esc(t('acc.reauthHint', { net: netName(r.net) }))}</span></div>`}
+          ${inp('asName', t('acc.name'), S.name, 'data-k="name"')}
           ${cb('state', t(src ? 'acc.readOn' : 'acc.on'))}
           ${cb('premoderate', t('acc.premod'), t('acc.premodHint'))}
           ${src ? `<div class="two"><div class="field"><label for="asRI">${esc(t('acc.readInterval'))}</label><input class="input" id="asRI" type="number" min="1" max="1440" data-k="read_interval" value="${S.read_interval}"></div>
@@ -105,6 +107,13 @@
     tabs.addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; read(); readTpl(); S.tab = b.dataset.tab; draw(); $(`[data-tab="${S.tab}"]`, tabs)?.focus(); });
     // Поля, от которых зависят другие (свой бот, Instant View, вид ссылки), перерисовывают вкладку
     body.addEventListener('change', (e) => { const k = e.target.dataset.k; if (['tg.own_bot', 'tg.instant_view', 'tg.post_link_mode'].includes(k)) { read(); draw(); body.querySelector(`[data-k="${k}"]`)?.focus(); } });
+    body.addEventListener('click', (e) => {
+      if (!e.target.closest('[data-reauth]')) return;
+      toast(t('acc.reauthToast', { net: netName(r.net) }));
+      if (r.st === 'err') { r.st = 'on'; delete r.fix; }
+      r.meta = { ru: 'Только что', en: 'Just now', kk: 'Жаңа ғана' };
+      save(); d.close(); onSave?.();
+    });
     $('[data-save]', d.box).addEventListener('click', () => {
       read(); readTpl();
       const { tab, name: nm, state, ...rest } = S;
@@ -130,6 +139,7 @@
 
   function projectTab(view, P, el, back) {
     if (view === 'stats') statsTab(P, el);
+    else if (view === 'access') accessTab(P, el);
     else settingsTab(P, el, back);
   }
 
@@ -187,26 +197,32 @@
   }
 
   function accessTab(P, el) {
-    const list = db().team[P.id] || (db().team[P.id] = [{ email: DEMO.loggedIn() || DEMO.user.email, role: 'owner' }]);
+    // Как в старом кабинете (view=projectRights): роли Владелец / Администратор / Публикатор / Наблюдатель,
+    // пользователя ищут по логину, имени или email, на экране — имя. В API этого нет — данные Joomla.
     const me = DEMO.loggedIn() || DEMO.user.email;
+    const list = db().team[P.id] || (db().team[P.id] = [{ email: me, name: me.split('@')[0], role: 'owner' }]);
+    list.forEach((m) => { if (m.role === 'editor') m.role = 'admin'; if (m.role === 'viewer') m.role = 'observer'; if (!m.name) m.name = m.email.split('@')[0]; });
+    const ROLES = [['admin', t('ac.admin')], ['publisher', t('ac.publisher')], ['observer', t('ac.observer')]];
     function render(focus) {
       el.innerHTML = `<section class="card card--pad access"><h2 class="sec-t">${esc(t('ac.title'))}</h2><p class="muted">${esc(t('ac.hint'))}</p>
-        <form class="access__form" novalidate><div class="field"><label for="acEmail">${esc(t('ac.email'))}</label><input class="input" id="acEmail" type="email" inputmode="email" autocomplete="off" placeholder="name@example.ru" aria-describedby="acErr"><span class="field__err" id="acErr" hidden></span></div>
-          <div class="field"><label for="acRole">${esc(t('ac.role'))}</label>${sel('acRole', [['editor', t('ac.editor')], ['viewer', t('ac.viewer')]], 'editor')}</div>
+        <form class="access__form" novalidate><div class="field"><label for="acEmail">${esc(t('ac.find'))}</label><input class="input" id="acEmail" autocomplete="off" placeholder="${esc(t('ac.findPh'))}" aria-describedby="acErr"><span class="field__err" id="acErr" hidden></span></div>
+          <div class="field"><label for="acRole">${esc(t('ac.role'))}</label>${sel('acRole', ROLES, 'publisher')}</div>
           <button type="submit" class="btn btn--p">${ico('plus', 'ico--sm')}${esc(t('ac.invite'))}</button></form>
-        <ul class="access__list">${list.map((m, i) => `<li><span class="ava" aria-hidden="true">${esc(m.email[0].toUpperCase())}</span><span class="access__who"><b>${esc(m.email)}</b>${m.email === me ? ` <span class="muted">(${esc(t('ac.you'))})</span>` : ''}</span>
-          ${m.role === 'owner' ? `<span class="pill pill--info">${esc(t('ac.owner'))}</span>` : `${sel('acR' + i, [['editor', t('ac.editor')], ['viewer', t('ac.viewer')]], m.role, `data-role="${i}" aria-label="${esc(t('ac.role'))}: ${esc(m.email)}"`)}
-            <button type="button" class="ibtn ibtn--sm" data-rm="${i}" aria-label="${esc(t('ac.remove', { email: m.email }))}">${ico('close')}</button>`}</li>`).join('')}</ul></section>`;
+        <p class="field__hint">${esc(t('ac.roleHint'))}</p>
+        <ul class="access__list">${list.map((m, i) => `<li><span class="ava" aria-hidden="true">${esc(m.name[0].toUpperCase())}</span><span class="access__who"><b>${esc(m.name)}</b>${m.email === me ? ` <span class="muted">(${esc(t('ac.you'))})</span>` : ''}</span>
+          ${m.role === 'owner' ? `<span class="pill pill--info">${esc(t('ac.owner'))}</span>` : `${sel('acR' + i, ROLES, m.role, `data-role="${i}" aria-label="${esc(t('ac.role'))}: ${esc(m.name)}"`)}
+            <button type="button" class="ibtn ibtn--sm" data-rm="${i}" aria-label="${esc(t('ac.remove', { email: m.name }))}">${ico('close')}</button>`}</li>`).join('')}</ul></section>`;
       if (focus) $(focus, el)?.focus();
     }
     el.onsubmit = (e) => {
       e.preventDefault();
-      const inp = $('#acEmail', el), v = inp.value.trim().toLowerCase(), err = $('#acErr', el);
-      const bad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'ac.bad' : list.some((m) => m.email === v) ? 'ac.exists' : '';
+      const inp = $('#acEmail', el), v = inp.value.trim(), err = $('#acErr', el);
+      const key = v.toLowerCase(), name = v.includes('@') ? v.split('@')[0] : v;
+      const bad = !v ? 'ac.badFind' : list.some((m) => m.email.toLowerCase() === key || m.name.toLowerCase() === key) ? 'ac.exists' : '';
       inp.setAttribute('aria-invalid', String(!!bad)); err.hidden = !bad; if (bad) { err.textContent = t(bad); inp.focus(); return; }
-      list.push({ email: v, role: $('#acRole', el).value }); P.team = list.length; save(); render('#acEmail'); toast(t('ac.invited', { email: v }));
+      list.push({ email: v.includes('@') ? key : `${key}@login`, name, role: $('#acRole', el).value }); P.team = list.length; save(); render('#acEmail'); toast(t('ac.invited', { email: name }));
     };
-    el.onclick = (e) => { const b = e.target.closest('[data-rm]'); if (!b) return; const [m] = list.splice(+b.dataset.rm, 1); P.team = list.length; save(); render('#acEmail'); toast(t('ac.removed', { email: m.email })); };
+    el.onclick = (e) => { const b = e.target.closest('[data-rm]'); if (!b) return; const [m] = list.splice(+b.dataset.rm, 1); P.team = list.length; save(); render('#acEmail'); toast(t('ac.removed', { email: m.name })); };
     el.onchange = (e) => { const r = e.target.dataset.role; if (r != null) { list[+r].role = e.target.value; save(); } };
     render();
   }
@@ -250,6 +266,7 @@
         ${ro ? '' : `<div class="modal__foot modal__foot--in"><button type="submit" class="btn btn--p">${esc(t('ps.save'))}</button></div>`}</form>
       <section class="card card--pad psettings"><h2 class="sec-t">${esc(t('ps.paid'))}</h2>
         <p><b>${esc(t('ps.paidUntil', { date: I18N.date(P.until) }))}</b>${left > 0 ? ` · <span class="muted">${esc(plural(left, 'p.days'))}</span>` : ''}</p>
+        <p class="field__hint">${esc(t('ps.autoRenewNote'))}</p>
         <div class="psettings__row"><button type="button" class="btn btn--p" data-ps="renew">${esc(t('ps.renew'))}</button></div></section>
       <section class="card card--pad psettings psettings--danger"><h2 class="sec-t">${esc(t('ps.danger'))}</h2>
         ${P.own ? `<button type="button" class="btn btn--danger" data-ps="del">${ico('close', 'ico--sm')}${esc(t('ps.delete'))}</button>` : `<button type="button" class="btn btn--danger" data-ps="refuse">${ico('logout', 'ico--sm')}${esc(t('ps.refuse'))}</button>`}</section>`;
@@ -301,7 +318,7 @@
   const copy = async (text, okKey) => { try { await navigator.clipboard.writeText(text); } catch (e) { /* без доступа к буферу — просто сообщаем */ } toast(t(okKey)); };
   // Месячные списания: 800 ₽ за каждый свой оплаченный проект
   const paidProjects = () => db().projects.filter((p) => p.own && (p.st === 'ok' || p.st === 'err') && p.until > Date.now());
-  const monthly = () => paidProjects().length * 800;
+  const monthly = () => DEMO.prognoz();
 
   /* ---------- Баланс ---------- */
   const BS = { amount: 800, method: 'card', filter: 'all' };
@@ -316,7 +333,8 @@
       <div class="bgrid">
         <section class="card card--pad bcard"><span class="lbl">${esc(t('bal.lbl'))}</span><b class="bcard__sum num" data-balance>${money(bal)}</b>
           <span class="muted">${esc(mon ? (months ? plural(months, 'p.enough') : t('bal.enoughLess')) : '')}</span>
-          <div class="bcard__row"><span class="lbl">${esc(t('bal.spend'))}</span><b class="num">${money(mon)}</b><span class="muted">${esc(t('bal.spendHint', { n: plural(paidProjects().length, 'p.projects') }))}</span></div></section>
+          <div class="bcard__row"><span class="lbl">${esc(t('bal.prognoz'))}</span><b class="num">${money(mon)}</b><span class="muted">${esc(t('bal.prognozHint'))}</span></div>
+          <div class="bcard__row"><span class="lbl">${esc(t('bal.rasxod'))}</span><b class="num">${money(DEMO.rasxod())}</b></div></section>
         <form class="card card--pad btop" id="topup" novalidate><h2>${esc(t('bal.topupTitle'))}</h2>
           <div class="field"><label for="bAmount">${esc(t('bal.amount'))}</label><input class="input bamount num" id="bAmount" type="number" inputmode="numeric" min="100" max="500000" step="100" value="${BS.amount}" aria-describedby="bAmErr"><span class="field__err" id="bAmErr" hidden>${esc(t('bal.amountErr'))}</span>
             <div class="chips">${quick.map(([v, k]) => `<button type="button" class="chipf" data-amount="${v}" aria-pressed="${BS.amount === v}"><b class="num">${money(v)}</b> ${esc(t(k))}</button>`).join('')}</div></div>
