@@ -736,3 +736,14 @@ textarea.input { padding: 12px 14px; min-height: 120px; resize: vertical; }
 @media (max-width: 899.98px) { .accs.m-only { display: block !important; } }
 .conn__body > * { flex: none; }
 @media (max-width: 899.98px) { .tile > b { font-size: 12px; overflow-wrap: normal; word-break: normal; hyphens: auto; } }
+
+/* Выбор языка: одна кнопка + меню */
+.lang__btn { width: auto; padding: 0 8px 0 10px; gap: 4px; display: inline-flex; align-items: center; font: 800 13px var(--font); }
+.lang__btn .ico { color: var(--muted); }
+.menu--lang { min-width: 180px; }
+.menu--lang button b { min-width: 26px; font-weight: 800; color: var(--muted); }
+.menu--lang button[aria-pressed="true"] b { color: var(--atext); }
+.lang__ok { margin-left: auto; color: var(--atext); visibility: hidden; }
+.menu--lang button[aria-pressed="true"] .lang__ok { visibility: visible; }
+.more-row .menu { top: auto; bottom: calc(100% + 8px); }
+@media (max-width: 899.98px) { .lang__btn { height: 44px; } }

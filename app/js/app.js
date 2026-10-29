@@ -84,8 +84,11 @@
   mqDark.addEventListener?.('change', syncTheme);
 
   /* ---------- Переключатель языка RU · EN · KZ ---------- */
-  const langSeg = () => `<div class="seg" role="group" data-i18n-attr="aria-label:top.lang">${I18N.LANGS.map((l) =>
-    `<button type="button" data-lang="${l}" aria-pressed="${l === I18N.lang}" lang="${l}">${I18N.LABEL[l]}</button>`).join('')}</div>`;
+  // Выбор языка: кнопка с текущим языком, по нажатию — меню с остальными
+  const LANG_NAME = { ru: 'Русский', en: 'English', kk: 'Қазақша' };
+  const langLabel = () => `${t('top.lang')}: ${LANG_NAME[I18N.lang]}`;
+  const langSeg = () => `<div class="pop lang"><button type="button" class="ibtn lang__btn" data-pop data-lang-btn aria-expanded="false" aria-label="${esc(langLabel())}" title="${esc(langLabel())}">${I18N.LABEL[I18N.lang]}${ico('down', 'ico--sm')}</button>
+    <div class="menu menu--lang" hidden>${I18N.LANGS.map((l) => `<button type="button" data-lang="${l}" aria-pressed="${l === I18N.lang}" lang="${l}"><b>${I18N.LABEL[l]}</b>${LANG_NAME[l]}${ico('check', 'ico--sm lang__ok')}</button>`).join('')}</div></div>`;
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-lang]');
     if (b) I18N.setLang(b.dataset.lang);
@@ -93,6 +96,7 @@
   });
   I18N.onChange((l) => {
     $$('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+    $$('[data-lang-btn]').forEach((b) => { b.innerHTML = I18N.LABEL[l] + ico('down', 'ico--sm'); b.setAttribute('aria-label', langLabel()); b.title = langLabel(); });
     syncTheme(); setTitle();
     const pb = $('[data-profile]'); if (pb) pb.setAttribute('aria-label', t('top.profile', { email: DEMO.loggedIn() || DEMO.user.email }));
   });
@@ -864,7 +868,7 @@
         S.filter = 'all'; S.search = ''; S.open.add(it.plate); S.m = src ? 'sources' : 'dests';
         d.close();
         render();
-        $('[data-act="connect"]', main).find((x) => x.offsetParent !== null)?.focus();
+        $$('[data-act="connect"]', main).find((x) => x.offsetParent !== null)?.focus();
         toast(t(src ? 'conn.doneSrc' : 'conn.done'));
       }
       box.addEventListener('click', (e) => {
