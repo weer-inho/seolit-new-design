@@ -452,6 +452,189 @@
     render();
   };
 
+  /* ---------- Расписания: сетка 7 × 24, закрашивается мышью и пальцем ---------- */
+  const SC = { cur: null, draft: null };
+  SECTIONS.schedules = (main) => {
+    const list = () => db().schedules;
+    const usedBy = (id) => db().receivers.filter((r) => r.settings && r.settings.schedule === id);
+    const hoursOf = (g) => g.reduce((a, row) => a + row.reduce((b, v) => b + v, 0), 0);
+    const preset = (k) => Array.from({ length: 7 }, (_, d) => Array.from({ length: 24 }, (_, h) => (
+      k === 'work' ? d < 5 && h >= 9 && h < 18 : k === 'day' ? h >= 8 && h < 22 : k === 'eve' ? h >= 18 && h < 23 : k === 'all' ? 1 : 0) ? 1 : 0));
+    const mini = (g) => `<span class="schmini" aria-hidden="true">${g.map((row) => `<span>${row.map((v) => `<i${v ? ' class="on"' : ''}></i>`).join('')}</span>`).join('')}</span>`;
+    function pick(id) {
+      const s = list().find((x) => x.id === id) || list()[0];
+      SC.cur = s ? s.id : null;
+      SC.draft = s ? JSON.parse(JSON.stringify(s)) : null;
+    }
+    if (!SC.draft || !list().some((x) => x.id === SC.cur)) pick(SC.cur);
+    function render(focus) {
+      const D = SC.draft;
+      main.innerHTML = `${head('sch.title', 'sch.sub', `<button type="button" class="btn btn--p" data-act="new">${ico('plus', 'ico--sm')}${esc(t('sch.new'))}</button>`)}
+      <div class="split">
+        <nav class="card split__list" aria-label="${esc(t('sch.list'))}"><ul>${list().map((s) => `<li><button type="button" class="split__item" data-pick="${s.id}" aria-current="${s.id === SC.cur}">
+          ${mini(s.grid)}<span><b>${esc(tx(s.name))}</b><span class="muted">${esc(plural(hoursOf(s.grid), 'sch.hours'))} · ${esc(usedBy(s.id).length ? plural(usedBy(s.id).length, 'sch.used') : t('sch.unused'))}</span></span></button></li>`).join('')}</ul></nav>
+        ${D ? `<form class="card card--pad split__edit" novalidate>
+          <div class="field"><label for="scName">${esc(t('sch.name'))}</label><input class="input" id="scName" value="${esc(tx(D.name))}"></div>
+          <div class="field"><span class="field__lbl" id="scGridL">${esc(t('sch.grid'))} · <span class="muted" id="scHours">${esc(plural(hoursOf(D.grid), 'sch.hours'))}</span></span>
+            <p class="field__hint">${esc(t('sch.gridHint'))}</p>
+            <div class="chips"><span class="muted">${esc(t('sch.presets'))}:</span>${['work', 'day', 'eve', 'all', 'clear'].map((k) => `<button type="button" class="chipf" data-preset="${k}">${esc(t('sch.p' + k[0].toUpperCase() + k.slice(1)))}</button>`).join('')}</div>
+            <div class="schgrid" role="group" aria-labelledby="scGridL">
+              <span></span>${Array.from({ length: 24 }, (_, h) => `<span class="schgrid__h">${h % 3 === 0 ? h : ''}</span>`).join('')}
+              ${D.grid.map((row, d) => `<span class="schgrid__d">${esc(t('sch.d' + d))}</span>${row.map((v, h) => `<button type="button" class="schgrid__c" data-d="${d}" data-h="${h}" aria-pressed="${!!v}" aria-label="${esc(t('sch.cell', { day: t('sch.d' + d), h: pad(h), h2: pad(h + 1) }))}"></button>`).join('')}`).join('')}
+            </div><p class="field__err" id="scEmpty"${hoursOf(D.grid) ? ' hidden' : ''}>${esc(t('sch.empty'))}</p></div>
+          <div class="two"><div class="field"><label for="scLimit">${esc(t('sch.limit'))}</label><input class="input" id="scLimit" type="number" min="0" max="200" inputmode="numeric" value="${D.limit}"><span class="field__hint">${esc(t('acc.limitHint'))}</span></div>
+            <div class="field"><label for="scInt">${esc(t('sch.interval'))}</label><input class="input" id="scInt" type="number" min="0" max="1440" step="5" inputmode="numeric" value="${D.interval}"></div></div>
+          <div class="split__foot"><button type="button" class="btn btn--danger" data-act="del">${esc(t('sch.del'))}</button><button type="button" class="btn" data-act="assign">${esc(t('sch.assign'))}</button><button type="submit" class="btn btn--p">${esc(t('sch.save'))}</button></div>
+        </form>` : ''}
+      </div>`;
+      if (focus) $(focus, main)?.focus();
+    }
+    // Рисование: нажали на клетку — запомнили, ставим или стираем; ведём — красим тем же
+    let paint = null;
+    const setCell = (el, v) => { const d = +el.dataset.d, h = +el.dataset.h; if (SC.draft.grid[d][h] === v) return; SC.draft.grid[d][h] = v; el.setAttribute('aria-pressed', String(!!v)); };
+    const refreshHours = () => { const n = hoursOf(SC.draft.grid); $('#scHours', main).textContent = plural(n, 'sch.hours'); $('#scEmpty', main).hidden = !!n; };
+    main.onpointerdown = (e) => {
+      const c = e.target.closest('.schgrid__c'); if (!c) return;
+      e.preventDefault(); paint = SC.draft.grid[+c.dataset.d][+c.dataset.h] ? 0 : 1; setCell(c, paint); refreshHours();
+    };
+    main.onpointermove = (e) => {
+      if (paint === null) return;
+      const c = document.elementFromPoint(e.clientX, e.clientY)?.closest('.schgrid__c');
+      if (c && main.contains(c)) { setCell(c, paint); refreshHours(); }
+    };
+    const stop = () => { paint = null; };
+    document.addEventListener('pointerup', stop); document.addEventListener('pointercancel', stop);
+    main.onclick = async (e) => {
+      const c = e.target.closest('.schgrid__c');
+      if (c && e.detail === 0) { setCell(c, SC.draft.grid[+c.dataset.d][+c.dataset.h] ? 0 : 1); refreshHours(); return; } // с клавиатуры
+      const p = e.target.closest('[data-pick]'); if (p) { pick(p.dataset.pick); render(`[data-pick="${SC.cur}"]`); return; }
+      const pr = e.target.closest('[data-preset]'); if (pr) { readForm(); SC.draft.grid = preset(pr.dataset.preset); render(`[data-preset="${pr.dataset.preset}"]`); return; }
+      const a = e.target.closest('[data-act]'); if (!a) return;
+      if (a.dataset.act === 'new') {
+        const s = { id: DEMO.uid('sc'), name: L3(t('sch.newName')), grid: preset('work'), limit: 0, interval: 60 };
+        list().push(s); save(); pick(s.id); render('#scName');
+      } else if (a.dataset.act === 'del') {
+        const name = tx(SC.draft.name);
+        if (!(await confirmBox({ titleKey: 'sch.delTitle', text: t('sch.delText', { name }) }))) return;
+        usedBy(SC.cur).forEach((r) => { r.settings.schedule = ''; });
+        db().schedules = list().filter((x) => x.id !== SC.cur); save(); pick(null); render('[data-act="new"]'); toast(t('sch.deleted', { name }));
+      } else if (a.dataset.act === 'assign') assign();
+    };
+    function readForm() {
+      const D = SC.draft; if (!D) return;
+      const nm = $('#scName', main).value.trim(); if (nm) D.name = L3(nm);
+      D.limit = Math.max(0, +$('#scLimit', main).value || 0); D.interval = Math.max(0, +$('#scInt', main).value || 0);
+    }
+    main.onsubmit = (e) => {
+      e.preventDefault(); readForm();
+      const i = list().findIndex((x) => x.id === SC.cur); list()[i] = JSON.parse(JSON.stringify(SC.draft)); save();
+      render('[type=submit]'); toast(t('sch.saved', { name: tx(SC.draft.name) }));
+    };
+    function assign() {
+      readForm();
+      const projs = db().projects;
+      const pid = { v: projs[0].id };
+      const d = dialog({ title: t('sch.assignTitle', { name: tx(SC.draft.name) }), html: `<form class="modal__body" novalidate>
+        <div class="field"><label for="asP">${esc(t('post.project'))}</label>${sel('asP', projs.map((p) => [p.id, tx(p.name)]), pid.v)}</div><div class="assign"></div>
+        <div class="modal__foot modal__foot--in"><button type="button" class="btn" data-close>${esc(t('c.cancel'))}</button><button type="submit" class="btn btn--p">${esc(t('sch.assign'))}</button></div></form>` });
+      const box = $('.assign', d.box);
+      const fill = () => { box.innerHTML = db().receivers.filter((r) => r.p === pid.v).map((r) => `<label class="check">${net(r.net, 22)}<input type="checkbox" value="${r.id}"${r.settings?.schedule === SC.cur ? ' checked' : ''}><span>${esc(tx(r.name))}</span></label>`).join(''); };
+      fill();
+      $('#asP', d.box).onchange = (e) => { pid.v = e.target.value; fill(); };
+      $('form', d.box).onsubmit = (e) => {
+        e.preventDefault();
+        let n = 0;
+        $$('input[type=checkbox]', box).forEach((c) => { const r = db().receivers.find((x) => x.id === c.value); r.settings = r.settings || {}; if (c.checked) { r.settings.schedule = SC.cur; n++; } else if (r.settings.schedule === SC.cur) r.settings.schedule = ''; });
+        save(); d.close(); render('[data-act="assign"]'); toast(plural(n, 'sch.assigned'));
+      };
+    }
+    render();
+  };
+
+  /* ---------- Шаблоны: список и редактор с переменными ---------- */
+  const TP = { cur: null, draft: null };
+  const VARS = ['TITLE', 'TEXT', 'URL', 'TAGS'];
+  const TPL_NETS = ['vk', 'tg', 'ok', 'mm', 'x', 'pi', 'in', 'tu', 'lj', 'tt', 'bl', 're', 'max', 'fb', 'ig'];
+  SECTIONS.templates = (main) => {
+    const list = () => db().templates;
+    function pick(id) { TP.caret = TP.caretEnd = null; const s = list().find((x) => x.id === id) || list()[0]; TP.cur = s ? s.id : null; TP.draft = s ? JSON.parse(JSON.stringify(s)) : null; }
+    if (!TP.draft || !list().some((x) => x.id === TP.cur)) pick(TP.cur);
+    // Обрезка по словам с «…»
+    const cut = (s, max) => { if (!max || s.length <= max) return s; const c = s.slice(0, max - 1); return c.slice(0, c.lastIndexOf(' ') > 0 ? c.lastIndexOf(' ') : c.length) + '…'; };
+    const out = () => cut(fillTpl(TP.draft.body, DEMO.sample, I18N.lang), +TP.draft.max || 0);
+    const dirty = () => JSON.stringify(TP.draft) !== JSON.stringify(list().find((x) => x.id === TP.cur));
+    function live() {
+      const o = out();
+      $('#tpOut', main).textContent = o;
+      $('#tpLen', main).textContent = plural(o.length, 'tpl.len');
+      $('#tpNoVars', main).hidden = VARS.some((v) => TP.draft.body.includes(`#${v}#`));
+      $('#tpDirty', main).hidden = !dirty();
+    }
+    function render(focus) {
+      const D = TP.draft;
+      main.innerHTML = `${head('tpl.title', 'tpl.sub', `<button type="button" class="btn btn--p" data-act="new">${ico('plus', 'ico--sm')}${esc(t('tpl.new'))}</button>`)}
+      <div class="split">
+        <nav class="card split__list" aria-label="${esc(t('tpl.list'))}"><ul>${list().map((s) => `<li><button type="button" class="split__item" data-pick="${s.id}" aria-current="${s.id === TP.cur}">
+          <span class="split__ico">${ico('templates')}</span><span><b>${esc(tx(s.name))}</b><span class="muted">${s.nets.length ? s.nets.map((n) => esc(netName(n))).join(', ') : esc(t('tpl.allNets'))}${s.max ? ' · ≤ ' + I18N.num(s.max) : ''}</span></span></button></li>`).join('')}</ul></nav>
+        ${D ? `<form class="card card--pad split__edit" novalidate>
+          <div class="field"><label for="tpName">${esc(t('tpl.name'))} <span class="pill pill--warn" id="tpDirty" hidden>${esc(t('tpl.unsaved'))}</span></label><input class="input" id="tpName" value="${esc(tx(D.name))}"></div>
+          <div class="field"><label for="tpBody">${esc(t('tpl.body'))}</label>
+            <div class="chips" role="group" aria-label="${esc(t('tpl.vars'))}">${VARS.map((v) => `<button type="button" class="chipf tplvar" data-var="${v}"><b>#${v}#</b> ${esc(t('tpl.v' + v))}</button>`).join('')}</div>
+            <textarea class="input tplbody" id="tpBody" rows="7" spellcheck="false">${esc(D.body)}</textarea>
+            <p class="field__err" id="tpNoVars" hidden>${esc(t('tpl.noVars'))}</p></div>
+          <fieldset class="field tplnets"><legend class="field__lbl">${esc(t('tpl.nets'))}</legend><div class="chips">
+            <button type="button" class="chipf" data-net="" aria-pressed="${!D.nets.length}">${esc(t('tpl.allNets'))}</button>
+            ${TPL_NETS.map((n) => `<button type="button" class="chipf" data-net="${n}" aria-pressed="${D.nets.includes(n)}">${net(n, 22)}${esc(netName(n))}</button>`).join('')}</div></fieldset>
+          <div class="field"><label for="tpMax">${esc(t('tpl.max'))}</label><input class="input tplmax" id="tpMax" type="number" min="0" max="20000" inputmode="numeric" value="${D.max}"><span class="field__hint">${esc(t('tpl.maxHint'))}</span></div>
+          <div class="field"><span class="field__lbl">${esc(t('tpl.preview'))} · <span class="muted" id="tpLen"></span></span><pre class="tplpv" id="tpOut" aria-live="polite"></pre></div>
+          <div class="split__foot"><button type="button" class="btn btn--danger" data-act="del">${esc(t('tpl.del'))}</button><button type="button" class="btn btn--q" data-act="reset">${esc(t('tpl.reset'))}</button>
+            <button type="button" class="btn" data-act="dup">${esc(t('tpl.dup'))}</button><button type="submit" class="btn btn--p">${esc(t('tpl.save'))}</button></div></form>` : ''}
+      </div>`;
+      if (D) live();
+      if (focus) $(focus, main)?.focus();
+    }
+    // Курсор в тексте шаблона: туда вставляются переменные (без фокуса — в конец)
+    const caret = (e) => { if (e.target.id === 'tpBody') { TP.caret = e.target.selectionStart; TP.caretEnd = e.target.selectionEnd; } };
+    main.onkeyup = caret; main.onmouseup = caret;
+    main.oninput = (e) => {
+      if (!TP.draft) return;
+      if (e.target.id === 'tpBody') TP.draft.body = e.target.value;
+      else if (e.target.id === 'tpName') TP.draft.name = L3(e.target.value);
+      else if (e.target.id === 'tpMax') TP.draft.max = Math.max(0, +e.target.value || 0);
+      else return;
+      live();
+    };
+    main.onclick = async (e) => {
+      const v = e.target.closest('[data-var]');
+      if (v) { // вставка переменной в позицию курсора
+        const ta = $('#tpBody', main), tok = `#${v.dataset.var}#`, a = TP.caret ?? ta.value.length, b = TP.caretEnd ?? a;
+        ta.setRangeText(tok, a, b, 'end'); TP.draft.body = ta.value; TP.caret = TP.caretEnd = ta.selectionStart; ta.focus(); live(); return;
+      }
+      const n = e.target.closest('[data-net]');
+      if (n) { const k = n.dataset.net; TP.draft.nets = !k ? [] : TP.draft.nets.includes(k) ? TP.draft.nets.filter((x) => x !== k) : [...TP.draft.nets, k]; render(`[data-net="${k}"]`); return; }
+      const p = e.target.closest('[data-pick]'); if (p) { pick(p.dataset.pick); render(`[data-pick="${TP.cur}"]`); return; }
+      const a = e.target.closest('[data-act]'); if (!a) return;
+      const act = a.dataset.act;
+      if (act === 'new' || act === 'dup') {
+        const s = act === 'new' ? { id: DEMO.uid('t'), name: L3(t('tpl.newName')), body: '#TITLE#\n\n#TEXT#\n#URL#', nets: [], max: 0 }
+          : { ...JSON.parse(JSON.stringify(TP.draft)), id: DEMO.uid('t'), name: L3(t('tpl.dupName', { name: tx(TP.draft.name) })) };
+        list().push(s); save(); pick(s.id); render('#tpName');
+      } else if (act === 'reset') { pick(TP.cur); render('#tpBody'); }
+      else if (act === 'del') {
+        const name = tx(TP.draft.name);
+        if (!(await confirmBox({ titleKey: 'tpl.delTitle', text: t('tpl.delText', { name }) }))) return;
+        db().receivers.forEach((r) => { if (r.settings?.tpl === TP.cur) r.settings.tpl = ''; });
+        db().templates = list().filter((x) => x.id !== TP.cur); save(); pick(null); render('[data-act="new"]'); toast(t('tpl.deleted', { name }));
+      }
+    };
+    main.onsubmit = (e) => {
+      e.preventDefault();
+      const i = list().findIndex((x) => x.id === TP.cur); list()[i] = JSON.parse(JSON.stringify(TP.draft)); save();
+      render('[type=submit]'); toast(t('tpl.saved', { name: tx(TP.draft.name) }));
+    };
+    render();
+  };
+
   function soon(main) {
     main.innerHTML = `<section class="card empty soon"><span class="empty__ico">${ico(PAGE)}</span><h1>${esc(t('nav.' + PAGE))}</h1>
       <p>${esc(t('soon.text'))}</p><a class="btn btn--p" href="projects.html">${ico('projects', 'ico--sm')}${esc(t('soon.back'))}</a></section>`;
