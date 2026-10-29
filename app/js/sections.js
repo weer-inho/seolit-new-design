@@ -24,67 +24,93 @@
      Настройки приёмника или источника — окно с вкладками, как в кабинете seolit.ru
      ========================================================================== */
   function accSettings(kind, r, P, onSave) {
+    // Поля — как в receivers.update / feeds.update (API seolit.ru/dev): общие, utm_marks[...], настройки соцсети (telegram[...], vkontakte[...]), templates_selected
     const src = kind === 'source';
-    const S = { tab: 'main', ...JSON.parse(JSON.stringify(r.settings || {})) };
-    const def = { on: r.st !== 'off', schedule: '', limit: 0, wm: '', interval: 2, iv: false, link: 'arrow', utm: false, short: 'host', silent: false,
-      autoimg: true, covers: 'noimg', imgs: 'all', imgAuto: false, imgWithVideo: false, imgMode: 'caption', video: 'caption', vFail: 'tpl', tpl: '', dests: 'all' };
-    Object.keys(def).forEach((k) => { if (S[k] === undefined) S[k] = def[k]; });
     const name = tx(r.name);
+    const same = (src ? db().sources : db().receivers).filter((x) => x.p === r.p && x.net === r.net);
+    const paid = !src && same.indexOf(r) > 0; // первый аккаунт соцсети в тарифе, остальные — платные (paid_till ≠ null)
+    const def = { name, state: r.st !== 'off', premoderate: false, posts_per_day_max: 0, schedule: '', auto_prolong: true, default_pic: '', post_video_thumbnails: 2,
+      read_interval: 2, date_start: '', merge_line_breaks: false,
+      utm: { add: false, source: 'seolit', medium: 'social', campaign: '', term: '', content: '' },
+      tg: { channel: '', private: false, own_bot: false, bot_token: '', disable_notification: false, instant_view: false, iv_rhash: '', post_autoimages: true, post_images_count: 'all', post_images_mode: 'album+text', post_images_auto_format: false, post_images_with_video: false, post_link_mode: 'point', post_link_button_text: '', post_url_mode: 'arrow_topright', post_videos_mode: 'album+text', post_ignoring_video_errors: false },
+      vk: { post_from_group: true, post_signed: false, link_url: true, target_feed: 'timeline', post_attachments_mode: 'grid', add_geo_location: false, post_autoimages: true, post_images_with_video: false, post_ignoring_video_errors: false },
+      tpls: {} };
+    const S = JSON.parse(JSON.stringify(def));
+    const old = r.settings || {};
+    Object.keys(old).forEach((k) => { if (typeof old[k] === 'object' && old[k] && S[k]) Object.assign(S[k], old[k]); else if (k in S) S[k] = old[k]; });
+    S.name = name; S.state = r.st !== 'off'; S.tab = 'main';
+    const netOpts = r.net === 'tg' ? 'tg' : r.net === 'vk' ? 'vk' : '';
+    const tabList = src ? ['main'] : ['main', 'more', 'tpl'];
+    const feedTypes = [...new Set(db().sources.filter((x) => x.p === r.p).map((x) => x.net))];
+    const tpls = db().templates;
     const d = dialog({ title: t('acc.title', { name }), wide: true, cls: 'accset', html: `<div class="seg seg--tabs accset__tabs" role="tablist"></div><form class="modal__body accset__body" novalidate></form>
       <div class="modal__foot"><button type="button" class="btn" data-close>${esc(t('c.cancel'))}</button><button type="button" class="btn btn--p" data-save>${esc(t('c.save'))}</button></div>` });
     const body = $('.accset__body', d.box), tabs = $('.accset__tabs', d.box);
-    const tabList = src ? ['main'] : ['main', 'more', 'tpl'];
-    const tpls = db().templates;
+    const inp = (id, label, val, extra = '') => `<div class="field"><label for="${id}">${esc(label)}</label><input class="input" id="${id}" value="${esc(val)}" ${extra}></div>`;
+    // Считать форму текущей вкладки в S: id поля «a__b» → S.a.b, «a» → S.a
     function read() {
-      const v = (id) => $('#' + id, body);
-      if (S.tab === 'main') {
-        S.name = v('asName').value.trim() || name; S.on = v('asOn').checked;
-        if (src) { S.interval = +v('asInt').value; S.dests = v('asDests').value; }
-        else { S.schedule = v('asSch').value; S.limit = Math.max(0, +v('asLim').value || 0); S.wm = v('asWm').value; }
-      } else if (S.tab === 'more') {
-        ['iv', 'utm', 'silent', 'autoimg', 'imgAuto', 'imgWithVideo'].forEach((k) => { const el = v('as_' + k); if (el) S[k] = el.checked; });
-        S.link = v('asLink').value; S.short = v('asShort').value; S.covers = v('asCovers').value;
-        ['imgs', 'imgMode', 'video', 'vFail'].forEach((k) => { const el = $(`input[name="as_${k}"]:checked`, body); if (el) S[k] = el.value; });
-      } else if (S.tab === 'tpl') S.tpl = v('asTpl').value;
+      $$('[data-k]', body).forEach((el) => {
+        const path = el.dataset.k.split('.'), v = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Math.max(0, +el.value || 0) : el.type === 'radio' ? (el.checked ? el.value : undefined) : el.value;
+        if (v === undefined) return;
+        if (path.length === 2) S[path[0]][path[1]] = v; else S[path[0]] = v;
+      });
     }
+    const cb = (k, label, hint) => `<label class="check"><input type="checkbox" data-k="${k}"${k.split('.').reduce((o, x) => o[x], S) ? ' checked' : ''}><span>${esc(label)}${hint ? `<span class="field__hint">${esc(hint)}</span>` : ''}</span></label>`;
+    const rd = (k, opts) => opts.map(([v, l]) => `<label class="check"><input type="radio" name="${k}" value="${v}" data-k="${k}"${k.split('.').reduce((o, x) => o[x], S) === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('');
+    const selK = (k, opts) => `<span class="sel sel--full"><select data-k="${k}" id="as_${k.replace('.', '_')}">${opts.map(([v, l]) => `<option value="${esc(v)}"${String(k.split('.').reduce((o, x) => o[x], S)) === String(v) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span>`;
     function draw() {
       tabs.innerHTML = tabList.length > 1 ? tabList.map((k) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${S.tab === k}" aria-pressed="${S.tab === k}">${esc(t('acc.t' + { main: 'Main', more: 'More', tpl: 'Tpl' }[k]))}</button>`).join('') : '';
       tabs.hidden = tabList.length < 2;
-      const isTg = r.net === 'tg';
       if (S.tab === 'main') {
-        body.innerHTML = `<div class="field"><label for="asName">${esc(t('acc.name'))}</label><input class="input" id="asName" value="${esc(S.name || name)}"></div>
-          <label class="check accset__sw"><input type="checkbox" id="asOn"${S.on ? ' checked' : ''}><span>${esc(t(src ? 'acc.readOn' : 'acc.on'))}</span></label>
-          ${src ? `<div class="two"><div class="field"><label for="asInt">${esc(t('acc.interval'))}</label>${sel('asInt', [2, 5, 15, 30, 60].map((n) => [n, t('acc.min', { n })]), S.interval)}</div>
-            <div class="field"><label for="asDests">${esc(t('acc.dests'))}</label>${sel('asDests', [['all', t('acc.allDests')]], S.dests)}</div></div>`
-          : `<div class="two"><div class="field"><label for="asSch">${esc(t('acc.schedule'))}</label>${sel('asSch', [['', t('acc.noSchedule')], ...db().schedules.map((s) => [s.id, tx(s.name)])], S.schedule)}</div>
-            <div class="field"><label for="asLim">${esc(t('acc.limit'))}</label><input class="input" id="asLim" type="number" min="0" max="200" inputmode="numeric" value="${S.limit}" aria-describedby="asLimH"><span class="field__hint" id="asLimH">${esc(t('acc.limitHint'))}</span></div></div>
-            <div class="field"><label for="asWm">${esc(t('acc.wm'))}</label>${sel('asWm', [['', t('acc.noWm')], ...db().watermarks.map((w) => [w.id, tx(w.name)])], S.wm)}</div>`}`;
+        body.innerHTML = `${inp('asName', t('acc.name'), S.name, 'data-k="name"')}
+          ${cb('state', t(src ? 'acc.readOn' : 'acc.on'))}
+          ${cb('premoderate', t('acc.premod'), t('acc.premodHint'))}
+          ${src ? `<div class="two"><div class="field"><label for="asRI">${esc(t('acc.readInterval'))}</label><input class="input" id="asRI" type="number" min="1" max="1440" data-k="read_interval" value="${S.read_interval}"></div>
+              <div class="field"><label for="asDS">${esc(t('acc.dateStart'))}</label><input class="input" id="asDS" type="date" data-k="date_start" value="${esc(S.date_start)}"></div></div>
+              ${cb('merge_line_breaks', t('acc.mergeBreaks'))}`
+            : `<div class="two"><div class="field"><label for="as_schedule">${esc(t('acc.schedule'))}</label>${selK('schedule', [['', t('acc.noSchedule')], ...db().schedules.map((s) => [s.id, tx(s.name)])])}</div>
+              <div class="field"><label for="asLim">${esc(t('acc.limit'))}</label><input class="input" id="asLim" type="number" min="0" max="500" inputmode="numeric" data-k="posts_per_day_max" value="${S.posts_per_day_max}" aria-describedby="asLimH"><span class="field__hint" id="asLimH">${esc(t('acc.limitHint'))}</span></div></div>`}
+          ${inp('asPic', t('acc.defPic'), S.default_pic, 'data-k="default_pic" type="url" inputmode="url" placeholder="https://"')}
+          ${paid ? cb('auto_prolong', t('acc.autoProlong'), t('acc.autoProlongHint')) : ''}`;
       } else if (S.tab === 'more') {
-        body.innerHTML = `${isTg ? chk('as_iv', t('acc.iv'), S.iv) : ''}
-          <div class="two"><div class="field"><label for="asLink">${esc(t('acc.addLink'))}</label>${sel('asLink', [['arrow', t('acc.linkArrow')], ['end', t('acc.linkEnd')], ['no', t('acc.linkNo')]], S.link)}</div>
-          <div class="field"><label for="asShort">${esc(t('acc.short'))}</label>${sel('asShort', [['host', t('acc.shortHost')], ['full', t('acc.shortFull')]], S.short)}</div></div>
-          ${chk('as_utm', t('acc.utm'), S.utm)}${isTg ? chk('as_silent', t('acc.silent'), S.silent) : ''}${chk('as_autoimg', t('acc.autoimg'), S.autoimg)}
-          <div class="field"><label for="asCovers">${esc(t('acc.covers'))}</label>${sel('asCovers', [['noimg', t('acc.coverNoImg')], ['always', t('acc.coverAlways')], ['no', t('acc.coverNo')]], S.covers)}</div>
-          <fieldset class="accset__grp"><legend>${esc(t('acc.imgs'))}</legend>${radios('as_imgs', [['all', t('acc.imgAll')], ['first', t('acc.imgFirst')], ['none', t('acc.imgNone')]], S.imgs)}
-            ${chk('as_imgAuto', t('acc.imgAuto'), S.imgAuto)}${chk('as_imgWithVideo', t('acc.imgWithVideo'), S.imgWithVideo)}</fieldset>
-          <fieldset class="accset__grp"><legend>${esc(t('acc.imgMode'))}</legend>${radios('as_imgMode', [['caption', t('acc.imgCaption')], ['separate', t('acc.imgSeparate')], ['albumText', t('acc.imgAlbumText')]], S.imgMode)}</fieldset>
-          <fieldset class="accset__grp"><legend>${esc(t('acc.video'))}</legend>${radios('as_video', [['caption', t('acc.vCaption')], ['separate', t('acc.vSeparate')], ['albumText', t('acc.vAlbumText')], ['none', t('acc.vNone')]], S.video)}</fieldset>
-          <fieldset class="accset__grp"><legend>${esc(t('acc.vFail'))}</legend>${radios('as_vFail', [['noVideo', t('acc.vFailNoVideo')], ['stop', t('acc.vFailStop')], ['tpl', t('acc.vFailTpl')]], S.vFail)}</fieldset>`;
+        const N = netOpts;
+        body.innerHTML = `<div class="field"><label for="as_post_video_thumbnails">${esc(t('acc.covers'))}</label>${selK('post_video_thumbnails', [0, 1, 2, 3].map((v) => [v, t('acc.vt' + v)]))}</div>
+          <fieldset class="accset__grp"><legend>UTM</legend>${cb('utm.add', t('acc.utm'))}
+            <div class="two">${['source', 'medium', 'campaign', 'term', 'content'].map((k) => inp('asU' + k, t('acc.utm' + k[0].toUpperCase() + k.slice(1)), S.utm[k], `data-k="utm.${k}"`)).join('')}</div></fieldset>
+          ${N === 'tg' ? `<fieldset class="accset__grp"><legend>${esc(t('acc.netOpts', { net: 'Telegram' }))}</legend>
+            ${inp('asCh', t('acc.channel'), S.tg.channel, 'data-k="tg.channel" placeholder="@channel"')}${cb('tg.private', t('acc.private'))}${cb('tg.own_bot', t('acc.ownBot'))}
+            ${S.tg.own_bot ? inp('asBot', t('acc.botToken'), S.tg.bot_token, 'data-k="tg.bot_token" autocomplete="off"') : ''}
+            ${cb('tg.disable_notification', t('acc.silent'))}${cb('tg.instant_view', t('acc.iv'))}${S.tg.instant_view ? inp('asIv', t('acc.ivHash'), S.tg.iv_rhash, 'data-k="tg.iv_rhash"') : ''}
+            ${cb('tg.post_autoimages', t('acc.autoimg'))}
+            <div class="two"><div class="field"><label for="as_tg_post_link_mode">${esc(t('acc.linkMode'))}</label>${selK('tg.post_link_mode', [['none', t('acc.lmNone')], ['button', t('acc.lmButton')], ['point', t('acc.lmPoint')]])}</div>
+              ${S.tg.post_link_mode === 'button' ? inp('asBtn', t('acc.btnText'), S.tg.post_link_button_text, 'data-k="tg.post_link_button_text"') : `<div class="field"><label for="as_tg_post_url_mode">${esc(t('acc.urlMode'))}</label>${selK('tg.post_url_mode', [['arrow_topright', t('acc.umArrow')], ['hostname', t('acc.umHost')], ['text', t('acc.umText')]])}</div>`}</div>
+            <div class="field"><span class="field__lbl">${esc(t('acc.imgCount'))}</span>${rd('tg.post_images_count', [['all', t('acc.icAll')], ['first', t('acc.icFirst')], ['none', t('acc.icNone')]])}</div>
+            <div class="field"><span class="field__lbl">${esc(t('acc.imgModeT'))}</span>${rd('tg.post_images_mode', [['album+text', t('acc.imAlbumText')], ['separate', t('acc.imSeparate')], ['together', t('acc.imTogether')]])}</div>
+            ${cb('tg.post_images_auto_format', t('acc.imgAuto'))}${cb('tg.post_images_with_video', t('acc.imgWithVideo'))}
+            <div class="field"><span class="field__lbl">${esc(t('acc.videoModeT'))}</span>${rd('tg.post_videos_mode', [['album+text', t('acc.imAlbumText')], ['separate', t('acc.imSeparate')], ['together', t('acc.imTogether')], ['none', t('acc.vmNone')]])}</div>
+            ${cb('tg.post_ignoring_video_errors', t('acc.ignoreVideo'))}</fieldset>` : ''}
+          ${N === 'vk' ? `<fieldset class="accset__grp"><legend>${esc(t('acc.netOpts', { net: netName('vk') }))}</legend>
+            ${cb('vk.post_from_group', t('acc.fromGroup'))}${cb('vk.post_signed', t('acc.signed'))}${cb('vk.link_url', t('acc.snippet'))}${cb('vk.post_autoimages', t('acc.autoimg'))}${cb('vk.add_geo_location', t('acc.geo'))}
+            <div class="two"><div class="field"><label for="as_vk_target_feed">${esc(t('acc.target'))}</label>${selK('vk.target_feed', [['timeline', t('acc.tTimeline')], ['story', t('acc.tStory')]])}</div>
+              <div class="field"><label for="as_vk_post_attachments_mode">${esc(t('acc.attachMode'))}</label>${selK('vk.post_attachments_mode', [['grid', t('acc.amGrid')], ['carouel', t('acc.amCarousel')]])}</div></div>
+            ${cb('vk.post_images_with_video', t('acc.imgWithVideo'))}${cb('vk.post_ignoring_video_errors', t('acc.ignoreVideo'))}</fieldset>` : ''}`;
       } else {
-        const tp = tpls.find((x) => x.id === S.tpl) || tpls[0];
-        body.innerHTML = `<div class="field"><label for="asTpl">${esc(t('acc.tpl'))}</label>${sel('asTpl', [['', t('acc.tplDefault')], ...tpls.map((x) => [x.id, tx(x.name)])], S.tpl)}</div>
-          <div class="field"><span class="field__lbl">${esc(t('acc.tplPreview'))}</span><pre class="tplpv">${esc(fillTpl(tp.body, DEMO.sample, I18N.lang))}</pre></div>
+        body.innerHTML = `<p class="field__hint">${esc(t('acc.tplHint'))}</p>
+          ${(feedTypes.length ? feedTypes : ['rss']).map((ft) => `<div class="field"><label for="asT_${ft}">${net(ft, 22)} ${esc(netName(ft))}</label>
+            <span class="sel sel--full"><select id="asT_${ft}" data-tpl="${ft}"><option value="">${esc(t('acc.tplDefault'))}</option>${tpls.map((x) => `<option value="${x.id}"${S.tpls[ft] === x.id ? ' selected' : ''}>${esc(tx(x.name))}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></div>`).join('')}
           <a href="templates.html">${esc(t('acc.tplEdit'))} →</a>`;
       }
     }
-    tabs.addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; read(); S.tab = b.dataset.tab; draw(); $(`[data-tab="${S.tab}"]`, tabs)?.focus(); });
-    body.addEventListener('change', (e) => { if (e.target.id === 'asTpl') { read(); draw(); $('#asTpl', body).focus(); } });
+    const readTpl = () => $$('[data-tpl]', body).forEach((el) => { S.tpls[el.dataset.tpl] = el.value; });
+    tabs.addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; read(); readTpl(); S.tab = b.dataset.tab; draw(); $(`[data-tab="${S.tab}"]`, tabs)?.focus(); });
+    // Поля, от которых зависят другие (свой бот, Instant View, вид ссылки), перерисовывают вкладку
+    body.addEventListener('change', (e) => { const k = e.target.dataset.k; if (['tg.own_bot', 'tg.instant_view', 'tg.post_link_mode'].includes(k)) { read(); draw(); body.querySelector(`[data-k="${k}"]`)?.focus(); } });
     $('[data-save]', d.box).addEventListener('click', () => {
-      read();
-      const { tab, name: nm, ...rest } = S;
+      read(); readTpl();
+      const { tab, name: nm, state, ...rest } = S;
       r.settings = rest;
       if (nm && nm !== name) r.name = L3(nm);
-      if (r.st !== 'err') r.st = S.on ? 'on' : 'off';
+      if (r.st !== 'err') r.st = state ? 'on' : 'off';
       save(); d.close(); onSave?.(); toast(t('acc.saved'));
     });
     draw();
@@ -104,7 +130,6 @@
 
   function projectTab(view, P, el, back) {
     if (view === 'stats') statsTab(P, el);
-    else if (view === 'access') accessTab(P, el);
     else settingsTab(P, el, back);
   }
 
@@ -147,7 +172,7 @@
         const f = fromIso($('#stFrom', el).value), to = fromIso($('#stTo', el).value);
         if (!f || !to) return;
         if (f > to) { toast(t('st.badRange')); return; }
-        S.from = f; S.to = Math.min(to, f + 92 * APP.DAY); render(); $('[data-st="refresh"]', el).focus();
+        S.from = f; S.to = Math.min(to, f + 92 * APP.DAY); render(); $('[data-st="refresh"]', el).focus(); toast(t('st.updated'));
       } else {
         const rows = [['date', ...SERIES.map(([k]) => k)].join(';')];
         for (let ts = S.from; ts <= S.to; ts += APP.DAY) { const v = dayData(ts); rows.push([isoDay(ts), ...SERIES.map(([k]) => v[k])].join(';')); }
@@ -187,24 +212,51 @@
   }
 
   function settingsTab(P, el, back) {
-    const S = { name: tx(P.name), site: P.site || '', mode: P.mode || 'auto', tz: P.tz || 'Europe/Moscow', auto: !!P.autoRenew };
-    function render() {
-      el.innerHTML = `<form class="card card--pad psettings" novalidate><h2 class="sec-t">${esc(t('ps.title'))}</h2>
-        <div class="two"><div class="field"><label for="psName">${esc(t('ps.name'))}</label><input class="input" id="psName" value="${esc(S.name)}"></div>
-          <div class="field"><label for="psSite">${esc(t('ps.site'))}</label><input class="input" id="psSite" inputmode="url" value="${esc(S.site)}"></div></div>
-        <fieldset class="field psettings__mode"><legend class="field__lbl">${esc(t('ps.mode'))}</legend>
-          <div class="seg" role="group">${['auto', 'manual'].map((k) => `<button type="button" data-mode="${k}" aria-pressed="${S.mode === k}">${ico(k === 'auto' ? 'rss' : 'edit', 'ico--sm')}${esc(t('ps.' + k))}</button>`).join('')}</div>
-          <p class="field__hint">${esc(t(S.mode === 'auto' ? 'ps.autoHint' : 'ps.manualHint'))}</p></fieldset>
-        <div class="field"><label for="psTz">${esc(t('ps.tz'))}</label>${sel('psTz', TZ.map(([id, off, city]) => [id, `${city} (UTC+${off})`]), S.tz)}</div>
-        <div class="modal__foot modal__foot--in"><button type="submit" class="btn btn--p">${esc(t('ps.save'))}</button></div></form>
-        <section class="card card--pad psettings"><h2 class="sec-t">${esc(t('ps.paid'))}</h2>
-          <p><b>${esc(t('ps.paidUntil', { date: I18N.date(P.until) }))}</b></p>
-          <div class="psettings__row"><button type="button" class="btn btn--p" data-ps="renew">${esc(t('ps.renew'))}</button>${chk('psAuto', t('ps.autoRenew'), S.auto)}</div></section>
-        ${P.own ? `<section class="card card--pad psettings psettings--danger"><h2 class="sec-t">${esc(t('ps.danger'))}</h2><button type="button" class="btn btn--danger" data-ps="del">${ico('close', 'ico--sm')}${esc(t('ps.delete'))}</button></section>` : ''}`;
+    // Поля — как в projects.update: name, description, publication_interval, posts_number_at_a_time, schedule_id,
+    // templates_selected (по типу источника), report_errors (1–3), report_sending (1–3), telegram_accounts; плюс set_state, prolong, delete / refuse
+    const S = { name: tx(P.name), description: P.description ?? P.site ?? '', state: P.st !== 'off', publication_interval: P.publication_interval ?? 30,
+      posts_number_at_a_time: P.posts_number_at_a_time ?? 1, schedule_id: P.schedule_id ?? '', tpls: { ...(P.templates_selected || {}) },
+      report_errors: P.report_errors ?? 2, report_sending: P.report_sending ?? 1, telegram_accounts: P.telegram_accounts ?? '' };
+    const feedTypes = [...new Set(db().sources.filter((x) => x.p === P.id).map((x) => x.net))];
+    const ro = !P.own; // подключённый проект: нет project.update — только просмотр и «Отказаться»
+    const dis = ro ? ' disabled' : '';
+    function read() {
+      if (ro) return;
+      S.name = $('#psName', el).value.trim() || S.name; S.description = $('#psDesc', el).value;
+      S.state = $('#psState', el).checked; S.publication_interval = Math.max(0, +$('#psInt', el).value || 0); S.posts_number_at_a_time = Math.max(1, +$('#psAt', el).value || 1);
+      S.schedule_id = $('#psSch', el).value; $$('[data-tpl]', el).forEach((s) => { S.tpls[s.dataset.tpl] = s.value; });
+      S.report_errors = +($('input[name="psRep"]:checked', el)?.value || S.report_errors); S.report_sending = +($('input[name="psVia"]:checked', el)?.value || S.report_sending);
+      S.telegram_accounts = $('#psTg', el)?.value ?? S.telegram_accounts;
     }
+    function render(focus) {
+      const left = Math.floor((P.until - DEMO.D0) / APP.DAY);
+      el.innerHTML = `${ro ? `<p class="note-box">${ico('alert', 'ico--sm')}<span>${esc(t('ps.shared'))}</span></p>` : ''}
+      <form class="card card--pad psettings" novalidate><h2 class="sec-t">${esc(t('ps.title'))}</h2>
+        <div class="two"><div class="field"><label for="psName">${esc(t('ps.name'))}</label><input class="input" id="psName" value="${esc(S.name)}"${dis}></div>
+          <div class="field"><label for="psDesc">${esc(t('ps.desc'))}</label><input class="input" id="psDesc" value="${esc(S.description)}" placeholder="${esc(t('ps.descPh'))}"${dis}></div></div>
+        <label class="check accset__sw"><input type="checkbox" id="psState"${S.state ? ' checked' : ''}${dis}><span>${esc(t('ps.state'))}<span class="field__hint">${esc(t('ps.stateHint'))}</span></span></label>
+        <fieldset class="accset__grp"><legend>${esc(t('ps.publish'))}</legend>
+          <div class="two"><div class="field"><label for="psInt">${esc(t('ps.interval'))}</label><input class="input" id="psInt" type="number" min="0" max="1440" inputmode="numeric" value="${S.publication_interval}"${dis}></div>
+            <div class="field"><label for="psAt">${esc(t('ps.atOnce'))}</label><input class="input" id="psAt" type="number" min="1" max="50" inputmode="numeric" value="${S.posts_number_at_a_time}"${dis}></div></div>
+          <div class="field"><label for="psSch">${esc(t('ps.schedule'))}</label>${sel('psSch', [['', t('ps.noSchedule')], ...db().schedules.map((s) => [s.id, tx(s.name)])], S.schedule_id, dis)}</div>
+          <a href="schedules.html">${esc(t('nav.schedules'))} →</a></fieldset>
+        <fieldset class="accset__grp"><legend>${esc(t('ps.tpls'))}</legend><p class="field__hint">${esc(t('ps.tplsHint'))}</p>
+          ${(feedTypes.length ? feedTypes : ['rss']).map((ft) => `<div class="field"><label for="psT_${ft}">${net(ft, 22)} ${esc(netName(ft))}</label><span class="sel sel--full"><select id="psT_${ft}" data-tpl="${ft}"${dis}><option value="">${esc(t('ps.tplDefault'))}</option>${db().templates.map((x) => `<option value="${x.id}"${S.tpls[ft] === x.id ? ' selected' : ''}>${esc(tx(x.name))}</option>`).join('')}</select>${ico('down', 'ico--sm')}</span></div>`).join('')}
+          <a href="templates.html">${esc(t('acc.tplEdit'))} →</a></fieldset>
+        <fieldset class="accset__grp"><legend>${esc(t('ps.reports'))}</legend>
+          ${radios('psRep', [[1, t('ps.rNone')], [2, t('ps.rCritical')], [3, t('ps.rAll')]], S.report_errors).replace(/value="(\d)"/g, (m) => m + dis)}
+          ${S.report_errors !== 1 ? `<div class="field"><span class="field__lbl">${esc(t('ps.rVia'))}</span>${radios('psVia', [[1, t('ps.viaEmail')], [2, t('ps.viaTg')], [3, t('ps.viaBoth')]], S.report_sending).replace(/value="(\d)"/g, (m) => m + dis)}</div>
+            ${S.report_sending !== 1 ? `<div class="field"><label for="psTg">${esc(t('ps.tgAcc'))}</label><input class="input" id="psTg" value="${esc(S.telegram_accounts)}" placeholder="${esc(t('ps.tgAccPh'))}"${dis}></div>` : ''}` : ''}</fieldset>
+        ${ro ? '' : `<div class="modal__foot modal__foot--in"><button type="submit" class="btn btn--p">${esc(t('ps.save'))}</button></div>`}</form>
+      <section class="card card--pad psettings"><h2 class="sec-t">${esc(t('ps.paid'))}</h2>
+        <p><b>${esc(t('ps.paidUntil', { date: I18N.date(P.until) }))}</b>${left > 0 ? ` · <span class="muted">${esc(plural(left, 'p.days'))}</span>` : ''}</p>
+        <div class="psettings__row"><button type="button" class="btn btn--p" data-ps="renew">${esc(t('ps.renew'))}</button></div></section>
+      <section class="card card--pad psettings psettings--danger"><h2 class="sec-t">${esc(t('ps.danger'))}</h2>
+        ${P.own ? `<button type="button" class="btn btn--danger" data-ps="del">${ico('close', 'ico--sm')}${esc(t('ps.delete'))}</button>` : `<button type="button" class="btn btn--danger" data-ps="refuse">${ico('logout', 'ico--sm')}${esc(t('ps.refuse'))}</button>`}</section>`;
+      if (focus) $(focus, el)?.focus();
+    }
+    el.onchange = (e) => { if (e.target.name === 'psRep' || e.target.name === 'psVia') { read(); render(`input[name="${e.target.name}"]:checked`); } };
     el.onclick = async (e) => {
-      const m = e.target.closest('[data-mode]');
-      if (m) { S.name = $('#psName', el).value; S.site = $('#psSite', el).value; S.tz = $('#psTz', el).value; S.mode = m.dataset.mode; render(); $(`[data-mode="${S.mode}"]`, el).focus(); return; }
       const b = e.target.closest('[data-ps]');
       if (!b) return;
       if (b.dataset.ps === 'renew') {
@@ -212,23 +264,23 @@
         db().balance -= 800;
         P.until = Math.max(P.until, Date.now()) + 30 * APP.DAY; P.period = 30; if (P.st === 'off' || P.st === 'demo') P.st = 'ok';
         db().payments.unshift({ at: Date.now(), sum: -800, what: { ru: `Продление: ${tx(P.name)}, 30 дней`, en: `Renewal: ${tx(P.name)}, 30 days`, kk: `Ұзарту: ${tx(P.name)}, 30 күн` } });
-        save(); setBalance(); render(); toast(t('ps.renewed', { date: I18N.date(P.until) }));
+        save(); setBalance(); read(); render('[data-ps="renew"]'); toast(t('ps.renewed', { date: I18N.date(P.until) }));
       } else {
-        const name = tx(P.name);
-        if (!(await confirmBox({ titleKey: 'ps.delTitle', text: t('ps.delText', { name }) }))) return;
+        const name = tx(P.name), del = b.dataset.ps === 'del';
+        if (!(await confirmBox({ titleKey: del ? 'ps.delTitle' : 'ps.refuseTitle', text: t(del ? 'ps.delText' : 'ps.refuseText', { name }), okKey: del ? 'c.delete' : 'ps.refuse' }))) return;
         db().projects = db().projects.filter((x) => x !== P);
-        ['sources', 'receivers', 'posts'].forEach((k) => { db()[k] = db()[k].filter((x) => x.p !== P.id); });
+        if (del) ['sources', 'receivers', 'posts'].forEach((k) => { db()[k] = db()[k].filter((x) => x.p !== P.id); });
         save();
-        try { sessionStorage.setItem('seolit-toast', t('ps.deleted', { name })); } catch (er) { /* ничего */ }
+        try { sessionStorage.setItem('seolit-toast', t(del ? 'ps.deleted' : 'ps.refused', { name })); } catch (er) { /* ничего */ }
         location.href = 'projects.html';
       }
     };
-    el.onchange = (e) => { if (e.target.id === 'psAuto') { P.autoRenew = e.target.checked; save(); } };
     el.onsubmit = (e) => {
-      e.preventDefault();
-      const nm = $('#psName', el).value.trim();
-      if (nm) P.name = L3(nm);
-      P.site = $('#psSite', el).value.trim().replace(/^https?:\/\//, '').replace(/\/$/, ''); P.mode = S.mode; P.tz = $('#psTz', el).value;
+      e.preventDefault(); read();
+      P.name = L3(S.name); P.description = S.description; P.site = S.description;
+      Object.assign(P, { publication_interval: S.publication_interval, posts_number_at_a_time: S.posts_number_at_a_time, schedule_id: S.schedule_id, templates_selected: S.tpls,
+        report_errors: S.report_errors, report_sending: S.report_sending, telegram_accounts: S.telegram_accounts });
+      if (!S.state) P.st = 'off'; else if (P.st === 'off') P.st = P.until > Date.now() ? 'ok' : 'off';
       save(); back?.(); toast(t('ps.saved'));
     };
     render();
@@ -482,8 +534,7 @@
               <span></span>${Array.from({ length: 24 }, (_, h) => `<span class="schgrid__h">${h % 3 === 0 ? h : ''}</span>`).join('')}
               ${D.grid.map((row, d) => `<span class="schgrid__d">${esc(t('sch.d' + d))}</span>${row.map((v, h) => `<button type="button" class="schgrid__c" data-d="${d}" data-h="${h}" aria-pressed="${!!v}" aria-label="${esc(t('sch.cell', { day: t('sch.d' + d), h: pad(h), h2: pad(h + 1) }))}"></button>`).join('')}`).join('')}
             </div><p class="field__err" id="scEmpty"${hoursOf(D.grid) ? ' hidden' : ''}>${esc(t('sch.empty'))}</p></div>
-          <div class="two"><div class="field"><label for="scLimit">${esc(t('sch.limit'))}</label><input class="input" id="scLimit" type="number" min="0" max="200" inputmode="numeric" value="${D.limit}"><span class="field__hint">${esc(t('acc.limitHint'))}</span></div>
-            <div class="field"><label for="scInt">${esc(t('sch.interval'))}</label><input class="input" id="scInt" type="number" min="0" max="1440" step="5" inputmode="numeric" value="${D.interval}"></div></div>
+          <p class="field__hint">${esc(t('sch.where'))}</p>
           <div class="split__foot"><button type="button" class="btn btn--danger" data-act="del">${esc(t('sch.del'))}</button><button type="button" class="btn" data-act="assign">${esc(t('sch.assign'))}</button><button type="submit" class="btn btn--p">${esc(t('sch.save'))}</button></div>
         </form>` : ''}
       </div>`;
@@ -523,7 +574,6 @@
     function readForm() {
       const D = SC.draft; if (!D) return;
       const nm = $('#scName', main).value.trim(); if (nm) D.name = L3(nm);
-      D.limit = Math.max(0, +$('#scLimit', main).value || 0); D.interval = Math.max(0, +$('#scInt', main).value || 0);
     }
     main.onsubmit = (e) => {
       e.preventDefault(); readForm();
@@ -569,6 +619,7 @@
       $('#tpLen', main).textContent = plural(o.length, 'tpl.len');
       $('#tpNoVars', main).hidden = VARS.some((v) => TP.draft.body.includes(`#${v}#`));
       $('#tpDirty', main).hidden = !dirty();
+      $('[data-act="reset"]', main).disabled = !dirty();
     }
     function render(focus) {
       const D = TP.draft;

@@ -545,7 +545,7 @@
       const cta = p.st === 'demo' ? 'prj.pay' : p.st === 'off' ? 'prj.renew' : '';
       const leftTxt = left > 0 ? plural(left, 'p.days') : '';
       return `<article class="card pcard pcard--${p.st}">
-        <div class="pcard__head"><div class="pcard__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pcard__site">${esc(p.site || '')}</span></div>${projPill(p)}</div>
+        <div class="pcard__head"><div class="pcard__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pcard__site">${esc(p.description ?? p.site ?? '')}</span></div>${projPill(p)}</div>
         <div class="pcard__nets d-only">${projNets(p, 6)}</div>
         <div class="pcard__nets m-only">${projNets(p, 5)}<span class="pcard__q"><b class="num">${I18N.num(st.plan)}</b> ${esc(t('prj.inQueue'))}</span></div>
         <dl class="pcard__nums d-only">
@@ -587,8 +587,8 @@
           ${query ? '' : `<button type="button" class="pnew" data-new><span class="pnew__plus">${ico('plus')}</span><b>${esc(t('prj.newProject'))}</b><span class="d-only">${esc(t('prj.newHint'))}</span></button>`}</div></section>` : ''}
         ${sharedF.length ? `<section class="d-only" aria-labelledby="sharedT"><h2 class="sec-t" id="sharedT">${esc(t('prj.shared'))}<span class="sec-t__n">${sharedF.length}</span></h2>
           ${sharedF.map((p) => { const st = { ...DEMO.stats(p.id), err: DEMO.conn(p.id).all }; return `<article class="card prow">
-            <div class="prow__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pill pill--info">${esc(t('prj.role.' + p.role))}</span>
-              <span class="prow__owner">${esc(t('prj.owner', { email: p.owner }))}</span></div>
+            <div class="prow__name"><h3><a href="project.html?id=${p.id}">${esc(tx(p.name))}</a></h3><span class="pill pill--info">${esc(t((p.permissions || []).includes('project.update') ? 'ac.owner' : (p.permissions || []).includes('task.create') ? 'prj.role.editor' : 'ac.viewer'))}</span>
+              <span class="prow__owner">${esc(t('prj.connected'))} · ${esc(p.description || p.site || '')}</span></div>
             <div class="prow__nums"><span><b class="num">${I18N.num(st.plan)}</b> ${esc(t('prj.inQueue'))}</span><span><b class="num">${I18N.num(st.paused)}</b> ${esc(t('prj.paused'))}</span>
               <span${st.err ? ' class="is-err"' : ''}><b class="num">${I18N.num(st.err)}</b> ${esc(plural(st.err, 'p.errWord'))}</span></div>
             <a class="btn btn--sm btn--line" href="project.html?id=${p.id}">${esc(t('prj.open'))}</a></article>`; }).join('')}</section>` : ''}
@@ -648,7 +648,7 @@
   PAGES.project = () => {
     const main = $('#main');
     const P = DEMO.project(q.get('id')) || DEMO.project('shop');
-    const S = { view: ['sources', 'dests', 'stats', 'access', 'settings'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
+    const S = { view: ['sources', 'dests', 'stats', 'settings'].includes(q.get('tab')) ? q.get('tab') : 'overview', filter: q.get('filter') === 'err' ? 'err' : 'all',
       search: '', open: new Set(), allGroups: false, allSrc: false, m: 'dests' };
     const recvs = () => DEMO.db.receivers.filter((r) => r.p === P.id);
     const srcs = () => DEMO.db.sources.filter((r) => r.p === P.id);
@@ -743,13 +743,13 @@
       const st = DEMO.stats(P.id), nS = srcs().length, nR = recvs().length;
       const tab = (k, label, n) => `<button type="button" class="ptab" data-act="view" data-id="${k}"${S.view === k ? ' aria-current="page"' : ''}>${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</button>`;
       const link = (h, label, n) => `<a class="ptab" href="${h}">${esc(t(label))}${n != null ? ` <span class="num">${I18N.num(n)}</span>` : ''}</a>`;
-      const extra = ['stats', 'access', 'settings'].includes(S.view);
+      const extra = ['stats', 'settings'].includes(S.view);
       const cols = S.view === 'sources' ? sourcesCol() : S.view === 'dests' ? destsCol() : extra ? '' : sourcesCol() + destsCol();
       main.innerHTML = `<div class="page__head"><div><div class="proj__title"><h1 class="d-only">${esc(tx(P.name))}</h1>${projPill(P)}</div>
           <p class="proj__site">${esc(t('proj.site', { site: P.site || '—', paid: lcFirst(projPaid(P)) }))}</p></div>
           <button type="button" class="btn d-only" data-act="view" data-id="settings"${S.view === 'settings' ? ' aria-current="page"' : ''}>${ico('settings', 'ico--sm')}${esc(t('proj.settings'))}</button></div>
         <nav class="ptabs" aria-label="${esc(t('proj.sections'))}">${tab('overview', 'proj.overview')}${tab('sources', 'proj.sources', nS)}${tab('dests', 'proj.dests', nR)}
-          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${tab('stats', 'proj.stats')}${tab('access', 'proj.access', (DEMO.db.team && DEMO.db.team[P.id] || []).length || P.team || 1)}<span class="m-only">${tab('settings', 'proj.settings')}</span></nav>
+          ${link(`queue.html?project=${P.id}`, 'proj.queue', st.plan)}${tab('stats', 'proj.stats')}<span class="m-only">${tab('settings', 'proj.settings')}</span></nav>
         ${S.view === 'overview' ? kpis() : ''}
         ${extra ? '<div class="ptab-body" id="ptab"></div>' : ''}
         <div class="seg seg--m m-only${extra ? ' is-hidden' : ''}" role="group" aria-label="${esc(t('proj.view'))}">
@@ -920,7 +920,7 @@
     I18N.onChange(() => { setCrumbs([{ key: 'nav.projects', href: 'projects.html' }, { text: P.name }]); render(); });
     render();
     // sections.js подключается после app.js — когда он готов, дорисовать вкладку этапа 2
-    document.addEventListener('sections-ready', () => { if (['stats', 'access', 'settings'].includes(S.view)) render(); });
+    document.addEventListener('sections-ready', () => { if (['stats', 'settings'].includes(S.view)) render(); });
     if (location.hash === '#connect') openConnect('dest');
     else if (location.hash === '#connect-source') openConnect('source');
   };

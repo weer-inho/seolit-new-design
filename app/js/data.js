@@ -28,7 +28,7 @@
       nets: ['vk', 'ok'], published: 312, week: [0, 0, 0, 0, 0, 0, 0], weekPrev: 6, team: 1, until: at(-14), period: 30, own: true },
     { id: 'signal', name: L('test123', 'test123', 'test123'), site: 'seolit.ru', st: 'ok', real: true,
       nets: ['vk'], published: 2210, week: [30, 28, 35, 31, 33, 29, 34], weekPrev: 215, team: 5, until: at(41), period: 30, own: false,
-      role: 'editor', owner: 'ivan@example.ru' },
+      permissions: ['project.view', 'task.view', 'task.create', 'task.update', 'task.state_edit', 'receiver.update'] },
   ];
 
   // Реальные проекты со скриншотов кабинета seolit.ru (docs/real_projects): названия, аккаунты и состояния — как там
@@ -112,6 +112,8 @@
     ['srt', 'ok', 'Мой Одноклассники (тестовая группа)', 'on', '08.09.2020', ['q', 2]],
   ];
   const realRow = ([p, net, name, st, ...parts]) => ({ p, net, st, name: L(name, name, name), meta: RM(...parts), ...(st === 'err' ? { fix: FIX } : {}) });
+
+  projects.forEach((p) => Object.assign(p, { description: p.description ?? p.site, publication_interval: 30, posts_number_at_a_time: 1, schedule_id: '', templates_selected: {}, report_errors: 2, report_sending: 1, telegram_accounts: '' }));
 
   /* ---------- Источники (откуда брать) ---------- */
   const ago = (m) => L(`${m} мин назад`, `${m} min ago`, `${m} мин бұрын`);
@@ -299,11 +301,11 @@
   ];
 
   /* ---------- Состояние: сид + изменения из sessionStorage ---------- */
-  const seed = () => ({ v: 5, projects, sources, receivers, posts, templates, schedules, watermarks, autoimg, team, payments, apiKeys, balance: user.balance, nextId: 1000 });
+  const seed = () => ({ v: 6, projects, sources, receivers, posts, templates, schedules, watermarks, autoimg, team, payments, apiKeys, balance: user.balance, nextId: 1000 });
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let db;
   try { db = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { db = null; }
-  if (!db || db.v !== 5) db = clone(seed());
+  if (!db || db.v !== 6) db = clone(seed());
 
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* хранилище недоступно */ } };
   const reset = () => { try { sessionStorage.removeItem(KEY); } catch (e) { /* ничего */ } db = clone(seed()); };
